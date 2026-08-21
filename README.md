@@ -53,6 +53,11 @@ This is why we must do it this way:
 A subagent's self-report is not proof. Anything that writes files or runs gates
 must be verified by the parent agent from the commit/diff.
 
+Important note: similar to how *you* will only run one subagent at a time (because
+every execution on this machine happens on the same GPU, so it is impossible to run
+multiple agents in parallel), it is **imperative** that your subagents do not
+themselves spawn subagents. You should advise them of this in your prompts to them.
+
 ### Discipline
 
 - Do not start job N until job N-1's gate is GREEN and recorded in STATUS.md.
