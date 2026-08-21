@@ -28,32 +28,30 @@ gate. The prompts are written so an agent with no other context can pick one up 
 start coding: each prompt tells you exactly what to read, what to build, what the
 acceptance criteria are, and what to do when done (update STATUS.md, commit, stop).
 
-### Session vs subagent: use a NEW SESSION per job (recommended)
+### Session vs subagent
 
-Recommended workflow: **one fresh session per job**, driven by the user.
+Workflow: **one fresh subagent per job**, driven by the parent agent in the starting session.
+The human will start an agent in a new session in this repo (cwd /home/jackson/rmgpu/rmgpu).
+The agent will then spawn off subagents in sequence according to this loop:
 
-  1. Start a new session in this repo (cwd /home/jackson/rmgpu/rmgpu).
-  2. First message: "Read ORIENTATION.md, then prompts/job-NN-*.md, then STATUS.md.
-     Execute the job. When done, update STATUS.md and commit."
-  3. When the job finishes, review the commit + the STATUS.md entry + the gate report.
+  1. First message: "Read ORIENTATION.md, then prompts/job-NN-*.md, then STATUS.md.
+     Execute the job. When done, update STATUS.md and commit."  -- DO NOT interrupt the
+     agent once this starts, let it keep working until it returns
+  2. When the job finishes, review the commit + the STATUS.md entry + the gate report.
      Approve, or start a follow-up session to fix issues.
-  4. Say "next job" (or start the next session) to proceed.
+  3. Return to Step 1. spawning a new agent to work on the next job.
 
-Why a new session rather than subagents dispatched from one session:
+This is why we must do it this way:
+
 - Each job is large (10k+ LOC of context of reference code). A fresh context window
   per job avoids compaction mid-job, which corrupts long implementation work.
-- Jobs are strictly sequential with hard gates; there is little to parallelize
+- Jobs are strictly sequential with hard gates; there is nothing to parallelize
   BETWEEN jobs (a job's output is the next job's input), so subagent fan-out buys
   nothing at the job level.
 - A new session is trivially resumable: the prompt file + STATUS.md is the whole state.
 
-Within a single job, subagents MAY be used for parallelizable subtasks (e.g. porting
-independent statmech rotors, or generating test fixtures from RMG-Py reference
-outputs). Two hard rules for subagents here:
-  1. Single GPU, one heavy GPU task at a time. Never run two GPU-hungry subagents
-     concurrently; the local model server (llama-server) must not be killed.
-  2. A subagent's self-report is not proof. Anything that writes files or runs gates
-     must be verified by the parent (or the user) from the commit/diff.
+A subagent's self-report is not proof. Anything that writes files or runs gates
+must be verified by the parent agent from the commit/diff.
 
 ### Discipline
 
