@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+conda/
+# generated run outputs (if runs ever happen inside the repo)
+run-*/
+reports/*.html
+# env artifacts
+conda-meta/
+# reference checkouts never live in this repo
+RMG-Py/
+RMG-database/
+rmgdb/
