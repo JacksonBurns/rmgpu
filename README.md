@@ -35,8 +35,8 @@ acceptance criteria are, and what to do when done (update STATUS.md, commit, sto
 ### Session vs subagent
 
 Workflow: **one fresh subagent per job**, driven by the parent agent in the starting session.
-The human will start an agent in a new session in this repo (cwd /home/jackson/rmgpu/rmgpu).
-The agent will then spawn off subagents in sequence according to this loop:
+The human will start you, an agent in a new session in this repo (cwd /home/jackson/rmgpu/rmgpu).
+The agent (you) will then spawn off subagents in sequence according to this loop:
 
   1. First message: "Read ORIENTATION.md, then prompts/job-NN-*.md, then STATUS.md.
      Execute the job. When done, update STATUS.md and commit."  -- DO NOT interrupt the
@@ -57,7 +57,7 @@ This is why we must do it this way:
 A subagent's self-report is not proof. Anything that writes files or runs gates
 must be verified by the parent agent from the commit/diff.
 
-Important note: similar to how *you* will only run one subagent at a time (because
+Important note: similar to how *you* will only run one subagent at a time for each task (because
 every execution on this machine happens on the same GPU, so it is impossible to run
 multiple agents in parallel), it is **imperative** that your subagents do not
 themselves spawn subagents. You should advise them of this in your prompts to them.
