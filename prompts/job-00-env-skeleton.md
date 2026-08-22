@@ -27,7 +27,7 @@ tooling, and the gate harness skeleton. No chemistry yet.
      but the env must be able to import chemprop and load a checkpoint.
    - rmgdb: install from /home/jackson/rmgpu/rmgdb (editable or as a git dependency;
      follow its README). Record the install method in the report.
-   - NEVER install into system python or the active venv. `conda run -n rmgpu ...` for everything.
+   - NEVER install into system python or the active venv -- everything must go in the `rmgpu` conda environment.
 
 2. **Package skeleton** at rmgpu/ exactly per ORIENTATION.md layout:
    - pyproject.toml (name rmgpu, version 0.1.0, entry point `rmgpu = rmgpu.cli:main`,
@@ -55,8 +55,8 @@ tooling, and the gate harness skeleton. No chemistry yet.
 
 ## Gate (job 00)
 
-  conda run -n rmgpu python -m pytest tests/ -q     -> all pass
-  conda run -n rmgpu rmgpu version                  -> prints 0.1.0
+  /home/jackson/miniforge3/envs/rmgpu/bin/python -m pytest tests/ -q     -> all pass
+  /home/jackson/miniforge3/envs/rmgpu/bin/python version                  -> prints 0.1.0
 Write reports/job-00.md: env versions (pip freeze | grep -E 'torch|rdkit|chemprop|...'),
 checkpoint locations found, rmgdb install method, and the pytest summary line.
 

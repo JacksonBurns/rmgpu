@@ -4,6 +4,11 @@ Ground-up, pure-Python (NumPy/PyTorch) rewrite of RMG. This repo is the working
 repository: the plan, the job prompts that drive implementation across sessions,
 and (from job 00 on) the code itself.
 
+Note: you and all other subagents must *directly* invoke the Python interpreter
+in the desired conda environment, e.g. to run within an environment called rmgpu, run:
+`/home/jackson/miniforge3/envs/rmgpu/bin/python ...` -- this ensure that runs happen and
+packages are installed in the correct environment.
+
 ## Layout
 
     PLAN.md            The full feasibility + feature-parity plan (read the sections
