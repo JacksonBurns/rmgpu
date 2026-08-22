@@ -17,9 +17,13 @@ and (from job 00 on) the code itself.
     reports/           (created in job 00) gate reports written by jobs
 
 Reference material (read-only, NOT part of this repo, at /home/jackson/rmgpu):
-  - RMG-Py/          reference implementation (v4.0.0-5-gd08392ed)
-  - RMG-database/    the 2.4M-line data (families, libraries, statmech, transport)
-  - rmgdb/           SQL wrapper over RMG-database (our database layer)
+  - RMG-Py/          reference implementation (v4.0.0-5-gd08392ed), conda env rmg_env has it installed
+  - RMG-database/    the 2.4M-line data (families, libraries, statmech, transport), access via RMG-Py and its corresponding rmg_env
+  - rmgdb/           SQL wrapper over RMG-database (our database layer), installed in rmgdb conda environment
+  - chemprop_example/ example code for running inference with a trained Chemprop v2 model, use chemprop-dev environment if needed
+
+Note that you DO NOT yet have access to actual trained Chemprop/CheMeleon models that are suitable for integration.
+You should mark which ones are needed, but leave method stubs/signatures/etc. that just need the checkpoint dropped in.
 
 ## How work gets done (read this before starting a job)
 
