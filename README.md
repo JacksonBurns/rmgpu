@@ -22,9 +22,6 @@ Reference material (read-only, NOT part of this repo, at /home/jackson/rmgpu):
   - rmgdb/           SQL wrapper over RMG-database (our database layer), installed in rmgdb conda environment
   - chemprop_example/ example code for running inference with a trained Chemprop v2 model, use chemprop-dev environment if needed
 
-Note that you DO NOT yet have access to actual trained Chemprop/CheMeleon models that are suitable for integration.
-You should mark which ones are needed, but leave method stubs/signatures/etc. that just need the checkpoint dropped in.
-
 ## How work gets done (read this before starting a job)
 
 Each job is a self-contained unit of work with its own deliverables and a testable
@@ -61,6 +58,9 @@ Important note: similar to how *you* will only run one subagent at a time for ea
 every execution on this machine happens on the same GPU, so it is impossible to run
 multiple agents in parallel), it is **imperative** that your subagents do not
 themselves spawn subagents. You should advise them of this in your prompts to them.
+
+Also note that you DO NOT yet have access to actual trained Chemprop/CheMeleon models that are suitable for integration.
+Your subagents should mark which ones are needed, but leave method stubs/signatures/etc. that just need the checkpoint dropped in.
 
 ### Discipline
 
