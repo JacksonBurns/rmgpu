@@ -1,93 +1,35 @@
 # job-05: Reaction recipe DSL + product enumeration
 
-Read ORIENTATION.md (retain #2) and PLAN.md section 4 (retained: recipes). Prereqs:
-jobs 01-02 (molecule layer + database/family loading).
+Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
+in one session - it is decomposed into the steps below, one session each.
+The coordinator (see README.md, "Session vs step") picks the next step from
+STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
-Port RMG's reaction *generation* machinery: the recipe DSL (atom-labeled bond
-operations) that, given a reaction template + a reactant structure, enumerates all
-valid product structures with degeneracy. This is custom RMG IP (NOT SMARTS
-reactions - PLAN.md section 4) and must be ported faithfully; it is the engine that
-turns "a C=C exists" into concrete isomer products.
+Port RMG's reaction GENERATION machinery: the recipe DSL (atom- labeled bond operations) that, given a reaction template + a reactant structure, enumerates all valid product structures with degeneracy. Custom RMG IP (NOT SMARTS reactions - PLAN.md 4), ported faithfully - the engine that turns "a C=C exists" into concrete isomer products. Deliverables: rmgpu/core/recipe.py (the engine), rmgpu/core/template.py (template matching), rmgpu/core/family.py (loader + facade), plus the group matcher in rmgpu/molecule/group.py (partial port).
 
-## Reference (read - this is a big port; read the actual code)
+## Prereq
 
-  RMG-Py/rmgpy/data/kinetics/family.py  (245k) - focus on:
-    ReactionRecipe (apply_recipe, _generate_product_structures, _get_degeneracy,
-    label handling), TemplateReaction/TemplateGroup matching,
-    calculate_degeneracy, _find_matching_atoms.
-  RMG-Py/rmgpy/molecule/molecule.py - the label/bond-mutation APIs the recipe uses
-    (use rmgpu's Molecule equivalents from job 01; where job-01 lacks an API, add it
-    to job-01's modules now - that is allowed, keep it small).
-  Family data: RMG-Py loads families from RMG-database/input/kinetics/families/<N>/
-  (family.py + templates + rate rules). Job-02 documented how families are (or are
-  not) stored in rmgdb - use that conclusion. The recipe DEFINITIONS (the bond-ops
-  lists) are data; the recipe ENGINE is code we port.
+jobs 01-02 done (Molecule layer; family-definition storage decision from job-02 step 4)
 
-## Deliverables
+## Steps (strictly sequential; one fresh subagent session each)
 
-1. `rmgpu/core/recipe.py`
-   - `ReactionRecipe`: parses/holds the recipe (the list of bond operations with
-     labeled atoms, e.g. R-H + X* -> R-X + H*), and `apply(reactants) ->
-     (products, degeneracies)` enumerating all valid applications over atom
-     labelings, with RMG's exact validity rules (valence checks via the molecule
-     layer, bond-order bookkeeping, no-duplicate products).
-   - labeled-atom mechanics: port RMG's labeled-atom + `_label_atoms` semantics on
-     the rmgpu Molecule (labels '1','2','*','*1', bond labels).
-   - degeneracy counting: port `calculate_degeneracy` exactly (it counts equivalent
-     applications; this must match RMG-Py bit-for-bit on the test set or the
-     mechanism diverges).
-2. `rmgpu/core/template.py`
-   - reaction template matching: given a family's templates (groups of reactant
-     patterns) and a concrete reaction's molecules, find matching labelings
-     (group matching = substructure with RMG group semantics; RMG-Py's Group class
-     in molecule/group.py is the reference - decide how much to port vs delegate to
-     RDKit SMARTS; RMG groups are SMARTS-like but have RMG-specific constructs;
-     port the group matcher, do NOT try to force RDKit SMARTS where semantics
-     differ).
-   - `match(family, reaction) -> template_labels` used by the core loop (job 06)
-     to know which family produced a reaction.
-3. `rmgpu/core/family.py` (loader + facade)
-   - load family definitions from RMG-database (per job-02's documented strategy):
-     recipes, templates, rate rules (rate rules loaded as DATA; they are used only
-     for depository/reverse-rate purposes in job 08 - the rate-rule ESTIMATOR is
-     deleted, PLAN.md 3).
-   - `KineticsFamilies` aggregate: `get_family(name)`, `families` list,
-     `match_reaction(reaction) -> (family, template)`.
-4. Unit tests: port the recipe test cases from RMG-Py (RMG-Py/tests/rmgpy/data/
-   kinetics/test_family.py and similar - find and copy the relevant fixtures with
-   attribution).
+  step 01  prompts/steps/job-05-step-01-engine.md  ReactionRecipe engine (apply_recipe + labels)
+  step 02  prompts/steps/job-05-step-02-products.md  Product enumeration (generate_reactions)
+  step 03  prompts/steps/job-05-step-03-templates.md  Template matching + group matcher
+  step 04  prompts/steps/job-05-step-04-families.md  Family loader + KineticsFamilies facade
+  step 05  prompts/steps/job-05-step-05-gate.md  Job-05 gate (product enumeration parity)
 
-## Gate (job 05) -> gates/gate_05.py, report reports/job-05.md
+## The job gate
 
-For a fixed set of (family, reactants) test cases (build from: every family in the
-'default' set that appears in the c3h4/superminimal mechanisms + the RMG-Py test
-fixtures):
-  1. Product enumeration parity: for each case, run RMG-Py's family.apply/get
-     products and rmgpu's; the SETS of products (canonical SMILES) must be equal,
-     and the degeneracy per product must match exactly. Report: cases, pass/fail,
-     any product-set or degeneracy mismatches (list them).
-  2. Reverse: for products enumerated, the reverse-reaction template must also
-     match (families that are reversible).
-  3. Timing: product enumeration for a 10-atom reactant < 5s (sanity; record times).
-  Mismatches in product sets are HARD failures for the job (they break mechanism
-  generation). Document any family whose data format rmgdb/family-loading cannot
-  yet express as a BLOCKED family (list them; job 06 can proceed around them).
+Run by the final step's session (gates/gate_05.py, report
+reports/job-05.md):
 
-## When done
+gates/gate_05.py over a fixed set of (family, reactants) cases (every family in the 'default' set that appears in the c3h4/superminimal mechanisms + the RMG-Py test fixtures): 1. Product enumeration parity: for each case, RMG-Py's family.get_products/apply vs rmgpu's: the SETS of products (canonical SMILES) equal, and the degeneracy per product matches EXACTLY. Report: cases, pass/fail, mismatches listed. 2. Reverse: for enumerated products, the reverse-reaction template matches (reversible families). 3. Timing: product enumeration for a 10-atom reactant < 5s (record). Mismatches in product sets are HARD failures. Any family whose data format cannot be expressed yet: BLOCKED family (listed; job 06 proceeds around them).
 
-STATUS.md + commit "job-05: reaction recipe DSL + product enumeration" + STOP.
+## When the job is done
 
-## Pitfalls
-
-- This is the most "port RMG's exact semantics" job after the pdep. The degeneracy
-  and validity rules are subtle (stereochemistry, duplicate labeling, radical
-  sites). When in doubt, RMG-Py's behavior on a given case is the spec.
-- Do NOT port the rate-rule training code (depository -> rules, the BM tree) -
-  deleted. Only the recipe/template machinery.
-- Group matching (molecule/group.py, 135k) may need a partial port: port the
-  matcher + the constructs actually used by family templates. Keep it in
-  rmgpu/molecule/group.py (add to job-01's layer).
-- If a family's recipe uses constructs rmgpu's Molecule doesn't support (rare
-  atom types, unusual bonds), add the minimum Molecule support and note it.
+The final step's report (reports/job-05.md) has the gate result, the
+job table row is `done` (or `blocked` with the cause), and the NEXT pointer
+in STATUS.md targets job-06's first step (if there is a next job).

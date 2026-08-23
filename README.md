@@ -1,85 +1,130 @@
 # rmgpu -- RMG-GPU implementation repo
 
 Ground-up, pure-Python (NumPy/PyTorch) rewrite of RMG. This repo is the working
-repository: the plan, the job prompts that drive implementation across sessions,
-and (from job 00 on) the code itself.
+repository: the plan, the orchestration docs, the job/step prompts that drive
+implementation across sessions, and (from job 00 on) the code itself.
 
 ## Layout
 
     PLAN.md            The full feasibility + feature-parity plan (read the sections
-                       your job prompt names; it is the source of truth for design).
-    ORIENTATION.md     Self-contained context brief for implementation sessions.
-                       EVERY job starts by reading this.
-    STATUS.md          Work tracker: job table + append-only session log.
-    prompts/           One file per job, in sequence. job-NN-<name>.md
+                       your step file names; it is the source of truth for design).
+    ORIENTATION.md     Self-contained context brief. Read ONCE at the start of a
+                       job (see "Session vs step" below), never per step.
+    STATUS.md          Work tracker: NEXT pointer, job/step tables, decisions
+                       log, append-only session log.
+    prompts/           One file per JOB (a job is a milestone with one gate):
+                       job-NN-<name>.md -- short brief + step list only.
+    prompts/steps/     One file per STEP (a step is one subagent session):
+                       job-NN-step-MM-<name>.md -- self-contained, budgeted.
     rmgpu/             (created in job 00) the package itself
     gates/             (created in job 00) parity-gate scripts + baselines
-    reports/           (created in job 00) gate reports written by jobs
+    reports/           (created in job 00) gate/step reports written by steps
 
 Reference material (read-only, NOT part of this repo, at /home/jackson/rmgpu):
-  - RMG-Py/          reference implementation (v4.0.0-5-gd08392ed), conda env rmg_env has it installed
-  - RMG-database/    the 2.4M-line data (families, libraries, statmech, transport), access via RMG-Py and its corresponding rmg_env
-  - rmgdb/           SQL wrapper over RMG-database (our database layer), installed in rmgdb conda environment
-  - chemprop_example/ example code for running inference with a trained Chemprop v2 model, use chemprop-dev environment if needed
+  - RMG-Py/          reference implementation (v4.0.0-5-gd08392ed), conda env
+                     rmg_env has it installed
+  - RMG-database/    the 2.4M-line data (families, libraries, statmech,
+                     transport), access via RMG-Py and its rmg_env
+  - rmgdb/           SQL wrapper over RMG-database (our database layer),
+                     installed in the rmgdb conda environment
+  - chemprop_example/  THE reference for Chemprop inference. predicting.ipynb
+                     shows exactly how to load a trained Chemprop v2 checkpoint
+                     (models.MPNN.load_from_checkpoint) and predict (featurize
+                     with featurizers, build a MoleculeDataset,
+                     data.build_dataloader, pl.Trainer(...).predict). Use the
+                     chemprop-dev environment if needed. See below: "The ML
+                     estimators are NEW".
 
-## How work gets done (read this before starting a job)
+## The ML estimators are NEW (read this)
 
-Each job is a self-contained unit of work with its own deliverables and a testable
-gate. The prompts are written so an agent with no other context can pick one up and
-start coding: each prompt tells you exactly what to read, what to build, what the
-acceptance criteria are, and what to do when done (update STATUS.md, commit, stop).
+RMG-Py ships a Chemprop-based thermo estimator (`rmgpy/ml/estimator.py`, an
+`MLEstimator` wrapping Chemprop species models; disabled on py3.11, upstream
+issue #2559). In rmgpu it is REPLACED, not reused:
 
-### Session vs subagent
+  - rmgpu's estimators (`rmgpu/ml/thermo_estimator.py`,
+    `rmgpu/ml/kinetics_estimator.py`) are written fresh, modeled on
+    chemprop_example/predicting.ipynb. RMG's `ml/estimator.py` is read ONLY to
+    learn its checkpoint layout (Hf298 model + S298+Cp model), its uncertainty
+    cutoffs, and how the `ml_estimator:` input DSL wires them - as design
+    reference. Nothing is imported, copied, or wrapped from it.
+  - Same for checkpoints: the existing checkpoints (CheMeleon thermo models,
+    any reaction-model checkpoints) are CONSUMED via the new estimators'
+    own load path - which mirrors the chemprop_example load path
+    (MPNN.load_from_checkpoint + the model's featurizer). Do not try to make
+    RMG's MLEstimator work.
+  - If a new/better checkpoint arrives later, only the `ml_estimator:` block of
+    the input YAML changes (checkpoint name + hash). No code change. (PLAN.md
+    8a.3: the checkpoint interface is the only seam between model improvement
+    and mechanism generation; model improvement happens OUTSIDE this package.)
 
-Workflow: **one fresh subagent per job**, driven by the parent agent in the starting session.
-The human will start you, an agent in a new session in this repo (cwd /home/jackson/rmgpu/rmgpu).
-The agent (you) will then spawn off subagents in sequence according to this loop:
+## How work gets done (read this before starting)
 
-  1. First message: "Read ORIENTATION.md, then prompts/job-NN-*.md, then STATUS.md.
-     Execute the job. When done, update STATUS.md and commit."  -- DO NOT interrupt the
-     agent once this starts, let it keep working until it returns.
-  2. When the job finishes, review the commit + the STATUS.md entry + the gate report.
-     Approve, or start a follow-up session to fix issues.
-  3. Return to Step 1. spawning a new agent to work on the next job.
+Two levels, both driven by a parent (coordinator) agent:
 
-This is why we must do it this way:
+  JOB   = a milestone with one final gate. Too big for one session - that is
+          why this framework exists. A job brief (prompts/job-NN-*.md) is a
+          short file: goal, step list, the job's gate definition.
+  STEP  = one self-contained unit of work, sized to fit a SINGLE fresh
+          subagent session (target: 1 step per session; a session may finish
+          2 small steps if its context budget allows, but never start step 3
+          after doing 2). Each step file (prompts/steps/job-NN-step-MM-*.md)
+          names exactly which reference files to read, what to build, the
+          step's checks, and its context budget.
 
-- Each job is large (10k+ LOC of context of reference code). A fresh context window
-  per job avoids compaction mid-job, which corrupts long implementation work.
-- Jobs are strictly sequential with hard gates; there is nothing to parallelize
-  BETWEEN jobs (a job's output is the next job's input), so subagent fan-out buys
-  nothing at the job level.
-- A new session is trivially resumable: the prompt file + STATUS.md is the whole state.
+### Session vs step (the loop)
 
-A subagent's self-report is not *definitive* proof. You may briefly interrogate any suspicious
-claims, but remember that you are exactly as capable as your subagents -- it is unlikely that you
-will catch any nuanced issues, and you should instead trust the small details and perhaps confirm
-major points, as needed.
+The human starts the coordinator: a fresh agent session in this repo
+(cwd /home/jackson/rmgpu/rmgpu) with the first message:
 
-Important note: similar to how *you* will only run one subagent at a time for each task (because
-every execution on this machine happens on the same GPU, so it is impossible to run
-multiple agents in parallel), it is **imperative** that your subagents do not
-themselves spawn subagents. You should advise them of this in your prompts to them.
+  "Read STATUS.md (NEXT pointer) and execute exactly that next step.
+   When done, update STATUS.md and commit. Do not start any other step."
 
-Also note that you DO NOT yet have access to actual trained Chemprop/CheMeleon models that are suitable for integration.
-Your subagents should mark which ones are needed, but leave method stubs/signatures/etc. that just need the checkpoint dropped in.
+The coordinator:
+  1. Reads STATUS.md -> the NEXT pointer names exactly one step file.
+     (It does NOT read ORIENTATION.md or the job brief per step - those are
+     read once, when the step is the first of its job, and the step file
+     repeats the few facts it needs.)
+  2. Spawns ONE subagent for that step. The subagent's task prompt is
+     essentially: "Read prompts/steps/<file> and do it. Everything you need
+     is in that file plus what it points at."
+  3. Reviews the step's commit + report when it returns: run the step's
+     checks yourself if the report looks off, then update STATUS.md's
+     NEXT pointer to the following step.
+  4. If a step's gate/job-gate is RED, or a step comes back incomplete,
+     the NEXT pointer targets a fix step (write a small one in
+     prompts/steps/ if needed, e.g. job-04-step-11-fix-*.md) before moving
+     on.
+  5. Repeat. A step's self-report is not definitive proof; the checks are.
+     Trust the small details, spot-check the major claims.
 
-Note: you and all other subagents must *directly* invoke the Python interpreter
-in the desired conda environment, e.g. to run within an environment called rmgpu, run:
-`/home/jackson/miniforge3/envs/rmgpu/bin/python ...` -- this ensure that runs happen and
-packages are installed in the correct environment.
+Rules that make this work (why the structure is this way):
 
-### Discipline
-
-- Do not start job N until job N-1's gate is GREEN and recorded in STATUS.md.
-  Exceptions (skipping/deferring) require an explicit entry in STATUS.md.
-- Gates are scripts in gates/ that compare rmgpu output against RMG-Py reference
-  output (run on the same machine). Gate reports go to reports/ with real numbers.
-  Never fabricate or "smooth" a gate result; a red gate is a finding, and it gets
-  recorded as such.
-- Commits: one or more per job, message prefix "job-NN: <summary>". No pushes.
-- Conda env: `rmgpu` (created in job 00). Never install into system Python.
-- **DO NOT** do any work in the main session -- **ALL** work must be done via subagents, since you are acting as a coordinator
+- A single step reads at most ~3k lines of reference code (each step file
+  states its budget). That keeps any one session under compaction pressure;
+  the job's 50-150k lines of reference are spread across 4-9 steps, each of
+  which re-reads only its own slice.
+- Steps within a job are strictly sequential and share one branch; a step's
+  output files are the next step's input. Nothing is parallelizable - one
+  subagent at a time, because every heavy task on this machine uses the same
+  GPU. Subagents MUST NOT spawn subagents (tell every subagent this).
+- A step is resumable without a human: the step file + STATUS.md + git is the
+  whole state. If a session dies mid-step, the next coordinator session re-
+  runs the same step file; it should find and continue from the working
+  tree (the step file says what "already done" looks like).
+- Do not start job N's steps until job N-1's gate is GREEN and recorded in
+  STATUS.md. Exceptions require a decisions-log entry.
+- Gates: a job's final step runs the job gate (a script in gates/, report in
+  reports/). A step's intermediate checks are lighter (unit tests, small
+  scripts); a step's report goes to reports/job-NN-step-MM.md. Never
+  fabricate or "smooth" a result; a red check is a finding, recorded as such.
+- Commits: one or more per step, message prefix "job-NN/step-MM: <summary>".
+  No pushes.
+- Conda env: `rmgpu` (created in job 00). NEVER install into system Python
+  or the active venv. Always invoke the interpreter directly, e.g.
+  /home/jackson/miniforge3/envs/rmgpu/bin/python ...
+- The coordinator does NO implementation work itself. It orchestrates: pick
+  step, spawn subagent, review, update STATUS.md, commit STATUS.md changes.
+  ALL code work happens in subagents.
 
 ## Roadmap (see PLAN.md section 10 for the full version)
 
@@ -88,6 +133,7 @@ packages are installed in the correct environment.
     02  database layer via rmgdb + round-trip hash gate
     03  YAML input schema + CLI + legacy .py importer
     04  ML estimators (CheMeleon thermo, Chemprop kinetics) + rate registry
+        (THE thesis test; estimators built fresh per chemprop_example)
     05  reaction recipe DSL + product enumeration (port from family.py)
     06  core/edge loop + torchdae reactor (first integration; superminimal/c3h4)
     07  statmech + master equation (CSE) + pdep gate (propane_branching)

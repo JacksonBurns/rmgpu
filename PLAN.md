@@ -96,6 +96,36 @@ rate-rule tree) and the fallback orchestration around them. The retrieval logic
 ("is this species/reaction in a library? if not, estimate") stays, but the "estimate"
 branch is one call into the ML model, not a cascade.
 
+### 3a. The Chemprop-based estimators are REPLACED, not reused
+
+RMG-Py already ships a Chemprop-based thermo estimator: `rmgpy/ml/estimator.py`
+(`MLEstimator`, a Chemprop species-model wrapper, currently disabled on py3.11 --
+upstream issue #2559). It is the historical *seam* for ML in RMG, and in rmgpu it is
+**replaced, not re-enabled**:
+
+- **New code, old checkpoint layout.** rmgpu's estimators (`rmgpu/ml/thermo_estimator.py`,
+  `rmgpu/ml/kinetics_estimator.py`) are re-implemented from scratch. The reference
+  implementation to follow is `chemprop_example/predicting.ipynb` (in the workspace):
+  `models.MPNN.load_from_checkpoint(checkpoint_path)`, the model's featurizer,
+  `data.MoleculeDatapoint` / `MoleculeDataset` / `data.build_dataloader`, and
+  `pl.Trainer(accelerator=...).predict(model, loader)`. RMG's `ml/estimator.py` is
+  read *only* to learn (a) the checkpoint layout it consumes (separate Hf298 model
+  and S298+Cp model), (b) its uncertainty cutoffs, and (c) how the `ml_estimator:`
+  input DSL names them. Nothing is imported, copied, or wrapped from it -- it is
+  reference material, like the rest of RMG-Py's source.
+- **Existing checkpoints are consumed, not their infrastructure.** The current
+  checkpoints (CheMeleon thermo models; any reaction-model checkpoints) keep
+  working, but they are loaded through the *new* estimators' own load path (which
+  mirrors chemprop_example's), not through RMG's `MLEstimator`. If a checkpoint
+  does not load via that pattern, the new load path takes an explicit featurizer
+  argument and the mismatch is recorded as a finding (job 04, step 01).
+- **Kinetics estimators have no RMG counterpart.** RMG's wrapper was species-only;
+  the reaction (HPL kinetics) estimator is net-new in rmgpu, built on chemprop's
+  native reaction mode (6, verified in the 2.3.1 source).
+- **Checkpoint interface unchanged.** A better/future checkpoint is a config change
+  (the `ml_estimator:` block: name + hash), never a code change -- the same seam as
+  8a.3. The replacement changes *how checkpoints are loaded*, not *who supplies them*.
+
 ---
 
 ## 4. What gets RETAINED (and modernized to numpy/torch, no Cython)
@@ -143,7 +173,7 @@ transport -> ChEDL, units -> pint).
 | Molecule graph ops, isomorphism, substructure, degeneracy, canonicalization, SMARTS (~15k of molecule/) | **RDKit** | Verified: canonicalization, `GetSubstructMatch` (degeneracy), SMARTS parse work on installed RDKit 2024.09.4. Thin `Molecule` wrapper over `RWMol`. |
 | Graph isomorphism / VF2 (`vf2.pyx`) | **RDKit** (subgraph) or **graph-tool** (C++ VF2) | Delete `vf2.pyx`. |
 | All database I/O (`data/base.py` 1445 + every entry load/save) | **`rmgdb`** (SQLAlchemy/SQLite + YAML) | Your wrapper; the single biggest I/O win; typed tables for every rate model. |
-| Thermo property prediction | **Chemprop / CheMeleon** | Seam exists in RMG (`rmgpy/ml/estimator.py`, a chemprop wrapper, currently disabled for py3.11, RMG-Py #2559). Re-enable on the new stack as the *sole* estimator. |
+| Thermo property prediction | **Chemprop / CheMeleon** | REPLACED in rmgpu (not re-enabled): the new estimators are a fresh re-implementation of the checkpoint+inference infrastructure per chemprop_example (see 3a); RMG's `ml/estimator.py` is reference-only. |
 | Kinetics (HPL) property prediction | **Chemprop** (reaction models) | Verified in source, see §6. |
 | Kinetics rate *expressions* (arrhenius 2046, falloff, chebyshev, tunneling, `kinetics/model.pyx`) | **numpy/torch** (thin model registry, no Cython) | Pure math; ML predicts the parameters, the registry wraps them into k(T,P) the reactor/ME consume. |
 | Reactor DAE solver (`solver/` 5.2k, Cython + PyDAS) | **torchdae** (sole backend; CPU+GPU via device) | Verified: PyPI 0.1.1, BDF/TR-BDF2/Radau-IIA, index reduction, adjoint, vmap. No scipy path (torch has the CPU fallback). |
@@ -178,9 +208,12 @@ So the kinetics path is: **feed the reaction (as atom-mapped reactant + product,
 `RxnMode` that best matches the rate rules' feature basis) to a Chemprop reaction model
 -> get the predicted HPL rate (or Arrhenius parameters A, n, Ea) -> wrap it in the
 rate-expression registry -> feed the master equation for pressure dependence.** This is a
-drop-in replacement for `get_kinetics(..., estimator='rate rules')`, and it is the same
-architecture RMG already half-built in `ml/estimator.py` (which was species-only; the
-reaction generalization is exactly what chemprop now natively supports).
+drop-in replacement for `get_kinetics(..., estimator='rate rules')`. The architecture is
+the same one RMG half-built in `ml/estimator.py` (which was species-only; the reaction
+generalization is exactly what chemprop now natively supports) - but per 3a, rmgpu
+does NOT reuse that wrapper: the reaction estimator is written fresh on the
+chemprop_example inference pattern, which chemprop's reaction mode plugs into directly
+(featurizer + `ReactionDatapoint` + the same load/predict path).
 
 **Architectural note (important for the PoC):** ML gives the *high-pressure-limit* rate.
 *Pressure dependence* (falloff, the master equation) is still a simulation that consumes
@@ -242,8 +275,9 @@ rmgpu/
   db/
     loaders.py          # ALL I/O through rmgdb (thermo/kinetics/transport/solvation/statmech)
   ml/
-    thermo_estimator.py # Chemprop/CheMeleon species model -> Hf298,S298,Cp(T)         [SOLE estimator]
-    kinetics_estimator.py # Chemprop reaction model -> HPL rate / Arrhenius params     [SOLE estimator]
+    base.py             # shared Chemprop load/predict path (per chemprop_example)   [3a]
+    thermo_estimator.py # Chemprop/CheMeleon species model -> Hf298,S298,Cp(T)         [SOLE estimator; REPLACES rmgpy/ml/estimator.py, 3a]
+    kinetics_estimator.py # Chemprop reaction model -> HPL rate / Arrhenius params     [SOLE estimator; net-new]
   kinetics/
     models.py           # thin numpy/torch rate-expression registry (wraps ML output)
   pdep/
@@ -507,6 +541,12 @@ Parity is defined the same way RMG defines it: re-run the existing
 models and profiles. The only change from v1 is that there are no "add the fallback"
 phases -- ML is in from Phase 1, and torch is the only reactor.
 
+**Execution note:** the phases below are realized as a sequence of JOBS (job-00 to
+job-12, one per the prompts/ job briefs), each decomposed into STEPS (prompts/steps/,
+one fresh subagent session per step - see the repo README for the loop). A phase may
+span several jobs (e.g. Phase 3 = jobs 07-08); a job may span several sessions (its
+steps). The gates below are the job gates.
+
 ### Phase 0 -- Foundations + validation harness
 - `rmgpu` package; conda env (py>=3.11, torch+cuda, rdkit, cantera, chemicals/fluids/
   thermo, pint, torchdae, chemprop, rmgdb, CheMeleon checkpoints).
@@ -517,8 +557,11 @@ phases -- ML is in from Phase 1, and torch is the only reactor.
   (entry counts + a hash of the kinetics/thermo tables).
 
 ### Phase 1 -- Static property evaluation (ML is the whole thing)
-- `ml/thermo_estimator.py` (CheMeleon/Chemprop) + `ml/kinetics_estimator.py` (Chemprop
-  reaction model) + `kinetics/models.py` registry + `transport/`.
+- `ml/base.py` (the shared Chemprop load/predict path, per
+  chemprop_example/predicting.ipynb - 3a) + `ml/thermo_estimator.py`
+  (CheMeleon/Chemprop; REPLACES rmgpy/ml/estimator.py, not a re-enable) +
+  `ml/kinetics_estimator.py` (Chemprop reaction model) + `kinetics/models.py`
+  registry + `transport/`.
 - **Gate:** for a fixed set of species/reactions (including intermediates and TS-adjacent
   species), assert predicted Hf298/S298/Cp(T) and HPL k(T) against RMG-Py's values
   (libraries where present; ML where not). **This is the PoC's thesis test** -- if the
@@ -583,7 +626,7 @@ phases -- ML is in from Phase 1, and torch is the only reactor.
 | Units | **EXTERNAL (pint)** | Kill the cimported `Quantity`. |
 | Chemkin I/O | **EXTERNAL (Cantera ck2yaml) + thin** | Interop. |
 | Thermo models (NASA/Wilhoit) | **MIXED** | NASA via Cantera/`thermo`; thin numpy Wilhoit. |
-| Thermo/kinetics *estimation* | **EXTERNAL (Chemprop/CheMeleon)** | Sole estimators; seam exists (#2559). |
+| Thermo/kinetics *estimation* | **EXTERNAL (Chemprop/CheMeleon)** | Sole estimators; REPLACED (3a): fresh re-implementation per chemprop_example; RMG's `ml/estimator.py` (#2559) is reference-only. |
 | QM / Arkane | **OUT OF SCOPE (nothing carried over)** | No runtime role (§8a). Model improvement (incl. any QM data-gen) is done outside the package; the checkpoint interface is the seam. No Arkane dependency. |
 | Surface/catalysis (~60 fam) | **PLUGIN (defer, §9.2)** | Reuses recipe engine + ML + reactor interface. |
 | Solvation | **PLUGIN (defer, §9.3)** | Lightest plugin; first to validate the protocol. |
@@ -861,10 +904,12 @@ tiny, reviewable, diffable input.
 
 ## 14. Anti-goals (v2)
 
-- No Cython, no numba-by-default (numba only if a ME kernel is proven hot).
+- No Cython, no numba-by-default (numba only if an ME kernel is proven hot).
 - No fallback estimators (no GA, no rate-rules), no second reactor backend. The ML models
   and torchdae are the single source of truth; gaps are reported, not papered over.
 - No re-implementing graph isomorphism, transport correlations, units, or the DAE solver.
+- No reusing RMG-Py's Chemprop wrapper (`rmgpy/ml/estimator.py`): it is reference-only;
+  rmgpu's estimators are a fresh re-implementation per chemprop_example (3a).
 - No QM in any form (no parsers, no offline data-gen tool): model improvement is done
   outside the package; the checkpoint interface is the only seam (§7/§8a.3).
 - No shipping Arkane as a package; nothing mainlined from it.

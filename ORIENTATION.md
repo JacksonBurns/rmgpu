@@ -1,4 +1,4 @@
-# ORIENTATION - read this first, every session
+# ORIENTATION - read once per job (first step), never per step
 
 You are implementing RMG-GPU (rmgpu): a ground-up, pure-Python rewrite of RMG that
 (1) relies on external packages to the greatest extent possible and (2) leverages GPUs
@@ -15,6 +15,27 @@ the model, repeat until steady. RMG-GPU keeps that orchestration and the reactio
 numerics with PyTorch (torchdae DAE solver; master equation in torch). Everything else
 (graph ops, database I/O, units, transport, interop) is delegated to packages. No
 Cython, no numba, no fallbacks, no QM, no Arkane.
+
+## The ML estimators are NEW (replacement, not reuse)
+
+RMG-Py already contains a Chemprop-based thermo estimator
+(`rmgpy/ml/estimator.py`, an `MLEstimator` wrapping Chemprop species models; disabled
+on py3.11, upstream issue #2559). In rmgpu it is REPLACED:
+
+- rmgpu's estimators (`rmgpu/ml/thermo_estimator.py`, `rmgpu/ml/kinetics_estimator.py`)
+  are written FRESH, modeled on `/home/jackson/rmgpu/chemprop_example/predicting.ipynb`
+  (the canonical Chemprop v2 inference path: `models.MPNN.load_from_checkpoint`,
+  the model's featurizer, `data.MoleculeDataset` + `data.build_dataloader`,
+  `pl.Trainer(...).predict`).
+- RMG's `ml/estimator.py` is read ONLY as reference: its checkpoint layout
+  (Hf298 model + S298+Cp model), its uncertainty cutoffs, and how the `ml_estimator:`
+  input DSL wires them. Nothing is imported, copied, or wrapped from it.
+- Checkpoints: the existing checkpoints (CheMeleon thermo; any reaction checkpoints)
+  are CONSUMED through the new estimators' own load path - which mirrors
+  chemprop_example's. Do not try to make RMG's MLEstimator work.
+- A future checkpoint (better model) is a config change (`ml_estimator:` block:
+  name + hash), never a code change (PLAN.md 8a.3: the checkpoint interface is the
+  only seam between model improvement and mechanism generation).
 
 ## What stays, what goes (the retain/delete/external split)
 
@@ -35,6 +56,8 @@ DELETE (do NOT port):
   - The multi-method fallback chains in thermo/kinetics lookup
   - QM (rmgpy/qm) -- entirely out of scope
   - Arkane dependency -- nothing mainlined
+  - RMG's own Chemprop wrapper (rmgpy/ml/estimator.py) -- REPLACED by rmgpu/ml/
+    (see "The ML estimators are NEW" above)
 
 EXTERNAL (never re-implement):
   - RDKit: molecule graph, isomorphism/substructure (degeneracy counting),
@@ -80,6 +103,9 @@ PLAN.md section 8a.
     internal representation.
   - Reference behavior always comes from RMG-Py run on the same machine, captured
     into gates/baselines. When rmgpu and RMG-Py disagree, the gate report says so.
+  - Interpreter: always the env's python directly,
+    /home/jackson/miniforge3/envs/rmgpu/bin/python. Never install into system
+    Python or the active venv.
 
 ## The database is the moat
 
@@ -87,40 +113,62 @@ RMG-database (2.4M lines: 135 families, 74 kinetics libraries, 77 thermo librari
 statmech/transport/solvation/surface) is untouched and read through rmgdb. Do not
 modify it. Round-trip/hash gates (job 02) guard against I/O drift.
 
-## How a job session proceeds (repeat this)
+## How work proceeds: jobs and steps (read this)
 
-  1. Read this file, then the job prompt (prompts/job-NN-*.md), then STATUS.md
-     (tail: last session log entry + the job table).
-  2. Work the job: read the named RMG-Py reference files, implement, test.
-  3. Run the job's gate (gates/gate_NN.py or as specified). Write the report to
-     reports/job-NN.md with REAL output (counts, diffs, timings). If the gate is red,
-     say so plainly in the report; fix what you can in the session; leave the rest
-     as explicit TODOs in STATUS.md.
-  4. Update STATUS.md: flip the job row (in-progress -> done|blocked), append a
-     session-log entry: date, what was built, gate result (GREEN/RED + one-line
-     evidence), commit hashes, next-step notes for the following session.
-  5. Commit (message: job-NN: <summary>). Do NOT push. Do NOT start the next job.
-  6. Stop and report.
+Two levels (full protocol in README.md, "Session vs step"):
+
+  JOB   = a milestone with one final gate (prompts/job-NN-*.md = the brief:
+          goal + step list + gate definition). A job is TOO BIG for one session;
+          never attempt to do a job in a single session.
+  STEP  = one self-contained unit of work sized for ONE fresh subagent session
+          (prompts/steps/job-NN-step-MM-*.md). Each step file names exactly which
+          reference files to read (with a context budget), what to build, the step's
+          checks, and the done protocol.
+
+The loop (run by the coordinator, one subagent at a time):
+  1. STATUS.md's NEXT pointer names exactly one step.
+  2. A fresh subagent session reads that step file (plus what it points at) and does
+     ONLY that step. Subagents do not spawn subagents.
+  3. The step commits ("job-NN/step-MM: ..."), writes reports/job-NN-step-MM-*.md,
+     and updates its step row in STATUS.md.
+  4. The coordinator reviews, then sets NEXT to the following step (or a fix step
+     if the checks came back red).
+  5. The job's final step runs the job gate (gates/gate_NN.py -> reports/job-NN.md);
+     only a GREEN gate (or a documented, user-accepted finding) closes the job.
+
+Why steps: a job pulls 20-150k lines of reference code through one context; that is
+what was corrupting long sessions (context compaction + forgetting). Each step reads
+at most ~3k lines of reference (its file says the budget), so a session finishes
+without compaction. Steps in a job are strictly sequential: a step's output files are
+the next step's input.
+
+This file (ORIENTATION.md) is read ONCE, by the first step of a job. Later steps of
+the same job do not need it - their step file repeats the few facts they require.
 
 ## Files you will create (structure from job 00)
 
     rmgpu/
-      core/        model.py recipe.py atomtype.py resonance.py
-      molecule/    molecule.py adjlist.py
+      core/        model.py recipe.py atomtype.py resonance.py template.py family.py
+      molecule/    molecule.py adjlist.py atomtype.py resonance.py symmetry.py
+                   filtration.py group.py
       db/          loaders.py
-      ml/          thermo_estimator.py kinetics_estimator.py
+      ml/          base.py thermo_estimator.py kinetics_estimator.py
       kinetics/    models.py
-      pdep/        network.py collision.py
-      statmech/    ...
+      pdep/        network.py collision.py msc.py rs.py sls.py driver.py
+      statmech/    (modes, torsion, assembly)
+      data/        entries.py thermo.py kinetics.py statmech.py estimation.py
       reactor/     torch.py reactors.py
       transport.py io/  units.py  input.py  main.py  output.py
       schemas/     (pydantic: input + mechanism artifact)
+      tools/       isotopes.py observables.py diffmodels.py mergemodels.py
+      sensitivity/ (sensitivity.py uncertainty.py)
+      plugins/     base.py solvation/ catalysis/
     gates/         gate_NN.py scripts
-    reports/       job-NN.md
+    reports/       job-NN.md + job-NN-step-MM-*.md + parity/
     tests/         pytest suites (unit + integration)
 
 ## If something in a prompt contradicts PLAN.md
 
-PLAN.md is the source of design truth. Prompts are the task decomposition. If they
-conflict, note it in STATUS.md and follow PLAN.md unless the user has directed
-otherwise in STATUS.md.
+PLAN.md is the source of design truth. Prompts (job briefs + step files) are the
+task decomposition. If they conflict, note it in STATUS.md and follow PLAN.md unless
+the user has directed otherwise in STATUS.md.
