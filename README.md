@@ -4,11 +4,6 @@ Ground-up, pure-Python (NumPy/PyTorch) rewrite of RMG. This repo is the working
 repository: the plan, the job prompts that drive implementation across sessions,
 and (from job 00 on) the code itself.
 
-Note: you and all other subagents must *directly* invoke the Python interpreter
-in the desired conda environment, e.g. to run within an environment called rmgpu, run:
-`/home/jackson/miniforge3/envs/rmgpu/bin/python ...` -- this ensure that runs happen and
-packages are installed in the correct environment.
-
 ## Layout
 
     PLAN.md            The full feasibility + feature-parity plan (read the sections
@@ -42,7 +37,7 @@ The agent (you) will then spawn off subagents in sequence according to this loop
 
   1. First message: "Read ORIENTATION.md, then prompts/job-NN-*.md, then STATUS.md.
      Execute the job. When done, update STATUS.md and commit."  -- DO NOT interrupt the
-     agent once this starts, let it keep working until it returns
+     agent once this starts, let it keep working until it returns.
   2. When the job finishes, review the commit + the STATUS.md entry + the gate report.
      Approve, or start a follow-up session to fix issues.
   3. Return to Step 1. spawning a new agent to work on the next job.
@@ -56,8 +51,10 @@ This is why we must do it this way:
   nothing at the job level.
 - A new session is trivially resumable: the prompt file + STATUS.md is the whole state.
 
-A subagent's self-report is not proof. Anything that writes files or runs gates
-must be verified by the parent agent from the commit/diff.
+A subagent's self-report is not *definitive* proof. You may briefly interrogate any suspicious
+claims, but remember that you are exactly as capable as your subagents -- it is unlikely that you
+will catch any nuanced issues, and you should instead trust the small details and perhaps confirm
+major points, as needed.
 
 Important note: similar to how *you* will only run one subagent at a time for each task (because
 every execution on this machine happens on the same GPU, so it is impossible to run
@@ -66,6 +63,11 @@ themselves spawn subagents. You should advise them of this in your prompts to th
 
 Also note that you DO NOT yet have access to actual trained Chemprop/CheMeleon models that are suitable for integration.
 Your subagents should mark which ones are needed, but leave method stubs/signatures/etc. that just need the checkpoint dropped in.
+
+Note: you and all other subagents must *directly* invoke the Python interpreter
+in the desired conda environment, e.g. to run within an environment called rmgpu, run:
+`/home/jackson/miniforge3/envs/rmgpu/bin/python ...` -- this ensure that runs happen and
+packages are installed in the correct environment.
 
 ### Discipline
 
@@ -77,6 +79,7 @@ Your subagents should mark which ones are needed, but leave method stubs/signatu
   recorded as such.
 - Commits: one or more per job, message prefix "job-NN: <summary>". No pushes.
 - Conda env: `rmgpu` (created in job 00). Never install into system Python.
+- **DO NOT** do any work in the main session -- **ALL** work must be done via subagents, since you are acting as a coordinator
 
 ## Roadmap (see PLAN.md section 10 for the full version)
 
