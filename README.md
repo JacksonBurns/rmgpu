@@ -73,13 +73,10 @@ Two levels, both driven by a parent (coordinator) agent:
 
 ### Session vs step (the loop)
 
-The human starts the coordinator: a fresh agent session in this repo
-(cwd /home/jackson/rmgpu/rmgpu) with the first message:
-
-  "Read STATUS.md (NEXT pointer) and execute exactly that next step.
-   When done, update STATUS.md and commit. Do not start any other step."
+The human starts the "coordinator": a fresh agent session.
 
 The coordinator:
+  0. Reads the contents of this README.md
   1. Reads STATUS.md -> the NEXT pointer names exactly one step file.
      (It does NOT read ORIENTATION.md or the job brief per step - those are
      read once, when the step is the first of its job, and the step file
@@ -87,8 +84,8 @@ The coordinator:
   2. Spawns ONE subagent for that step. The subagent's task prompt is
      essentially: "Read prompts/steps/<file> and do it. Everything you need
      is in that file plus what it points at."
-  3. Reviews the step's commit + report when it returns: run the step's
-     checks yourself if the report looks off, then update STATUS.md's
+  3. Spawn ONE subagent to: review the step's commit and report results -- it should run the step's
+     checks if the report looks off --- the coordinator then update STATUS.md's
      NEXT pointer to the following step.
   4. If a step's gate/job-gate is RED, or a step comes back incomplete,
      the NEXT pointer targets a fix step (write a small one in
@@ -107,10 +104,6 @@ Rules that make this work (why the structure is this way):
   output files are the next step's input. Nothing is parallelizable - one
   subagent at a time, because every heavy task on this machine uses the same
   GPU. Subagents MUST NOT spawn subagents (tell every subagent this).
-- A step is resumable without a human: the step file + STATUS.md + git is the
-  whole state. If a session dies mid-step, the next coordinator session re-
-  runs the same step file; it should find and continue from the working
-  tree (the step file says what "already done" looks like).
 - Do not start job N's steps until job N-1's gate is GREEN and recorded in
   STATUS.md. Exceptions require a decisions-log entry.
 - Gates: a job's final step runs the job gate (a script in gates/, report in
@@ -123,8 +116,9 @@ Rules that make this work (why the structure is this way):
   or the active venv. Always invoke the interpreter directly, e.g.
   /home/jackson/miniforge3/envs/rmgpu/bin/python ...
 - The coordinator does NO implementation work itself. It orchestrates: pick
-  step, spawn subagent, review, update STATUS.md, commit STATUS.md changes.
-  ALL code work happens in subagents.
+  step, spawn subagent, spawn review agent, updates STATUS.md, commit STATUS.md changes.
+  **ALL code work happens in subagents** (this is **PIVOTAL** - rely on subagents, be
+  protective of your context window).
 
 ## Roadmap (see PLAN.md section 10 for the full version)
 
