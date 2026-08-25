@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-01-step-07-gate.md
+NEXT: prompts/steps/job-01-step-08-fix-parity.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -46,7 +46,7 @@ documented finding) and the session log has the evidence.
 | 01/04 | Atom-type DB + assignment | test_atomtype.py | done |
 | 01/05 | Resonance structure generation | test_resonance.py | done |
 | 01/06 | Symmetry + filtration | test_symmetry/test_filtration | done |
-| 01/07 | Job-01 gate (round-trips vs RMG-Py) | gate_01.py PASS | pending |
+| 01/07 | Job-01 gate (round-trips vs RMG-Py) | gate_01.py RED (adjlist/atomtype/symmetry parity fail) | RED |
 | 02/01 | Rate models: Arrhenius family + registry base | test_kinetics_models.py | pending |
 | 02/02 | Rate models: falloff, Chebyshev, Marcus, tunneling | test_kinetics_models.py | pending |
 | 02/03 | ThermoDB facade + thermo models (Wilhoit/NASA7) | test_thermodb.py | pending |
@@ -185,6 +185,12 @@ built: rmgpu/molecule/resonance.py (RMG-style resonance generation: allyl radica
 checks: GREEN - python test_resonance.py: allyl radical [C]CC generates 2 resonance structures matching expected pattern
 commits: 10dde44
 next: job-01/step-06-symmetry
+
+### 2026-08-25 - job-01/step-07
+built: gates/gate_01.py (gate script comparing rmgpu vs RMG-Py references), gates/test_set.py (19 test molecules), gates/generate_references.py (RMG-Py reference generator), gates/baselines/job01/ (reference data), reports/job-01-step-07-gate.md (gate report)
+checks: RED - pytest tests/ 118 passed; gate_01.py: adjlist_roundtrip 19/19 pass, adjlist_parity 0/19 fail, smiles_parity 17/19 pass (2 fail), atomtype_parity 0/19 fail, resonance_parity 17/19 pass (2 fail), symmetry_parity 6/19 pass (13 fail). HARD failures in adjlist_parity, atomtype_parity, symmetry_parity.
+commits: 63ce210, c3c6e43
+next: job-01/step-08-fix-parity
 
 ### 2026-08-25 - job-01/step-06
 built: rmgpu/molecule/symmetry.py (get_symmetry_number with simplified atom/bond/axis/cyclic symmetry), rmgpu/molecule/filtration.py (filter_structures with SMARTS-based forbidden matching), tests/test_symmetry.py (7 tests), tests/test_filtration.py (7 tests); added is_cyclic() to Molecule
