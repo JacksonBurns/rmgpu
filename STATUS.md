@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-00-step-02-skeleton.md
+NEXT: prompts/steps/job-01-step-01-units.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -37,8 +37,8 @@ documented finding) and the session log has the evidence.
 | Step | Title | Checks | Status |
 |------|-------|--------|--------|
 | 00/01 | Conda env rmgpu (all deps, rmgdb, checkpoint locations) | env imports, CUDA, rmgdb, checkpoints located | done |
-| 00/02 | Package skeleton + CLI stubs + test scaffolding | pytest, rmgpu version | pending |
-| 00/03 | Smoke test + job-00 gate | gate_00.py PASS | pending |
+| 00/02 | Package skeleton + CLI stubs + test scaffolding | pytest, rmgpu version | done |
+| 00/03 | Smoke test + job-00 gate | gate_00.py PASS | done |
 | 01/01 | units.py (pint Quantity) | test_units.py | pending |
 | 01/02a | Molecule wrapper: construction and properties | test_molecule.py (construction, formula, eq) | pending |
 | 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | pending |
@@ -132,7 +132,17 @@ documented finding) and the session log has the evidence.
   commits: <hashes>
   next: <what the next session should do first>)
 
-(append entries below this line)
+### 2026-08-25 - job-00/step-03
+built: tests/test_smoke.py, gates/gate_00.py, reports/job-00.md, reports/job-00-step-03-gate.md
+checks: GREEN - pytest 5 passed; gate_00.py PASS
+commits: <hashes>
+next: job-01/step-01
+
+### 2026-08-25 - job-00/step-02
+built: pyproject.toml, rmgpu/ package (13 subpackages), cli.py, version.py, tests/conftest.py, gates/README.md, reports/
+checks: GREEN - pytest passes; python -m rmgpu.version prints 0.1.0; rmgpu version prints 0.1.0
+commits: 605d74f
+next: job-00/step-03
 
 ### 2026-08-25 - job-00/step-01
 built: scripts/check_env.py (env verification script)
