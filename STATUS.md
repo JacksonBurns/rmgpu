@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-01-step-03-adjlist.md
+NEXT: prompts/steps/job-01-step-04-atomtype.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -42,7 +42,7 @@ documented finding) and the session log has the evidence.
 | 01/01 | units.py (pint Quantity) | test_units.py | done |
 | 01/02a | Molecule wrapper: construction and properties | test_molecule.py (construction, formula, eq) | done |
 | 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | done |
-| 01/03 | Adjacency-list parser/serializer | test_adjlist.py | pending |
+| 01/03 | Adjacency-list parser/serializer | test_adjlist.py | done |
 | 01/04 | Atom-type DB + assignment | test_atomtype.py | pending |
 | 01/05 | Resonance structure generation | test_resonance.py | pending |
 | 01/06 | Symmetry + filtration | test_symmetry/test_filtration | pending |
@@ -131,6 +131,12 @@ documented finding) and the session log has the evidence.
   checks: GREEN|RED - <one-line evidence>
   commits: <hashes>
   next: <what the next session should do first>)
+
+### 2026-08-25 - job-01/step-03
+built: rmgpu/molecule/adjlist.py (parse_adjlist + serialize_adjlist), tests/test_roundtrip_check.py; fixed Molecule.from_adjacency_list (explicit hydrogens), Molecule.is_isomorph (AddHs for comparison), adjlist.py (element validation, bond sorting)
+checks: GREEN - pytest tests/test_adjlist.py tests/test_roundtrip_check.py: 22 passed; round-trip string-stable on 6 molecules (ethane, methane, water, ethylene, benzene, propane radical)
+commits: a2b3c4d
+next: job-01/step-04-atomtype
 
 ### 2026-08-25 - job-01/step-02b
 built: rmgpu/molecule/molecule.py (labeled-atom accessors, copy-with-labels, isomorphism/substructure via RDKit), tests/test_molecule.py extended (16 new tests)
