@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-01-step-01-units.md
+NEXT: prompts/steps/job-01-step-02-molecule.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -39,7 +39,7 @@ documented finding) and the session log has the evidence.
 | 00/01 | Conda env rmgpu (all deps, rmgdb, checkpoint locations) | env imports, CUDA, rmgdb, checkpoints located | done |
 | 00/02 | Package skeleton + CLI stubs + test scaffolding | pytest, rmgpu version | done |
 | 00/03 | Smoke test + job-00 gate | gate_00.py PASS | done |
-| 01/01 | units.py (pint Quantity) | test_units.py | pending |
+| 01/01 | units.py (pint Quantity) | test_units.py | done |
 | 01/02a | Molecule wrapper: construction and properties | test_molecule.py (construction, formula, eq) | pending |
 | 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | pending |
 | 01/03 | Adjacency-list parser/serializer | test_adjlist.py | pending |
@@ -131,6 +131,12 @@ documented finding) and the session log has the evidence.
   checks: GREEN|RED - <one-line evidence>
   commits: <hashes>
   next: <what the next session should do first>)
+
+### 2026-08-25 - job-01/step-01
+built: rmgpu/units.py (Quantity over pint: value/unit constructors, string parse, to_si, arithmetic, unit checking, value_in, repr), tests/test_units.py
+checks: GREEN - pytest tests/test_units.py: 7 passed
+commits: job-01/step-01 (see git log)
+next: job-01/step-02-molecule
 
 ### 2026-08-25 - job-00/step-03
 built: tests/test_smoke.py, gates/gate_00.py, reports/job-00.md, reports/job-00-step-03-gate.md
