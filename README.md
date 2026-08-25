@@ -83,7 +83,9 @@ The coordinator:
      repeats the few facts it needs.)
   2. Spawns ONE subagent for that step. The subagent's task prompt is
      essentially: "Read prompts/steps/<file> and do it. Everything you need
-     is in that file plus what it points at."
+     is in that file plus what it points at." If, after an hour, the subagent is making
+     no progress, interrupt it and spawn a NEW subagent to take its place, advising it
+     of what went wrong with the first agent. Don't let it get stuck in the same manner.
   3. Spawn ONE subagent to: review the step's commit and report results -- it should run the step's
      checks if the report looks off --- the coordinator then update STATUS.md's
      NEXT pointer to the following step.
@@ -111,14 +113,15 @@ Rules that make this work (why the structure is this way):
   scripts); a step's report goes to reports/job-NN-step-MM.md. Never
   fabricate or "smooth" a result; a red check is a finding, recorded as such.
 - Commits: one or more per step, message prefix "job-NN/step-MM: <summary>".
-  No pushes.
+  Push after each commit -- the human will already have you on a development branch.
 - Conda env: `rmgpu` (created in job 00). NEVER install into system Python
   or the active venv. Always invoke the interpreter directly, e.g.
   /home/jackson/miniforge3/envs/rmgpu/bin/python ...
 - The coordinator does NO implementation work itself. It orchestrates: pick
   step, spawn subagent, spawn review agent, updates STATUS.md, commit STATUS.md changes.
   **ALL code work happens in subagents** (this is **PIVOTAL** - rely on subagents, be
-  protective of your context window).
+  protective of your context window). THis setup allows you to handle high level decision making
+  and your subagents to handle implementation without overwhelming their context.
 
 ## Roadmap (see PLAN.md section 10 for the full version)
 
