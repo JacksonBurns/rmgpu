@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-01-step-04-atomtype.md
+NEXT: prompts/steps/job-01-step-05-resonance.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -43,7 +43,7 @@ documented finding) and the session log has the evidence.
 | 01/02a | Molecule wrapper: construction and properties | test_molecule.py (construction, formula, eq) | done |
 | 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | done |
 | 01/03 | Adjacency-list parser/serializer | test_adjlist.py | done |
-| 01/04 | Atom-type DB + assignment | test_atomtype.py | pending |
+| 01/04 | Atom-type DB + assignment | test_atomtype.py | done |
 | 01/05 | Resonance structure generation | test_resonance.py | pending |
 | 01/06 | Symmetry + filtration | test_symmetry/test_filtration | pending |
 | 01/07 | Job-01 gate (round-trips vs RMG-Py) | gate_01.py PASS | pending |
@@ -167,6 +167,12 @@ built: pyproject.toml, rmgpu/ package (13 subpackages), cli.py, version.py, test
 checks: GREEN - pytest passes; python -m rmgpu.version prints 0.1.0; rmgpu version prints 0.1.0
 commits: 605d74f
 next: job-00/step-03
+
+### 2026-08-25 - job-01/step-04
+built: rmgpu/molecule/atomtype.py (atom type DB + assignment), tests/test_atomtype.py
+checks: GREEN - pytest tests/test_atomtype.py: 20 passed
+commits: <hash>
+next: job-01/step-05-resonance
 
 ### 2026-08-25 - job-00/step-01
 built: scripts/check_env.py (env verification script)
