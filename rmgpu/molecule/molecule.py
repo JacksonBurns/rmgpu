@@ -126,3 +126,116 @@ class Molecule:
 
     def __str__(self):
         return f'<Molecule "{self.to_smiles()}">'
+
+    @staticmethod
+    def _get_label(atom):
+        """Return atom label string or empty string if not present."""
+        return atom.GetProp('label') if atom.HasProp('label') else ''
+
+    # --- Label semantics ---
+    def set_atom_labels(self, labels):
+        """
+        Set atom labels on this molecule.
+        labels: list of label strings, one per atom in RDKit order.
+        """
+        if len(labels) != self._rdkit.GetNumAtoms():
+            raise ValueError('Number of labels must match number of atoms')
+        for i, atom in enumerate(self._rdkit.GetAtoms()):
+            atom.SetProp('label', labels[i])
+
+    def get_atom_labels(self):
+        """Return list of atom labels, in RDKit order."""
+        return [self._get_label(atom) for atom in self._rdkit.GetAtoms()]
+
+    def contains_labeled_atom(self, label):
+        """Return True if any atom has the given label."""
+        return any(self._get_label(atom) == label for atom in self._rdkit.GetAtoms())
+
+    def get_labeled_atoms(self, label):
+        """
+        Return indices of atoms with the given label.
+        Raises ValueError if none found.
+        """
+        indices = [i for i, atom in enumerate(self._rdkit.GetAtoms()) if self._get_label(atom) == label]
+        if not indices:
+            raise ValueError(f'No atom in the molecule {self.to_smiles()} has the label "{label}".')
+        return indices
+
+    def get_all_labeled_atoms(self):
+        """
+        Return dict mapping labels to atom indices. If two or more atoms share a label,
+        the value is a list of indices.
+        """
+        labeled = {}
+        for i, atom in enumerate(self._rdkit.GetAtoms()):
+            label = self._get_label(atom)
+            if label:
+                if label in labeled:
+                    if isinstance(labeled[label], list):
+                        labeled[label].append(i)
+                    else:
+                        labeled[label] = [labeled[label], i]
+                else:
+                    labeled[label] = i
+        return labeled
+
+    def clear_labeled_atoms(self):
+        """Remove all atom labels."""
+        for atom in self._rdkit.GetAtoms():
+            if atom.HasProp('label'):
+                atom.ClearProp('label')
+
+    def copy(self, clear_labels=True):
+        """
+        Return a copy of this molecule. If clear_labels is True, remove labels from the copy.
+        The original is unchanged.
+        """
+        new_mol = Chem.RWMol(self._rdkit)
+        if clear_labels:
+            for atom in new_mol.GetAtoms():
+                if atom.HasProp('label'):
+                    atom.ClearProp('label')
+        return Molecule._from_rdmol(new_mol)
+
+    # --- Isomorphism and substructure via RDKit ---
+    def is_isomorph(self, other):
+        """
+        Return True if this molecule is isomorphic to other (RDKit).
+        """
+        if not isinstance(other, Molecule):
+            raise TypeError('other must be a Molecule')
+        query = other._rdkit
+        return self._rdkit.HasSubstructMatch(query) and query.HasSubstructMatch(self._rdkit)
+
+    def is_substructure(self, other):
+        """
+        Return True if other is a substructure of self (RDKit).
+        """
+        if not isinstance(other, Molecule):
+            raise TypeError('other must be a Molecule')
+        query = other._rdkit
+        return self._rdkit.HasSubstructMatch(query)
+
+    def substructure_match_count(self, other):
+        """
+        Return the degeneracy (number of matches) of other in self (RDKit).
+        """
+        if not isinstance(other, Molecule):
+            raise TypeError('other must be a Molecule')
+        query = other._rdkit
+        matches = self._rdkit.GetSubstructMatches(query)
+        return len(matches)
+
+    @classmethod
+    def _from_rdmol(cls, rdmol):
+        """Create a Molecule from an RDKit mol, without kekulizing again."""
+        mol = Chem.Mol(rdmol)
+        smiles = Chem.MolToSmiles(mol)
+        instance = cls.__new__(cls)
+        instance._rdkit = mol
+        instance._smiles = smiles
+        if mol.HasProp('InChI'):
+            instance._inchi = mol.GetProp('InChI')
+        else:
+            instance._inchi = Chem.MolToInchi(mol)
+        return instance

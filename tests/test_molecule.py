@@ -196,3 +196,144 @@ def test_repr():
 def test_str():
     mol = Molecule(smiles="CC")
     assert "CC" in str(mol)
+
+
+# ---------------------------------------------------------------------------
+# Label semantics tests
+# ---------------------------------------------------------------------------
+
+def test_set_atom_labels():
+    mol = Molecule(smiles="CC")
+    mol.set_atom_labels(['1', '2'])
+    assert mol.get_atom_labels() == ['1', '2']
+
+
+def test_set_atom_labels_wrong_length():
+    mol = Molecule(smiles="CC")
+    with pytest.raises(ValueError):
+        mol.set_atom_labels(['1'])
+
+
+def test_get_atom_labels_empty():
+    mol = Molecule(smiles="CC")
+    assert mol.get_atom_labels() == ['', '']
+
+
+def test_contains_labeled_atom():
+    mol = Molecule(smiles="CC")
+    mol.set_atom_labels(['1', '2'])
+    assert mol.contains_labeled_atom('1')
+    assert mol.contains_labeled_atom('2')
+    assert not mol.contains_labeled_atom('3')
+
+
+def test_get_labeled_atoms():
+    mol = Molecule(smiles="CCC")
+    mol.set_atom_labels(['1', '', '2'])
+    assert mol.get_labeled_atoms('1') == [0]
+    assert mol.get_labeled_atoms('2') == [2]
+
+
+def test_get_labeled_atoms_not_found():
+    mol = Molecule(smiles="CC")
+    mol.set_atom_labels(['1', '2'])
+    with pytest.raises(ValueError):
+        mol.get_labeled_atoms('3')
+
+
+def test_get_all_labeled_atoms():
+    mol = Molecule(smiles="CCC")
+    mol.set_atom_labels(['1', '2', '1'])
+    labeled = mol.get_all_labeled_atoms()
+    assert labeled['1'] == [0, 2]
+    assert labeled['2'] == 1
+
+
+def test_get_all_labeled_atoms_single():
+    mol = Molecule(smiles="CC")
+    mol.set_atom_labels(['1', '2'])
+    labeled = mol.get_all_labeled_atoms()
+    assert labeled['1'] == 0
+    assert labeled['2'] == 1
+
+
+def test_clear_labeled_atoms():
+    mol = Molecule(smiles="CC")
+    mol.set_atom_labels(['1', '2'])
+    mol.clear_labeled_atoms()
+    assert mol.get_atom_labels() == ['', '']
+
+
+def test_copy_with_labels():
+    mol = Molecule(smiles="CC")
+    mol.set_atom_labels(['1', '2'])
+    mol_copy = mol.copy(clear_labels=True)
+    assert mol_copy.get_atom_labels() == ['', '']
+    # Original should be unchanged
+    assert mol.get_atom_labels() == ['1', '2']
+
+
+def test_copy_without_clear_labels():
+    mol = Molecule(smiles="CC")
+    mol.set_atom_labels(['1', '2'])
+    mol_copy = mol.copy(clear_labels=False)
+    assert mol_copy.get_atom_labels() == ['1', '2']
+
+
+# ---------------------------------------------------------------------------
+# Isomorphism tests
+# ---------------------------------------------------------------------------
+
+def test_is_isomorph_same():
+    mol1 = Molecule(smiles="CC")
+    mol2 = Molecule(smiles="CC")
+    assert mol1.is_isomorph(mol2)
+
+
+def test_is_isomorph_different():
+    mol1 = Molecule(smiles="CC")
+    mol2 = Molecule(smiles="CCC")
+    assert not mol1.is_isomorph(mol2)
+
+
+def test_is_isomorph_non_molecule():
+    mol = Molecule(smiles="CC")
+    with pytest.raises(TypeError):
+        mol.is_isomorph('CC')
+
+
+# ---------------------------------------------------------------------------
+# Substructure tests
+# ---------------------------------------------------------------------------
+
+def test_is_substructure():
+    benzene = Molecule(smiles="c1ccccc1")
+    toluene = Molecule(smiles="Cc1ccccc1")
+    assert toluene.is_substructure(benzene)
+    assert not benzene.is_substructure(toluene)
+
+
+def test_substructure_match_count():
+    toluene = Molecule(smiles="Cc1ccccc1")
+    benzene = Molecule(smiles="c1ccccc1")
+    count = toluene.substructure_match_count(benzene)
+    assert count == 1
+
+
+def test_substructure_match_count_non_match():
+    methane = Molecule(smiles="C")
+    toluene = Molecule(smiles="Cc1ccccc1")
+    count = toluene.substructure_match_count(methane)
+    assert count == 7
+
+
+def test_is_substructure_non_molecule():
+    mol = Molecule(smiles="CC")
+    with pytest.raises(TypeError):
+        mol.is_substructure('CC')
+
+
+def test_substructure_match_count_non_molecule():
+    mol = Molecule(smiles="CC")
+    with pytest.raises(TypeError):
+        mol.substructure_match_count('CC')
