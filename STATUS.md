@@ -14,7 +14,7 @@ at a time.)
 
 | Job | Title | Gate | Status |
 |-----|-------|------|--------|
-| 00 | Env + package skeleton + test scaffolding | smoke test (gate_00.py) | pending |
+| 00 | Env + package skeleton + test scaffolding | smoke test (gate_00.py) | done |
 | 01 | Units + molecule layer | adjlist/atomtype/resonance parity (gate_01.py) | pending |
 | 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | pending |
 | 03 | YAML input schema + CLI + legacy importer | 47 example input.py -> yaml, lossless (gate_03.py) | pending |
