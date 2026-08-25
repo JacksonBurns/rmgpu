@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-01-step-05-resonance.md
+NEXT: prompts/steps/job-01-step-07-gate.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -44,8 +44,8 @@ documented finding) and the session log has the evidence.
 | 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | done |
 | 01/03 | Adjacency-list parser/serializer | test_adjlist.py | done |
 | 01/04 | Atom-type DB + assignment | test_atomtype.py | done |
-| 01/05 | Resonance structure generation | test_resonance.py | pending |
-| 01/06 | Symmetry + filtration | test_symmetry/test_filtration | pending |
+| 01/05 | Resonance structure generation | test_resonance.py | done |
+| 01/06 | Symmetry + filtration | test_symmetry/test_filtration | done |
 | 01/07 | Job-01 gate (round-trips vs RMG-Py) | gate_01.py PASS | pending |
 | 02/01 | Rate models: Arrhenius family + registry base | test_kinetics_models.py | pending |
 | 02/02 | Rate models: falloff, Chebyshev, Marcus, tunneling | test_kinetics_models.py | pending |
@@ -179,3 +179,15 @@ built: scripts/check_env.py (env verification script)
 checks: GREEN - rmgpu env has all deps; torch.cuda.is_available() True; rmgdb importable; all five SQLite DBs present; checkpoint example_model_v2_regression_mol.ckpt present and loads with chemprop example pattern (prediction for ethane CC = 2.166739)
 commits: d132f91
 next: job-00/step-02
+
+### 2026-08-25 - job-01/step-05
+built: rmgpu/molecule/resonance.py (RMG-style resonance generation: allyl radical, lone pair shifts, aromatic resonance), test_resonance.py, tests/test_resonance.py
+checks: GREEN - python test_resonance.py: allyl radical [C]CC generates 2 resonance structures matching expected pattern
+commits: 10dde44
+next: job-01/step-06-symmetry
+
+### 2026-08-25 - job-01/step-06
+built: rmgpu/molecule/symmetry.py (get_symmetry_number with simplified atom/bond/axis/cyclic symmetry), rmgpu/molecule/filtration.py (filter_structures with SMARTS-based forbidden matching), tests/test_symmetry.py (7 tests), tests/test_filtration.py (7 tests); added is_cyclic() to Molecule
+checks: GREEN - pytest tests/test_symmetry.py tests/test_filtration.py: 14 passed
+commits: <hash>
+next: job-01/step-07-gate

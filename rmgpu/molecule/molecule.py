@@ -333,6 +333,11 @@ class Molecule:
         
         return atoms_info
 
+    def is_cyclic(self):
+        """Return True if the molecule contains any rings."""
+        ri = self._rdkit.GetRingInfo()
+        return ri.NumRings() > 0
+
     def get_atoms_info(self):
         """
         Get a list of atom info dicts for adjacency list serialization.
