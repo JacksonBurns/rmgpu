@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-00-step-01-env.md
+NEXT: prompts/steps/job-00-step-02-skeleton.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -36,7 +36,7 @@ documented finding) and the session log has the evidence.
 
 | Step | Title | Checks | Status |
 |------|-------|--------|--------|
-| 00/01 | Conda env rmgpu (all deps, rmgdb, checkpoint locations) | env imports, CUDA, rmgdb, checkpoints located | pending |
+| 00/01 | Conda env rmgpu (all deps, rmgdb, checkpoint locations) | env imports, CUDA, rmgdb, checkpoints located | done |
 | 00/02 | Package skeleton + CLI stubs + test scaffolding | pytest, rmgpu version | pending |
 | 00/03 | Smoke test + job-00 gate | gate_00.py PASS | pending |
 | 01/01 | units.py (pint Quantity) | test_units.py | pending |
@@ -133,3 +133,9 @@ documented finding) and the session log has the evidence.
   next: <what the next session should do first>)
 
 (append entries below this line)
+
+### 2026-08-25 - job-00/step-01
+built: scripts/check_env.py (env verification script)
+checks: GREEN - rmgpu env has all deps; torch.cuda.is_available() True; rmgdb importable; all five SQLite DBs present; checkpoint example_model_v2_regression_mol.ckpt present and loads with chemprop example pattern (prediction for ethane CC = 2.166739)
+commits: d132f91
+next: job-00/step-02
