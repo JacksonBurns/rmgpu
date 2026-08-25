@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-01-step-02b-molecule-labels.md
+NEXT: prompts/steps/job-01-step-03-adjlist.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -41,7 +41,7 @@ documented finding) and the session log has the evidence.
 | 00/03 | Smoke test + job-00 gate | gate_00.py PASS | done |
 | 01/01 | units.py (pint Quantity) | test_units.py | done |
 | 01/02a | Molecule wrapper: construction and properties | test_molecule.py (construction, formula, eq) | done |
-| 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | pending |
+| 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | done |
 | 01/03 | Adjacency-list parser/serializer | test_adjlist.py | pending |
 | 01/04 | Atom-type DB + assignment | test_atomtype.py | pending |
 | 01/05 | Resonance structure generation | test_resonance.py | pending |
@@ -131,6 +131,12 @@ documented finding) and the session log has the evidence.
   checks: GREEN|RED - <one-line evidence>
   commits: <hashes>
   next: <what the next session should do first>)
+
+### 2026-08-25 - job-01/step-02b
+built: rmgpu/molecule/molecule.py (labeled-atom accessors, copy-with-labels, isomorphism/substructure via RDKit), tests/test_molecule.py extended (16 new tests)
+checks: GREEN - pytest tests/test_molecule.py: 48 passed; spot checks all pass
+commits: 8af6b98
+next: job-01/step-03-adjlist
 
 ### 2026-08-25 - job-01/step-02a
 built: rmgpu/molecule/molecule.py (Molecule wrapper over RDKit: construction from SMILES/InChI, formula, charge, radical count, equality/hashing via canonical SMILES), tests/test_molecule.py (29 tests)
