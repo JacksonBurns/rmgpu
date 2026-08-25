@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ Parameter sensitivity + uncertainty quantification via torch autodiff / the torc
 
 job-06 (reactor), job-04 (the rate registry is differentiable), job-07 (if done - the pdep boundary is documented)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-09-step-01-sensitivity.md  The adjoint sensitivity engine
   step 02  prompts/steps/job-09-step-02-uncertainty.md  Covariance propagation + the run wiring + Morris/Sobol

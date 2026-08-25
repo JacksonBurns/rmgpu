@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ STATUS.md's NEXT pointer; this file is the map of the job.
 
 job-10 done (gas-phase parity green)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-11-step-01-protocol.md  The plugin protocol (base + the core hook call-sites)
   step 02  prompts/steps/job-11-step-02-solvation-providers.md  Solvation thermo + kinetics providers

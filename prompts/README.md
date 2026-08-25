@@ -6,7 +6,7 @@ Two levels:
                                the job's gate definition). NOT a task - a job is
                                too big for one session.
   prompts/steps/job-NN-step-MM-*.md  One file per STEP: a self-contained task
-                               sized for ONE fresh subagent session. This is
+                               sized for ONE fresh human-started session. This is
                                what a session actually reads and executes.
 
 ## The jobs
@@ -37,16 +37,16 @@ session until the battery is green). 11 needs 10; 12 needs 11.
 
 ## How a step session starts
 
-The coordinator (see ../README.md, "Session vs step") reads ../STATUS.md's
-NEXT pointer, which names exactly ONE step file. It spawns a fresh subagent
-whose task is: "Read prompts/steps/<that file> and do it." The step file is
-self-contained: it repeats the job context it needs, names the reference files
-to read (with a context budget), the deliverables, the checks, and the done
-protocol. The session does ONLY that step, then stops.
+The human reads ../STATUS.md's NEXT pointer, which names exactly ONE step file.
+The human starts a fresh session whose task is: "Read prompts/steps/<that file>
+and do it." The step file is self-contained: it repeats the job context it needs,
+names the reference files to read (with a context budget), the deliverables,
+the checks, and the done protocol. The session does ONLY that step, then stops.
 
-Starting a session manually (the human's first message to the coordinator):
+Starting a session manually (the human's first message to the session):
   "Read STATUS.md (NEXT pointer) and execute exactly that next step.
-   When done, update STATUS.md and commit. Do not start any other step."
+   When done, update STATUS.md and commit. Do not start any other step.
+   Do not spawn subagents."
 
 ## Step file anatomy
 
@@ -65,7 +65,7 @@ Starting a session manually (the human's first message to the coordinator):
 
 If a step's reads turn out bigger than one session can hold, that is a
 framework bug - the session records it in its report and stops; the
-coordinator splits the step (write the half-step files, update the step
+human splits the step (write the half-step files, update the step
 table in ../STATUS.md, point NEXT at the first half).
 
 ## Report + commit conventions
@@ -75,4 +75,4 @@ table in ../STATUS.md, point NEXT at the first half).
     a paraphrase).
   - Job report: reports/job-NN.md (written by the gate step).
   - STATUS.md: the step row flips to `done` by the step session; the NEXT
-    pointer moves by the coordinator.
+    pointer moves by the human.

@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ Replace RMG's "execute a Python file to configure the run" with a declarative, s
 
 job-01 done (Molecule for structure parsing). job-02 not strictly required, but the database: block references library names from it.
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-03-step-01-core.md  Input schema: core blocks (quantity, database, species, forbidden)
   step 02  prompts/steps/job-03-step-02-blocks.md  Input schema: reactors + remaining blocks + extends

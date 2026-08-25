@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ The SOLE property estimators, built fresh: CheMeleon/Chemprop for thermo (Hf298,
 
 jobs 01-02 done (Molecule for structures; rate registry; the ml_estimator block of job 03)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-04-step-01-ml-infra.md  ML infra: checkpoint inventory + synthetic test model
   step 02  prompts/steps/job-04-step-02-thermo-ml.md  ThermoML estimator (CheMeleon) - replacement of RMG's

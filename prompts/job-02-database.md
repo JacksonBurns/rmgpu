@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ ALL database I/O for rmgpu goes through rmgdb - the SQL/SQLite wrapper over RMG-
 
 job-01 done (Molecule for substructure lookups)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-02-step-01-arrhenius.md  Rate models: Arrhenius family + registry base
   step 02  prompts/steps/job-02-step-02-falloff.md  Rate models: falloff, Chebyshev, Marcus, tunneling

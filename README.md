@@ -14,7 +14,7 @@ implementation across sessions, and (from job 00 on) the code itself.
                        log, append-only session log.
     prompts/           One file per JOB (a job is a milestone with one gate):
                        job-NN-<name>.md -- short brief + step list only.
-    prompts/steps/     One file per STEP (a step is one subagent session):
+    prompts/steps/     One file per STEP (a step is one human-started session):
                        job-NN-step-MM-<name>.md -- self-contained, budgeted.
     rmgpu/             (created in job 00) the package itself
     gates/             (created in job 00) parity-gate scripts + baselines
@@ -59,13 +59,13 @@ issue #2559). In rmgpu it is REPLACED, not reused:
 
 ## How work gets done (read this before starting)
 
-Two levels, both driven by a parent (coordinator) agent:
+Two levels, driven by the human:
 
   JOB   = a milestone with one final gate. Too big for one session - that is
           why this framework exists. A job brief (prompts/job-NN-*.md) is a
           short file: goal, step list, the job's gate definition.
   STEP  = one self-contained unit of work, sized to fit a SINGLE fresh
-          subagent session (target: 1 step per session; a session may finish
+          human-started session (target: 1 step per session; a session may finish
           2 small steps if its context budget allows, but never start step 3
           after doing 2). Each step file (prompts/steps/job-NN-step-MM-*.md)
           names exactly which reference files to read, what to build, the
@@ -73,22 +73,20 @@ Two levels, both driven by a parent (coordinator) agent:
 
 ### Session vs step (the loop)
 
-The human starts the "coordinator": a fresh agent session.
+The human starts a fresh session for each step.
 
-The coordinator:
-  0. Reads the contents of this README.md
-  1. Reads STATUS.md -> the NEXT pointer names exactly one step file.
-     (It does NOT read ORIENTATION.md or the job brief per step - those are
+  0. Read the contents of this README.md
+  1. Read STATUS.md -> the NEXT pointer names exactly one step file.
+     (Do NOT read ORIENTATION.md or the job brief per step - those are
      read once, when the step is the first of its job, and the step file
      repeats the few facts it needs.)
-  2. Spawns ONE subagent for that step. The subagent's task prompt is
-     essentially: "Read prompts/steps/<file> and do it. Everything you need
-     is in that file plus what it points at." If, after an hour, the subagent is making
-     no progress, interrupt it and spawn a NEW subagent to take its place, advising it
-     of what went wrong with the first agent. Don't let it get stuck in the same manner.
-  3. Spawn ONE subagent to: review the step's commit and report results -- it should run the step's
-     checks if the report looks off --- the coordinator then update STATUS.md's
-     NEXT pointer to the following step.
+  2. Start ONE session for that step. The session's task is essentially:
+     "Read prompts/steps/<file> and do it. Everything you need is in that
+     file plus what it points at." If, after an hour, the session is making
+     no progress, interrupt it and start a NEW session to take its place, advising it
+     of what went wrong with the first. Don't let it get stuck in the same manner.
+  3. After the step's commit and report results, run the step's checks if the report looks off,
+     then update STATUS.md's NEXT pointer to the following step.
   4. If a step's gate/job-gate is RED, or a step comes back incomplete,
      the NEXT pointer targets a fix step (write a small one in
      prompts/steps/ if needed, e.g. job-04-step-11-fix-*.md) before moving
@@ -104,8 +102,8 @@ Rules that make this work (why the structure is this way):
   which re-reads only its own slice.
 - Steps within a job are strictly sequential and share one branch; a step's
   output files are the next step's input. Nothing is parallelizable - one
-  subagent at a time, because every heavy task on this machine uses the same
-  GPU. Subagents MUST NOT spawn subagents (tell every subagent this).
+  session at a time, because every heavy task on this machine uses the same
+  GPU. Sessions MUST NOT spawn subagents (tell every session this).
 - Do not start job N's steps until job N-1's gate is GREEN and recorded in
   STATUS.md. Exceptions require a decisions-log entry.
 - Gates: a job's final step runs the job gate (a script in gates/, report in
@@ -117,11 +115,11 @@ Rules that make this work (why the structure is this way):
 - Conda env: `rmgpu` (created in job 00). NEVER install into system Python
   or the active venv. Always invoke the interpreter directly, e.g.
   /home/jackson/miniforge3/envs/rmgpu/bin/python ...
-- The coordinator does NO implementation work itself. It orchestrates: pick
-  step, spawn subagent, spawn review agent, updates STATUS.md, commit STATUS.md changes.
-  **ALL code work happens in subagents** (this is **PIVOTAL** - rely on subagents, be
-  protective of your context window). THis setup allows you to handle high level decision making
-  and your subagents to handle implementation without overwhelming their context.
+- The human does NO implementation work itself. It orchestrates: pick
+  step, start session, review results, updates STATUS.md, commit STATUS.md changes.
+  **ALL code work happens in the session** (this is **PIVOTAL** - rely on the session, be
+  protective of the context window). This setup allows you to handle high level decision making
+  and the session to handle implementation without overwhelming the context.
 
 ## Roadmap (see PLAN.md section 10 for the full version)
 

@@ -9,14 +9,14 @@ gates/gate_03.py: 1. DSL inventory: 47 legacy input.py files x functions used (r
 
 ## Context (invariant every step)
 
-- You are a FRESH subagent session; you have no other context. This file plus
+- You are a FRESH human-started session; you have no other context. This file plus
   what it points at is everything you need.
 - Work in /home/jackson/rmgpu/rmgpu (git, branch main). Reference repos (read-
   only, at /home/jackson/rmgpu): RMG-Py, RMG-database, rmgdb, chemprop_example.
 - Interpreter: always the env's python directly,
   /home/jackson/miniforge3/envs/rmgpu/bin/python (created in job 00).
   NEVER install into system python or the active venv.
-- ONE subagent at a time; this session MUST NOT spawn subagents. Single heavy
+- ONE session at a time; this session MUST NOT spawn subagents. Single heavy
   GPU task at a time on this machine; never kill processes you did not start.
 - No Cython, no numba, no QM, no Arkane, no fallback estimators, no second
   reactor backend. SI units internally (J, K, Pa, mol) via pint.
@@ -77,6 +77,6 @@ Read ONLY what is listed plus the direct dependencies you hit (note any extra re
 ## Done protocol (exact)
 
 1. Commit the code: `git commit -am "job-03/step-05: <summary>"` (several commits are fine; NO push).
-2. STATUS.md: set your step row to `done` and append a session-log entry: `### <date> - job-03/step-05 / built: ... / checks: ... (GREEN|RED + one line) / commits: <hashes> / next: <the next step id>`. Do NOT set the top-level NEXT pointer - the coordinator does.
+2. STATUS.md: set your step row to `done` and append a session-log entry: `### <date> - job-03/step-05 / built: ... / checks: ... (GREEN|RED + one line) / commits: <hashes> / next: <the next step id>`. Update the top-level NEXT pointer to the next step's file.
 3. Write the report to reports/job-03-step-05-gate.md with: what was built (files + ~1 line each), the checks run (the commands + the real results, not a paraphrase), the reference reads beyond the list (if any), the deviations from this file (if any, with the cause), and what the next step should know first.
 4. STOP. Do not start the next step. Do not spawn subagents.

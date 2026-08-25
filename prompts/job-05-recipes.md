@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ Port RMG's reaction GENERATION machinery: the recipe DSL (atom- labeled bond ope
 
 jobs 01-02 done (Molecule layer; family-definition storage decision from job-02 step 4)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-05-step-01-engine.md  ReactionRecipe engine (apply_recipe + labels)
   step 02  prompts/steps/job-05-step-02-products.md  Product enumeration (generate_reactions)

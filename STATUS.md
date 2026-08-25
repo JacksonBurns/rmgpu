@@ -3,11 +3,12 @@
 Single source of truth for work state across sessions. Every session updates this
 file before committing. Do not delete entries; append and annotate.
 
-## NEXT (the pointer - the coordinator reads this first)
+## NEXT (the pointer - the human reads this first)
 
 NEXT: prompts/steps/job-00-step-01-env.md
-(When a step finishes, the coordinator sets this to the following step's file,
-or to a small fix-step file written for a red gate. One step at a time.)
+(When a step finishes, the session updates this pointer to the following
+step's file, or to a small fix-step file written for a red gate. One step
+at a time.)
 
 ## Job table (a job is done only when its GATE step is GREEN)
 
@@ -18,7 +19,7 @@ or to a small fix-step file written for a red gate. One step at a time.)
 | 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | pending |
 | 03 | YAML input schema + CLI + legacy importer | 47 example input.py -> yaml, lossless (gate_03.py) | pending |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | pending |
-| 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy vs RMG-Py (gate_05.py) | pending |
+| 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | pending |
 | 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | pending |
 | 07 | Statmech + master equation (CSE) + pdep | k(T,P) falloff vs RMG-Py (propane_branching) (gate_07.py) | pending |
 | 08 | pdep MSC/RS/SLS + isotope + observables/diff/merge + exports | method diffs + observables + export round-trips (gate_08.py) | pending |
@@ -39,7 +40,8 @@ documented finding) and the session log has the evidence.
 | 00/02 | Package skeleton + CLI stubs + test scaffolding | pytest, rmgpu version | pending |
 | 00/03 | Smoke test + job-00 gate | gate_00.py PASS | pending |
 | 01/01 | units.py (pint Quantity) | test_units.py | pending |
-| 01/02 | Molecule wrapper over RDKit | test_molecule.py | pending |
+| 01/02a | Molecule wrapper: construction and properties | test_molecule.py (construction, formula, eq) | pending |
+| 01/02b | Molecule wrapper: labels and structure queries | test_molecule.py (labels, isomorphism, substructure) | pending |
 | 01/03 | Adjacency-list parser/serializer | test_adjlist.py | pending |
 | 01/04 | Atom-type DB + assignment | test_atomtype.py | pending |
 | 01/05 | Resonance structure generation | test_resonance.py | pending |
@@ -65,7 +67,7 @@ documented finding) and the session log has the evidence.
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py | pending |
 | 05/03 | Template matching + group matcher | test_template_match.py | pending |
 | 05/04 | Family loader + KineticsFamilies facade | test_families.py | pending |
-| 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy exact) | pending |
+| 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity) | pending |
 | 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | pending |
 | 06/02 | CoreEdgeReactionModel (enlarge/prune/screen) | test_core_model.py | pending |
 | 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | pending |
@@ -114,7 +116,7 @@ documented finding) and the session log has the evidence.
 - [plan] Catalysis + solvation are plugins, built only after core parity (PLAN.md 9).
   Solvation first (validates protocol), catalysis second.
 - [framework 2026-08-23] Jobs are decomposed into steps (prompts/steps/): one fresh
-  subagent session per step, sized to fit one context without compaction. Job files
+  human-started session per step, sized to fit one context without compaction. Job files
   are briefs (goal + step list + gate), not tasks. NEXT pointer above drives the loop.
 - [framework 2026-08-23] The Chemprop-based estimators in RMG-Py (rmgpy/ml/estimator.py)
   are REPLACED by rmgpu/ml/, re-implemented per chemprop_example/predicting.ipynb.

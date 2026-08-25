@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ A rmgpu/plugins/catalysis/ package that makes surface-catalyzed mechanism genera
 
 job-11 done (the plugin protocol validated by solvation)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-12-step-01-species.md  SurfaceSpecies + the site graph
   step 02  prompts/steps/job-12-step-02-families.md  The Surface_* family recipes + the families loader

@@ -120,18 +120,18 @@ Two levels (full protocol in README.md, "Session vs step"):
   JOB   = a milestone with one final gate (prompts/job-NN-*.md = the brief:
           goal + step list + gate definition). A job is TOO BIG for one session;
           never attempt to do a job in a single session.
-  STEP  = one self-contained unit of work sized for ONE fresh subagent session
+  STEP  = one self-contained unit of work sized for ONE fresh human-started session
           (prompts/steps/job-NN-step-MM-*.md). Each step file names exactly which
           reference files to read (with a context budget), what to build, the step's
           checks, and the done protocol.
 
-The loop (run by the coordinator, one subagent at a time):
+The loop (run by the human, one session at a time):
   1. STATUS.md's NEXT pointer names exactly one step.
-  2. A fresh subagent session reads that step file (plus what it points at) and does
-     ONLY that step. Subagents do not spawn subagents.
+  2. A fresh session reads that step file (plus what it points at) and does
+     ONLY that step. Sessions do not spawn subagents.
   3. The step commits ("job-NN/step-MM: ..."), writes reports/job-NN-step-MM-*.md,
      and updates its step row in STATUS.md.
-  4. The coordinator reviews, then sets NEXT to the following step (or a fix step
+  4. The human reviews, then sets NEXT to the following step (or a fix step
      if the checks came back red).
   5. The job's final step runs the job gate (gates/gate_NN.py -> reports/job-NN.md);
      only a GREEN gate (or a documented, user-accepted finding) closes the job.

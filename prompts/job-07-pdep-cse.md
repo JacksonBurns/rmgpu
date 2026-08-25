@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ Pressure dependence for unimolecular/reaction networks: statistical mechanics (D
 
 jobs 01-06 done (molecule, db, estimators, the core loop with its HPL pdep-stub, the reactor backend)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-07-step-01-modes.md  Statmech modes: conformer, vibration, rotation
   step 02  prompts/steps/job-07-step-02-torsion.md  Statmech torsions: 1D rotor PDE + 2D (ndTorsions)

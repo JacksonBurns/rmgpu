@@ -2,8 +2,7 @@
 
 Status of this file: a JOB BRIEF, not a task. Do not try to "do this job"
 in one session - it is decomposed into the steps below, one session each.
-The coordinator (see README.md, "Session vs step") picks the next step from
-STATUS.md's NEXT pointer; this file is the map of the job.
+The human reads STATUS.md's NEXT pointer; this file is the map of the job.
 
 ## Goal
 
@@ -13,7 +12,7 @@ The `rmgpu run` command actually works end to end (gas phase, constant T or T/P)
 
 jobs 01-05 done (all of: molecule, db, schema, estimators, recipes)
 
-## Steps (strictly sequential; one fresh subagent session each)
+## Steps (strictly sequential; one fresh human-started session each)
 
   step 01  prompts/steps/job-06-step-01-reactor.md  Reactor definitions + termination + torchdae backend
   step 02  prompts/steps/job-06-step-02-model.md  CoreEdgeReactionModel (enlarge/prune/screen)

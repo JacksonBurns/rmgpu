@@ -543,7 +543,7 @@ phases -- ML is in from Phase 1, and torch is the only reactor.
 
 **Execution note:** the phases below are realized as a sequence of JOBS (job-00 to
 job-12, one per the prompts/ job briefs), each decomposed into STEPS (prompts/steps/,
-one fresh subagent session per step - see the repo README for the loop). A phase may
+one fresh human-started session per step - see the repo README for the loop). A phase may
 span several jobs (e.g. Phase 3 = jobs 07-08); a job may span several sessions (its
 steps). The gates below are the job gates.
 
