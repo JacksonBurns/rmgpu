@@ -51,7 +51,7 @@ documented finding) and the session log has the evidence.
 | 02/01 | Rate models: Arrhenius family + registry base | test_kinetics_models.py | done |
 | 02/02 | Rate models: falloff, Chebyshev, Marcus, tunneling | test_kinetics_models.py | done |
 | 02/03 | ThermoDB facade + thermo models (Wilhoit/NASA7) | test_thermodb.py | done |
-| 02/04 | KineticsDB facade + family-definition storage | test_kineticsdb.py + storage finding | pending |
+| 02/04 | KineticsDB facade + family-definition storage | test_kineticsdb.py + storage finding | done |
 | 02/05 | Transport/StatMech/Solvation facades + job-02 gate | gate_02.py | pending |
 | 03/01 | Input schema: core blocks | test_schemas_core.py | pending |
 | 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | pending |
@@ -125,6 +125,13 @@ documented finding) and the session log has the evidence.
   checkpoints are consumed via the new estimators' own load path (PLAN.md 3/5/6/8a.3).
 
 ## Session log (append newest at bottom)
+
+### 2026-08-26 - job-02/step-04
+built: KineticsDB facade (rmgpu/db/loaders.py) with library/family/reaction lookup, substructure match support, family definition parsing; kinetics retrieval skeleton (rmgpu/data/kinetics.py); tests/test_kineticsdb.py
+checks: GREEN - pytest tests/test_kineticsdb.py -q: 14 passed
+family_storage: YES - rmgdb stores family definitions with templates and recipes in kinetics_families_table, group adjlists in kinetics_family_groups_table; rules table empty (job-05 will implement)
+commits: cdc449d
+next: job-02/step-05-miscdb
 
 ### 2026-08-26 - job-02/step-03
 built: ThermoDB facade (rmgpu/db/loaders.py) over rmgdb SQLite; thermo entry classes (rmgpu/data/entries.py); Wilhoit + NASA7 models (rmgpu/data/thermo.py) with Cp/H/S/G functions in SI units
