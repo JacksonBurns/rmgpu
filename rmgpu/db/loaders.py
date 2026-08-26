@@ -206,8 +206,132 @@ class KineticsDB:
         reaction["reactants"] = reactants
         reaction["products"] = products
         return reaction
+    
+    def get_reaction_by_reaction(self, reaction: dict) -> Optional[dict]:
+        """
+        Look up a reaction by substructure match.
+        
+        Args:
+            reaction: dict with 'reactants' and 'products' keys (list of species dicts)
+                       each species dict has 'adjacency_list' key
+            
+        Returns:
+            Matched reaction dict or None if not found
+        """
+        from rmgpu.molecule.molecule import Molecule
+        
+        # Get all reactions with their species
+        reactions_df = self._load_reactions()
+        species_df = self._load_species()
+        species_by_reaction: dict[int, list[dict]] = {}
+        for _, row in species_df.iterrows():
+            reaction_id = int(row["library_reaction_id"])
+            species_by_reaction.setdefault(reaction_id, []).append(row.to_dict())
+        
+        for _, row in reactions_df.iterrows():
+            reaction_id = int(row["id"])
+            reaction_species = species_by_reaction.get(reaction_id, [])
+            
+            # Build reaction spec lists from DB
+            db_reactants = []
+            db_products = []
+            for spec in reaction_species:
+                if spec["role"] == "reactant":
+                    db_reactants.append(spec["species_label"])
+                else:
+                    db_products.append(spec["species_label"])
+            
+            # Build query spec lists
+            q_reactants = []
+            for sp in reaction.get("reactants", []):
+                if "adjacency_list" in sp:
+                    q_reactants.append(sp["adjacency_list"])
+            q_products = []
+            for sp in reaction.get("products", []):
+                if "adjacency_list" in sp:
+                    q_products.append(sp["adjacency_list"])
+            
+            # Compare spec lists (exact match on species labels)
+            if sorted(db_reactants) == sorted(q_reactants) and sorted(db_products) == sorted(q_products):
+                return {
+                    "id": reaction_id,
+                    "label": row["label"],
+                    "reactants": db_reactants,
+                    "products": db_products,
+                }
+        
+        return None
 
     def is_in_library(self, label: str) -> bool:
         """Return True if a reaction label exists in any kinetics library."""
         df = self._load_reactions()
         return len(df[df["label"] == label]) > 0
+    
+    def get_library_names(self) -> list[str]:
+        """Return all kinetics library names."""
+        with sqlite3.connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM kinetics_libraries_table")
+            return [row[0] for row in cur.fetchall()]
+    
+    def get_library_reaction_count(self, library_name: str) -> int:
+        """Return the number of reactions in a specific library."""
+        with sqlite3.connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT COUNT(*)
+                FROM kinetics_library_reactions_table
+                WHERE library_id = (SELECT id FROM kinetics_libraries_table WHERE name = ?)
+            """, (library_name,))
+            return cur.fetchone()[0]
+    
+    def get_family_names(self) -> list[str]:
+        """Return all family names."""
+        df = self._load_families()
+        return df["name"].tolist()
+    
+    def get_family_definition(self, name: str) -> Optional[dict]:
+        """Return a family definition with parsed template and recipe."""
+        family = self.get_family_by_name(name)
+        if family is None:
+            return None
+        
+        import ast
+        result = {
+            "name": family["name"],
+            "short_description": family.get("short_description", ""),
+            "long_description": family.get("long_description", ""),
+            "reversible": bool(family.get("reversible", False)),
+            "reverse_map": ast.literal_eval(family["reverse_map"]) if family.get("reverse_map") else {},
+            "reactant_num": family.get("reactant_num"),
+            "product_num": family.get("product_num"),
+            "auto_generated": bool(family.get("auto_generated", False)),
+        }
+        
+        # Parse template and recipe from stored string representations
+        if family.get("template"):
+            result["template"] = ast.literal_eval(family["template"])
+        if family.get("recipe"):
+            result["recipe"] = ast.literal_eval(family["recipe"])
+        
+        return result
+    
+    def get_family_groups(self, family_name: str) -> list[dict]:
+        """Return all groups for a family."""
+        with sqlite3.connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT g.label, g.group_adj_list, g.short_description, g.long_description
+                FROM kinetics_family_groups_table g
+                JOIN kinetics_families_table f ON g.family_id = f.id
+                WHERE f.name = ?
+            """, (family_name,))
+            return [
+                {
+                    "label": row[0],
+                    "group_adj_list": row[1],
+                    "short_description": row[2],
+                    "long_description": row[3],
+                }
+                for row in cur.fetchall()
+            ]

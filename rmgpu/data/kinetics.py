@@ -29,15 +29,15 @@ def lookup_kinetics(reaction: dict, kinetics_db: KineticsDB) -> KineticsLookupRe
     2. If not found, use ML estimator (TODO: job-04)
     
     Args:
-        reaction: dict with 'reactants' and 'products' keys (list of labels)
+        reaction: dict with 'reactants' and 'products' keys (list of species dicts)
+                  each species dict has 'adjacency_list' key
         kinetics_db: KineticsDB facade instance
         
     Returns:
         KineticsLookupResult with found status and source
     """
-    # 1. Try to find in libraries
-    label = _make_label(reaction)
-    result = kinetics_db.get_reaction_by_label(label)
+    # 1. Try to find in libraries (substructure match)
+    result = kinetics_db.get_reaction_by_reaction(reaction)
     
     if result is not None:
         return KineticsLookupResult(found=True, source="library", reaction=result)
@@ -47,16 +47,3 @@ def lookup_kinetics(reaction: dict, kinetics_db: KineticsDB) -> KineticsLookupRe
     
     # For now, report not found
     return KineticsLookupResult(found=False, source="", reaction=None)
-
-
-def _make_label(reaction: dict) -> str:
-    """
-    Create a label from a reaction dict.
-    
-    Format: reactant1+reactant2=product1+product2
-    """
-    reactants = reaction.get("reactants", [])
-    products = reaction.get("products", [])
-    reactant_str = "+".join(reactants)
-    product_str = "+".join(products)
-    return f"{reactant_str}={product_str}"
