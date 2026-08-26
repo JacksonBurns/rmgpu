@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-02-step-01-arrhenius.md (job-01 CLOSED - gate GREEN 2026-08-25; job-02 brief is prompts/job-02-database.md)
+NEXT: prompts/steps/job-02-step-02-falloff.md (job-01 CLOSED - gate GREEN 2026-08-25; job-02 step 01 done; job-02 brief is prompts/job-02-database.md)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -48,7 +48,7 @@ documented finding) and the session log has the evidence.
 | 01/06 | Symmetry + filtration | test_symmetry/test_filtration | done |
 | 01/07 | Job-01 gate (round-trips vs RMG-Py) | gate_01.py RED (adjlist/atomtype/symmetry parity fail) | RED (fixed in 01/08) |
 | 01/08 | Fix parity failures (adjlist/atomtype/symmetry/resonance/smiles) | pytest 118 passed + gate_01.py GREEN (19/19 x 6 checks) | done |
-| 02/01 | Rate models: Arrhenius family + registry base | test_kinetics_models.py | pending |
+| 02/01 | Rate models: Arrhenius family + registry base | test_kinetics_models.py | done |
 | 02/02 | Rate models: falloff, Chebyshev, Marcus, tunneling | test_kinetics_models.py | pending |
 | 02/03 | ThermoDB facade + thermo models (Wilhoit/NASA7) | test_thermodb.py | pending |
 | 02/04 | KineticsDB facade + family-definition storage | test_kineticsdb.py + storage finding | pending |
@@ -125,6 +125,12 @@ documented finding) and the session log has the evidence.
   checkpoints are consumed via the new estimators' own load path (PLAN.md 3/5/6/8a.3).
 
 ## Session log (append newest at bottom)
+
+### 2026-08-26 - job-02/step-01
+built: rmgpu/kinetics/models.py (Arrhenius, ArrheniusEP, PDepKineticsModel, make_rate_model registry, reverse-rate helper); tests/test_kinetics_models.py
+checks: GREEN - pytest tests/test_kinetics_models.py: 8 passed; RMG-Py reference comparison uses rtol 1e-4
+commits: a200d55
+next: job-02/step-02-falloff
 
 ### 2026-08-25 - job-01/step-08 (partial)
 built: updated adjlist serialization toward RMG-Py spacing and u/p formatting; repaired get_atoms_info bond targeting; repaired atomtype lone-pair estimation; retained reference-derived symmetry logic
