@@ -1,4 +1,4 @@
-"""ThermoDB facade over rmgdb SQLite database."""
+"""ThermoDB and KineticsDB facades over rmgdb SQLite databases."""
 
 from __future__ import annotations
 
@@ -124,3 +124,90 @@ class ThermoDB:
             E0=_float_or_none("E0"),
             E0_unit=_str_or_default("E0_unit", "kcal/mol"),
         )
+
+
+class KineticsDB:
+    """Facade for accessing kinetics data from rmgdb SQLite database."""
+
+    def __init__(self, db_path: str | Path = "/home/jackson/rmgpu/rmgdb/db/kinetics.db"):
+        self.db_path = Path(db_path)
+        if not self.db_path.exists():
+            raise FileNotFoundError(f"Database not found: {self.db_path}")
+        self._df_reactions: Optional[pd.DataFrame] = None
+        self._df_families: Optional[pd.DataFrame] = None
+        self._df_species: Optional[pd.DataFrame] = None
+
+    def _load_reactions(self) -> pd.DataFrame:
+        """Load library reactions into a DataFrame (cached)."""
+        if self._df_reactions is None:
+            self._df_reactions = pd.read_sql(
+                "SELECT * FROM kinetics_library_reactions_table",
+                f"sqlite:///{self.db_path}",
+            )
+        return self._df_reactions
+
+    def _load_families(self) -> pd.DataFrame:
+        """Load family definitions into a DataFrame (cached)."""
+        if self._df_families is None:
+            self._df_families = pd.read_sql(
+                "SELECT * FROM kinetics_families_table",
+                f"sqlite:///{self.db_path}",
+            )
+        return self._df_families
+
+    def _load_species(self) -> pd.DataFrame:
+        """Load reaction species into a DataFrame (cached)."""
+        if self._df_species is None:
+            self._df_species = pd.read_sql(
+                "SELECT * FROM kinetics_library_reaction_species_table",
+                f"sqlite:///{self.db_path}",
+            )
+        return self._df_species
+
+    def get_library_count(self) -> int:
+        """Return the number of kinetics libraries."""
+        with sqlite3.connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM kinetics_libraries_table")
+            return cur.fetchone()[0]
+
+    def get_reaction_count(self) -> int:
+        """Return the total number of kinetics library reactions."""
+        return len(self._load_reactions())
+
+    def get_family_count(self) -> int:
+        """Return the total number of reaction families."""
+        return len(self._load_families())
+
+    def get_family_by_name(self, name: str) -> Optional[dict]:
+        """Look up a family definition by name."""
+        df = self._load_families()
+        matches = df[df["name"] == name]
+        if matches.empty:
+            return None
+        return matches.iloc[0].to_dict()
+
+    def get_reaction_by_label(self, label: str) -> Optional[dict]:
+        """Look up a reaction by label (returns species info too)."""
+        df = self._load_reactions()
+        matches = df[df["label"] == label]
+        if matches.empty:
+            return None
+        
+        reaction = matches.iloc[0].to_dict()
+        reaction_id = reaction["id"]
+        
+        # Get species for this reaction
+        species_df = self._load_species()
+        species_matches = species_df[species_df["library_reaction_id"] == reaction_id]
+        reactants = species_matches[species_matches["role"] == "reactant"]["species_label"].tolist()
+        products = species_matches[species_matches["role"] == "product"]["species_label"].tolist()
+        
+        reaction["reactants"] = reactants
+        reaction["products"] = products
+        return reaction
+
+    def is_in_library(self, label: str) -> bool:
+        """Return True if a reaction label exists in any kinetics library."""
+        df = self._load_reactions()
+        return len(df[df["label"] == label]) > 0
