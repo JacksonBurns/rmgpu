@@ -185,6 +185,13 @@ def test_marcus_rate_model_evaluates_forward_barrier():
     assert k > 0
     assert model.get_rate_coefficient(T, -5e3) == 0.0
 
+def test_marcus_stores_and_uses_dG():
+    model = Marcus(A=1e13, n=0.0, Ea=0.0, T0=1.0, lambda_=20e3, dG=5e3)
+    T = 300.0
+    k = model.get_rate_coefficient(T)
+    assert k > 0
+    assert model.get_rate_coefficient(T, dG=5e3) > 0
+
 
 def test_wigner_tunneling_factor():
     wigner = Wigner(frequency=1000.0)

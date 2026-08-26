@@ -316,8 +316,11 @@ class Marcus(KineticsModel):
     Ea: float = 0.0
     T0: float = 1.0
     lambda_: float = 0.0
+    dG: float = 0.0
 
-    def get_rate_coefficient(self, T: float, dG: float = 0.0, P: float = 0.0) -> float:
+    def get_rate_coefficient(self, T: float, dG: float = None, P: float = 0.0) -> float:
+        if dG is None:
+            dG = self.dG
         if dG < 0:
             return 0.0
         lam = self.lambda_
