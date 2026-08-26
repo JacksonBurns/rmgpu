@@ -17,6 +17,15 @@ from rmgpu.kinetics.models import (
     R,
     Arrhenius,
     ArrheniusEP,
+    ArrheniusBM,
+    Chebyshev,
+    Eckart,
+    Lindemann,
+    Marcus,
+    PDepArrhenius,
+    ThirdBody,
+    Troe,
+    Wigner,
     generate_reverse_rate_coefficient,
     make_rate_model,
 )
@@ -112,6 +121,102 @@ def test_reverse_rate_coefficient():
     k_rev = generate_reverse_rate_coefficient(k_forward, dH_rxn, dS_rxn, T)
     expected = k_forward * np.exp((dH_rxn - T * dS_rxn - dH_rxn) / (R * T))
     assert np.isclose(k_rev, expected, rtol=1e-8)
+
+
+def test_third_body_evaluates_low_pressure_limit():
+    k0 = Arrhenius(A=1e5, n=0.0, Ea=0.0, T0=1.0)
+    tb = ThirdBody(arrheniusLow=k0)
+    T, P = 300.0, 1e5
+    k = tb.get_rate_coefficient(T, P)
+    expected = k0.get_rate_coefficient(T) * P / (R * T)
+    np.testing.assert_allclose(k, expected, rtol=1e-10)
+
+
+def test_lindemann_evaluates_intermediate_pressure():
+    k0 = Arrhenius(A=1e5, n=0.0, Ea=0.0, T0=1.0)
+    kinf = Arrhenius(A=1e13, n=0.0, Ea=0.0, T0=1.0)
+    lind = Lindemann(arrheniusLow=k0, arrheniusHigh=kinf)
+    T, P = 300.0, 1e4
+    k = lind.get_rate_coefficient(T, P)
+    C = P / (R * T)
+    expected = kinf.get_rate_coefficient(T) * (k0.get_rate_coefficient(T) * C / kinf.get_rate_coefficient(T)) / (
+        1.0 + k0.get_rate_coefficient(T) * C / kinf.get_rate_coefficient(T)
+    )
+    np.testing.assert_allclose(k, expected, rtol=1e-10)
+
+
+def test_troe_evaluates_broadened_falloff():
+    k0 = Arrhenius(A=1e5, n=0.0, Ea=0.0, T0=1.0)
+    kinf = Arrhenius(A=1e13, n=0.0, Ea=0.0, T0=1.0)
+    troe = Troe(arrheniusLow=k0, arrheniusHigh=kinf, alpha=0.5, T1=500.0, T2=0.0, T3=1000.0)
+    T, P = 300.0, 1e4
+    k = troe.get_rate_coefficient(T, P)
+    assert k > 0
+
+
+def test_chebyshev_evaluates_pdep_grid():
+    coeffs = np.array([[0.5, -0.1], [0.0, 0.2]])
+    chb = Chebyshev(
+        coeffs=coeffs,
+        Tmin=300.0,
+        Tmax=1000.0,
+        Pmin=1e3,
+        Pmax=1e6,
+    )
+    T, P = 500.0, 1e4
+    k = chb.get_rate_coefficient(T, P)
+    assert k > 0
+
+
+def test_pdep_arrhenius_storage_and_evaluation():
+    high = Arrhenius(A=1e13, n=0.0, Ea=0.0, T0=1.0)
+    model = PDepArrhenius(A=1e5, n=0.0, Ea=0.0, T0=1.0, Pmin=1e3, Pmax=1e6, highPlimit=high)
+    T, P = 500.0, 1e4
+    k = model.get_rate_coefficient(T, P)
+    assert k > 0
+    k_max = model.get_rate_coefficient(T, 1e7)
+    assert np.isclose(k_max, high.get_rate_coefficient(T), rtol=1e-8)
+
+
+def test_marcus_rate_model_evaluates_forward_barrier():
+    model = Marcus(A=1e13, n=0.0, Ea=0.0, T0=1.0, lambda_=20e3)
+    T, dG = 300.0, 5e3
+    k = model.get_rate_coefficient(T, dG)
+    assert k > 0
+    assert model.get_rate_coefficient(T, -5e3) == 0.0
+
+
+def test_wigner_tunneling_factor():
+    wigner = Wigner(frequency=1000.0)
+    factor = wigner.calculate_tunneling_factor(300.0)
+    assert factor > 1.0
+
+
+def test_eckart_tunneling_function_shape():
+    eckart = Eckart(frequency=1000.0, E0_reac=0.0, E0_TS=50e3, E0_prod=-10e3)
+    Elist = np.arange(0.0, 120e3, 100.0)
+    kappa = eckart.calculate_tunneling_function(Elist)
+    assert kappa.shape == Elist.shape
+    assert np.all(kappa >= 0.0)
+    assert np.all(kappa <= 1.0 + 1e-9)
+
+
+def test_arrhenius_bm_storage_only():
+    bm = ArrheniusBM(A=1e13, n=0.0, Ea=50e3, T0=1.0)
+    with pytest.raises(NotImplementedError):
+        bm.get_rate_coefficient(300.0)
+
+
+def test_make_rate_model_new_models():
+    assert isinstance(make_rate_model("third_body", arrheniusLow=Arrhenius(A=1.0)), ThirdBody)
+    assert isinstance(make_rate_model("lindemann", arrheniusLow=Arrhenius(A=1.0), arrheniusHigh=Arrhenius(A=1.0)), Lindemann)
+    assert isinstance(make_rate_model("troe", arrheniusLow=Arrhenius(A=1.0), arrheniusHigh=Arrhenius(A=1.0)), Troe)
+    assert isinstance(make_rate_model("chebyshev", coeffs=np.array([[0.0]]), Tmin=300.0, Tmax=1000.0, Pmin=1e3, Pmax=1e6), Chebyshev)
+    assert isinstance(make_rate_model("pdep_arrhenius", A=1e5), PDepArrhenius)
+    assert isinstance(make_rate_model("marcus", A=1e13, lambda_=20e3), Marcus)
+    assert isinstance(make_rate_model("arrhenius_bm", A=1e13), ArrheniusBM)
+    assert isinstance(make_rate_model("wigner", frequency=1000.0), Wigner)
+    assert isinstance(make_rate_model("eckart", frequency=1000.0, E0_reac=0.0, E0_TS=50e3, E0_prod=-10e3), Eckart)
 
 
 if __name__ == "__main__":
