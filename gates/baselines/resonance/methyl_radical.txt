@@ -1,0 +1,4 @@
+# Molecule: [CH3]
+# Resonance structures: 1
+
+[CH3]

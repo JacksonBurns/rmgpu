@@ -1,0 +1,258 @@
+{
+  "adjlist": {
+    "H2": "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+    "O2": "multiplicity 3\n1 O u1 p2 c0 {2,S}\n2 O u1 p2 c0 {1,S}\n",
+    "CH2": "multiplicity 3\n1 C u2 p0 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+    "C2H2": "1 C u0 p0 c0 {2,T} {3,S}\n2 C u0 p0 c0 {1,T} {4,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {2,S}\n",
+    "N2": "multiplicity 5\n1 N u2 p1 c0 {2,S}\n2 N u2 p1 c0 {1,S}\n",
+    "ethane": "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {2,S}\n",
+    "methane": "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+    "water": "1 O u0 p2 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+    "ethylene": "1 C u0 p0 c0 {2,D} {3,S} {4,S}\n2 C u0 p0 c0 {1,D} {5,S} {6,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n",
+    "isobutane": "1  C u0 p0 c0 {2,S} {5,S} {6,S} {7,S}\n2  C u0 p0 c0 {1,S} {3,S} {4,S} {8,S}\n3  C u0 p0 c0 {2,S} {9,S} {10,S} {11,S}\n4  C u0 p0 c0 {2,S} {12,S} {13,S} {14,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n",
+    "methyl_radical": "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+    "formaldehyde": "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 O u0 p2 c0 {1,S} {6,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n",
+    "acetaldehyde": "1 C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,D} {7,S}\n3 O u0 p2 c0 {2,D}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {2,S}\n",
+    "CO2": "1 O u0 p2 c0 {2,D}\n2 C u0 p0 c0 {1,D} {3,D}\n3 O u0 p2 c0 {2,D}\n",
+    "benzene": "1  C u0 p0 c0 {2,S} {6,D} {7,S}\n2  C u0 p0 c0 {1,S} {3,D} {8,S}\n3  C u0 p0 c0 {2,D} {4,S} {9,S}\n4  C u0 p0 c0 {3,S} {5,D} {10,S}\n5  C u0 p0 c0 {4,D} {6,S} {11,S}\n6  C u0 p0 c0 {1,D} {5,S} {12,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {4,S}\n11 H u0 p0 c0 {5,S}\n12 H u0 p0 c0 {6,S}\n",
+    "toluene": "1  C u0 p0 c0 {2,S} {6,D} {8,S}\n2  C u0 p0 c0 {1,S} {3,D} {9,S}\n3  C u0 p0 c0 {2,D} {4,S} {10,S}\n4  C u0 p0 c0 {3,S} {5,D} {11,S}\n5  C u0 p0 c0 {4,D} {6,S} {12,S}\n6  C u0 p0 c0 {1,D} {5,S} {7,S}\n7  C u0 p0 c0 {6,S} {13,S} {14,S} {15,S}\n8  H u0 p0 c0 {1,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {4,S}\n12 H u0 p0 c0 {5,S}\n13 H u0 p0 c0 {7,S}\n14 H u0 p0 c0 {7,S}\n15 H u0 p0 c0 {7,S}\n",
+    "NO2": "multiplicity 2\n1 N u1 p0 c+1 {2,D} {3,S}\n2 O u0 p2 c0 {1,D}\n3 O u0 p3 c-1 {1,S}\n",
+    "HNO3-like": "multiplicity 2\n1 O u0 p3 c-1 {2,S}\n2 N u1 p0 c+1 {1,S} {3,D}\n3 O u0 p2 c0 {2,D}\n",
+    "glycolaldehyde": "1 O u0 p2 c0 {2,S} {5,S}\n2 C u0 p0 c0 {1,S} {3,S} {6,S} {7,S}\n3 C u0 p0 c0 {2,S} {4,D} {8,S}\n4 O u0 p2 c0 {3,D}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {3,S}\n"
+  },
+  "atomtypes": {
+    "H2": [
+      "H0",
+      "H0"
+    ],
+    "O2": [
+      "O2s",
+      "O2s"
+    ],
+    "CH2": [
+      "Cs",
+      "H0",
+      "H0"
+    ],
+    "C2H2": [
+      "Ct",
+      "Ct",
+      "H0",
+      "H0"
+    ],
+    "N2": [
+      "N3s",
+      "N3s"
+    ],
+    "ethane": [
+      "Cs",
+      "Cs",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "methane": [
+      "Cs",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "water": [
+      "O2s",
+      "H0",
+      "H0"
+    ],
+    "ethylene": [
+      "Cd",
+      "Cd",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "isobutane": [
+      "Cs",
+      "Cs",
+      "Cs",
+      "Cs",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "methyl_radical": [
+      "Cs",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "formaldehyde": [
+      "Cs",
+      "O2s",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "acetaldehyde": [
+      "Cs",
+      "CO",
+      "O2d",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "CO2": [
+      "O2d",
+      "Cdd",
+      "O2d"
+    ],
+    "benzene": [
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "toluene": [
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cs",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ],
+    "NO2": [
+      "N5dc",
+      "O2d",
+      "O0sc"
+    ],
+    "HNO3-like": [
+      "O0sc",
+      "N5dc",
+      "O2d"
+    ],
+    "glycolaldehyde": [
+      "O2s",
+      "Cs",
+      "CO",
+      "O2d",
+      "H0",
+      "H0",
+      "H0",
+      "H0"
+    ]
+  },
+  "resonance": {
+    "H2": [
+      "[H][H]"
+    ],
+    "O2": [
+      "[O][O]"
+    ],
+    "CH2": [
+      "[CH2]"
+    ],
+    "C2H2": [
+      "C#C"
+    ],
+    "N2": [
+      "[N][N]"
+    ],
+    "ethane": [
+      "CC"
+    ],
+    "methane": [
+      "C"
+    ],
+    "water": [
+      "O"
+    ],
+    "ethylene": [
+      "C=C"
+    ],
+    "isobutane": [
+      "CC(C)C"
+    ],
+    "methyl_radical": [
+      "[CH3]"
+    ],
+    "formaldehyde": [
+      "CO"
+    ],
+    "acetaldehyde": [
+      "CC=O"
+    ],
+    "CO2": [
+      "O=C=O"
+    ],
+    "benzene": [
+      "c1ccccc1",
+      "C1=CC=CC=C1"
+    ],
+    "toluene": [
+      "Cc1ccccc1",
+      "CC1=CC=CC=C1"
+    ],
+    "NO2": [
+      "[O-][N+]=O",
+      "[O]N=O"
+    ],
+    "HNO3-like": [
+      "[O-][N+]=O",
+      "[O]N=O"
+    ],
+    "glycolaldehyde": [
+      "O=CCO"
+    ]
+  },
+  "symmetry": {
+    "H2": 2.0,
+    "O2": 2.0,
+    "CH2": 2.0,
+    "C2H2": 2.0,
+    "N2": 2.0,
+    "ethane": 18.0,
+    "methane": 12.0,
+    "water": 2.0,
+    "ethylene": 4.0,
+    "isobutane": 81.0,
+    "methyl_radical": 6.0,
+    "formaldehyde": 3.0,
+    "acetaldehyde": 3.0,
+    "CO2": 2.0,
+    "benzene": 12.0,
+    "toluene": 6.0,
+    "NO2": 1.0,
+    "HNO3-like": 1.0,
+    "glycolaldehyde": 1.0
+  },
+  "errors": {}
+}

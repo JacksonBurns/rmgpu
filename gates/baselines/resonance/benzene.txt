@@ -1,0 +1,5 @@
+# Molecule: c1ccccc1
+# Resonance structures: 2
+
+C1=CC=CC=C1
+c1ccccc1

@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-01-step-08-fix-parity.md
+NEXT: prompts/steps/job-02-step-01-arrhenius.md (job-01 CLOSED - gate GREEN 2026-08-25; job-02 brief is prompts/job-02-database.md)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -15,7 +15,7 @@ at a time.)
 | Job | Title | Gate | Status |
 |-----|-------|------|--------|
 | 00 | Env + package skeleton + test scaffolding | smoke test (gate_00.py) | done |
-| 01 | Units + molecule layer | adjlist/atomtype/resonance parity (gate_01.py) | pending |
+| 01 | Units + molecule layer | adjlist/atomtype/resonance parity (gate_01.py) | done |
 | 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | pending |
 | 03 | YAML input schema + CLI + legacy importer | 47 example input.py -> yaml, lossless (gate_03.py) | pending |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | pending |
@@ -46,7 +46,8 @@ documented finding) and the session log has the evidence.
 | 01/04 | Atom-type DB + assignment | test_atomtype.py | done |
 | 01/05 | Resonance structure generation | test_resonance.py | done |
 | 01/06 | Symmetry + filtration | test_symmetry/test_filtration | done |
-| 01/07 | Job-01 gate (round-trips vs RMG-Py) | gate_01.py RED (adjlist/atomtype/symmetry parity fail) | RED |
+| 01/07 | Job-01 gate (round-trips vs RMG-Py) | gate_01.py RED (adjlist/atomtype/symmetry parity fail) | RED (fixed in 01/08) |
+| 01/08 | Fix parity failures (adjlist/atomtype/symmetry/resonance/smiles) | pytest 118 passed + gate_01.py GREEN (19/19 x 6 checks) | done |
 | 02/01 | Rate models: Arrhenius family + registry base | test_kinetics_models.py | pending |
 | 02/02 | Rate models: falloff, Chebyshev, Marcus, tunneling | test_kinetics_models.py | pending |
 | 02/03 | ThermoDB facade + thermo models (Wilhoit/NASA7) | test_thermodb.py | pending |
@@ -125,6 +126,11 @@ documented finding) and the session log has the evidence.
 
 ## Session log (append newest at bottom)
 
+### 2026-08-25 - job-01/step-08 (partial)
+built: updated adjlist serialization toward RMG-Py spacing and u/p formatting; repaired get_atoms_info bond targeting; repaired atomtype lone-pair estimation; retained reference-derived symmetry logic
+checks: RED - gate_01.py: adjlist_roundtrip 0/19; adjlist_parity 0/19; atomtype_parity 1/19; symmetry_parity 4/19; smiles/resonance remain 17/19. Exact RMG-Py formatting and atom-type coverage incomplete; no green claims.
+next: continue job-01/step-08-fix-parity with reference-driven serialization tests
+
 (format:
   ### <date> - job-NN/step-MM
   built: ...
@@ -197,3 +203,58 @@ built: rmgpu/molecule/symmetry.py (get_symmetry_number with simplified atom/bond
 checks: GREEN - pytest tests/test_symmetry.py tests/test_filtration.py: 14 passed
 commits: <hash>
 next: job-01/step-07-gate
+
+### 2026-08-25 - job-01/step-08 (second session, no code progress)
+built: none. No parity work was done this session. The whole session was spent chasing a phantom
+  "broken rmgpu python env": interpreter runs died with rc=127 "No such file or directory", which was
+  misdiagnosed as a corrupted inode (strace, copies, xattr checks). Root cause: a path typo in the
+  interpreter path - "/home/jackson/miniforge3/envs/rmggpu/bin/python" has TWO g's. The real env is
+  "rmgpu" (one g). The env was never broken; the user runs scripts from it without problems.
+  Stray artifact: /tmp/rmgpu_py_copy (a copy of the working interpreter made during the misdiagnosis) - harmless, delete.
+checks: not re-run this session (no valid gate run). Last recorded gate state from the first
+  step-08 session: gate_01.py: adjlist_roundtrip 0/19; adjlist_parity 0/19; atomtype_parity 1/19;
+  symmetry_parity 4/19; smiles_parity 17/19; resonance_parity 17/19. Working tree still holds the
+  uncommitted partial fixes: rmgpu/molecule/molecule.py (get_atoms_info bond targeting),
+  rmgpu/molecule/symmetry.py (~750-line rewrite), atomtype lone-pair estimation, adjlist spacing
+  and u/p formatting, gates/test_set.py. Untracked debug probes (debug_*.py, gates/dump_resonance.py,
+  scripts/atomtype_reference.py) left by the first session.
+commits: none
+next: re-run the gate FIRST with the correct interpreter path (one g):
+  /home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_01.py
+  then continue the reference-driven fixes in order: adjlist formatting vs RMG-Py to_adjacency_list(),
+  atomtype coverage vs RMG-Py atomtype.py, symmetry numbers vs RMG-Py symmetry.py.
+pitfall (do not re-investigate): if an interpreter dies with rc=127 "No such file or directory",
+  verify the PATH SPELLING first (ls /home/jackson/miniforge3/envs/) before suspecting a broken env.
+  Correct env name: rmgpu - one g.
+
+### 2026-08-25 - job-01/step-08 (completed - GATE GREEN)
+built: rebuilt and completed all job-01 parity fixes (prior sessions' work was uncommitted partial).
+  - Regenerated gates/baselines/job01/results.json from real RMG-Py (rmg_env) after fixing the
+    shifted label list in gates/test_set.py (committed baselines had been generated from stale labels).
+  - rmgpu/molecule/adjlist.py: full RMG-Py port (explicit-H graph, uN pN cN tokens, valence-based
+    lone pairs, RMG-Py column widths); Molecule.to_adjlist/from_adjacency_list updated; element
+    validation raises InvalidAdjacencyListError.
+  - rmgpu/molecule/atomtype.py: full RMG-Py port (explicit-H assignment, feature extraction +
+    wildcard matching, complete Si/P/S/O tables).
+  - rmgpu/molecule/symmetry.py: full RMG-Py port (explicit-H graph; atom/bond/axis/cyclic factors).
+  - rmgpu/molecule/resonance.py: fixed backwards charge bookkeeping in the adj lone-pair-radical
+    rule (now generates NO2's [O]N=O form) + applied resonance filtration.
+  - rmgpu/molecule/resonance_filtration.py (new): RMG-Py filtration port (octet deviation ->
+    charge span -> electronegativity/proximity stabilization; input always preserved).
+    NOTE: the pre-existing rmgpu/molecule/filtration.py (step-06 forbidden-structure module) is
+    unrelated and was left untouched - an initial overwrite of it was reverted (git checkout).
+  - Molecule.to_smiles(): RMG-Py translator behavior - MOLECULE_LOOKUPS/RADICAL_LOOKUPS formula
+    shortcuts, then OpenBabel canonicalization for N/S species, RDKit otherwise. OpenBabel
+    installed into the rmgpu env (conda-forge openbabel 3.2.1); optional at runtime.
+  - Updated stale unit tests to the corrected (RMG-Py-matching) behavior: test_atomtype.py
+    (H-inclusive, RMG labels), test_symmetry.py (ethane 18, ethylene 4), test_resonance.py
+    (fixed pre-existing aromatic-form selector that matched hybrid Kekule lines).
+checks: GREEN - pytest tests/: 118 passed; gates/gate_01.py: GATE STATUS PASS, all 6 checks 19/19
+  (adjlist_roundtrip, adjlist_parity, smiles_parity, atomtype_parity, resonance_parity, symmetry_parity).
+  Full detail: reports/job-01-step-08-fix-parity.md.
+commits: <this commit>
+next: job-01 is CLOSED. Start job-02: prompts/steps/job-02-step-01-arrhenius.md
+  (read the job brief prompts/job-02-database.md first).
+env change: rmgpu conda env gained openbabel 3.2.1 (conda-forge) + deps for N/S SMILES canonicalization.
+leftover (needs human consent to delete): untracked debug_*.py probes in repo root from earlier
+  step-08 sessions; gates/dump_resonance.py and scripts/atomtype_reference.py are step-03/05 helpers.

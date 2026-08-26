@@ -1,0 +1,4 @@
+# Molecule: O=C=O
+# Resonance structures: 1
+
+O=C=O

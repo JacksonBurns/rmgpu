@@ -14,6 +14,101 @@ from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
 
+def _is_rdkit_element(symbol):
+    """
+    Return True if `symbol` is a valid element RDKit can create an atom from.
+    Used to validate adjacency-list element symbols before RDKit sees them.
+    """
+    try:
+        a = Chem.Atom(symbol)
+        return a.GetAtomicNum() > 0
+    except Exception:
+        return False
+
+
+# Formula -> canonical SMILES shortcuts, mirrored from RMG-Py
+# rmgpy/molecule/translator.py (MOLECULE_LOOKUPS / RADICAL_LOOKUPS).
+# These take priority over backend canonicalization and reproduce RMG's
+# canonical strings for small, well-known species.
+MOLECULE_LOOKUPS = {
+    'N2': 'N#N',
+    'CH4': 'C',
+    'H2O': 'O',
+    'C2H6': 'CC',
+    'H2': '[H][H]',
+    'H2O2': 'OO',
+    'C3H8': 'CCC',
+    'Ar': '[Ar]',
+    'He': '[He]',
+    'CH4O': 'CO',
+    'CO': '[C-]#[O+]',
+    'O2': 'O=O',
+    'C': '[C]',
+    'H2S': 'S',
+    'NH3': 'N',
+    'O3': '[O-][O+]=O',
+    'Cl2': '[Cl][Cl]',
+    'ClH': 'Cl',
+    'I2': '[I][I]',
+    'HI': 'I',
+    'H': 'H+',
+    'e': 'e',
+}
+
+RADICAL_LOOKUPS = {
+    'CH3': '[CH3]',
+    'HO': '[OH]',
+    'C2H5': 'C[CH2]',
+    'O': '[O]',
+    'S': '[S]',
+    'N': '[N]',
+    'HO2': '[O]O',
+    'CH': '[CH]',
+    'CH2': '[CH2]',
+    'H': '[H]',
+    'C': '[C]',
+    'O2': '[O][O]',
+    'S2': '[S][S]',
+    'OS': '[S][O]',
+    'HS': '[SH]',
+    'H2N': '[NH2]',
+    'HN': '[NH]',
+    'NO': '[N]=O',
+    'F': '[F]',
+    'Cl': '[Cl]',
+    'Br': '[Br]',
+    'I': '[I]',
+    'CF': '[C]F',
+    'CCl': '[C]Cl',
+    'CBr': '[C]Br',
+    'e': 'e',
+}
+
+
+def _openbabel_canonical(smiles):
+    """
+    Canonicalize `smiles` with OpenBabel (RMG's canonicalizer for N/S species).
+    Returns the canonical SMILES string, or None if OpenBabel is unavailable
+    or fails (caller then falls back to RDKit).
+    """
+    try:
+        from openbabel import openbabel
+    except ImportError:
+        return None
+    try:
+        ob_conversion = openbabel.OBConversion()
+        ob_conversion.SetInFormat('smi')
+        ob_conversion.SetOutFormat('can')
+        ob_conversion.AddOption('i')  # drop isomer/stereo info
+        obmol = openbabel.OBMol()
+        if not ob_conversion.ReadString(obmol, smiles):
+            return None
+        out = ob_conversion.WriteString(obmol).strip()
+        return out or None
+    except Exception:
+        return None
+
+
 class Molecule:
     """
     Wrapper around an RDKit RWMol for representing chemical species.
@@ -70,8 +165,38 @@ class Molecule:
         self._smiles = Chem.MolToSmiles(self._rdkit)
 
     def to_smiles(self):
-        """Return the canonical SMILES string for this molecule."""
+        """
+        Return the canonical SMILES string.
+
+        Mirrors RMG-Py's translator.to_smiles:
+          1. formula-based lookups (small-molecule shortcuts) take priority;
+          2. species containing nitrogen or sulfur are canonicalized with
+             OpenBabel (RMG's canonical form for such species);
+          3. everything else uses RDKit canonical SMILES.
+        """
+        formula = self.get_formula()
+        try:
+            if self._has_radical():
+                output = RADICAL_LOOKUPS[formula]
+            else:
+                output = MOLECULE_LOOKUPS[formula]
+            return output
+        except KeyError:
+            pass
+        if self._has_nitrogen_or_sulfur():
+            rdkit_smi = Chem.MolToSmiles(self._rdkit)
+            ob_smi = _openbabel_canonical(rdkit_smi)
+            if ob_smi:
+                return ob_smi
         return Chem.MolToSmiles(self._rdkit)
+
+    def _has_radical(self):
+        """True if any atom carries an unpaired electron."""
+        return any(a.GetNumRadicalElectrons() > 0 for a in self._rdkit.GetAtoms())
+
+    def _has_nitrogen_or_sulfur(self):
+        """True if the molecule contains N or S (RMG's OpenBabel trigger)."""
+        return any(a.GetSymbol() in ('N', 'S') for a in self._rdkit.GetAtoms())
 
     def to_inchi(self):
         """Return the InChI string for this molecule."""
@@ -82,7 +207,15 @@ class Molecule:
         Return the molecular formula as a string, sorted by Hill system
         (C first, H second, then alphabetical).
         """
-        return Chem.rdMolDescriptors.CalcMolFormula(self._rdkit)
+        mol = self._rdkit
+        # Mols built by hand (e.g. symmetry subgraphs) may not have implicit
+        # valence computed; sanitize a throwaway copy so formula lookup works.
+        try:
+            return Chem.rdMolDescriptors.CalcMolFormula(mol)
+        except Exception:
+            m = Chem.Mol(mol)
+            Chem.SanitizeMol(m)
+            return Chem.rdMolDescriptors.CalcMolFormula(m)
 
     def get_charge(self):
         """
@@ -243,25 +376,32 @@ class Molecule:
         return instance
 
     # --- Adjacency list support ---
+    def _with_explicit_h(self):
+        """
+        Return an RDKit mol equal to this molecule with explicit hydrogen
+        atoms added (kekulized). This mirrors how RMG-Py represents a molecule:
+        its vertex set includes every hydrogen, and atom types, lone pairs,
+        symmetry numbers, and adjacency lists are all computed on that graph.
+        """
+        from rdkit import Chem
+        m = Chem.AddHs(self._rdkit)
+        return m
+
     def to_adjlist(self):
         """
         Serialize this molecule to RMG adjacency list format.
-        
-        Returns a string in RMG adjacency list format.
+
+        Returns a string in RMG adjacency list format (explicit hydrogens,
+        `u{N} p{N} c{N}` columns, matching RMG-Py to_adjacency_list()).
         """
-        from rmgpu.molecule.adjlist import serialize_adjlist
-        
-        # Add explicit hydrogens for adjacency list format
-        from rdkit import Chem
-        rdmol_with_h = Chem.AddHs(self._rdkit)
-        
-        # Create a temporary molecule with explicit Hs
-        atoms_info = self._get_atoms_info_from_rdmol(rdmol_with_h)
+        from rmgpu.molecule.adjlist import serialize_adjlist, get_atoms_info
+
+        rdmol_with_h = self._with_explicit_h()
+        atoms_info = get_atoms_info(rdmol_with_h)
         n_rad = sum(a['unpaired'] for a in atoms_info)
         multiplicity = n_rad + 1
-        
+
         return serialize_adjlist(
-            mol=self,
             multiplicity=multiplicity,
             metal='',
             facet='',
@@ -269,69 +409,6 @@ class Molecule:
             remove_h=False,
             atoms_info=atoms_info
         )
-
-    def _get_atoms_info_from_rdmol(self, rdmol):
-        """
-        Get atom info dicts from a given RDKit molecule.
-        """
-        atoms_info = []
-        
-        # Get ring info
-        ri = rdmol.GetRingInfo()
-        
-        for atom in rdmol.GetAtoms():
-            idx = atom.GetIdx()
-            symbol = atom.GetSymbol()
-            unpaired = atom.GetNumRadicalElectrons()
-            
-            # Get lone pairs (approximate using formal charge and valence)
-            lone_pairs = 0
-            
-            charge = atom.GetFormalCharge()
-            
-            # Get site/morphology from properties if present
-            site = atom.GetProp('site') if atom.HasProp('site') else ''
-            morphology = atom.GetProp('morphology') if atom.HasProp('morphology') else ''
-            
-            # Isotope
-            isotope = atom.GetIsotope() if atom.GetIsotope() > 0 else -1
-            
-            # In ring
-            in_ring = ri.IsAtomInAnyRing(idx) if hasattr(ri, 'IsAtomInAnyRing') else False
-            
-            # Bonds
-            bonds = {}
-            for bond in atom.GetBonds():
-                other_atom = bond.GetOtherAtom(atom)
-                other_idx = other_atom.GetIdx()
-                bond_type = bond.GetBondType()
-                # Map RDKit bond types to numeric orders
-                bond_order_map = {
-                    rdchem.BondType.SINGLE: 1,
-                    rdchem.BondType.DOUBLE: 2,
-                    rdchem.BondType.TRIPLE: 3,
-                    rdchem.BondType.AROMATIC: 1.5
-                }
-                order = bond_order_map.get(bond_type, 1)
-                bonds[other_idx] = order  # 0-based indexing
-            
-            # Label from property if present
-            label = atom.GetProp('label') if atom.HasProp('label') else ''
-            
-            atoms_info.append({
-                'symbol': symbol,
-                'unpaired': unpaired,
-                'lone_pairs': lone_pairs,
-                'charge': charge,
-                'site': site,
-                'morphology': morphology,
-                'isotope': isotope,
-                'in_ring': in_ring,
-                'bonds': bonds,
-                'label': label
-            })
-        
-        return atoms_info
 
     def is_cyclic(self):
         """Return True if the molecule contains any rings."""
@@ -341,72 +418,12 @@ class Molecule:
     def get_atoms_info(self):
         """
         Get a list of atom info dicts for adjacency list serialization.
-        
-        Returns: list of dicts with keys: symbol, unpaired, lone_pairs, charge, 
+
+        Returns: list of dicts with keys: symbol, unpaired, lone_pairs, charge,
                  site, morphology, isotope, in_ring, bonds, label
         """
-        atoms_info = []
-        
-        # Get ring info
-        ri = self._rdkit.GetRingInfo()
-        
-        for atom in self._rdkit.GetAtoms():
-            idx = atom.GetIdx()
-            symbol = atom.GetSymbol()
-            unpaired = atom.GetNumRadicalElectrons()
-            
-            # Get lone pairs (approximate using formal charge and valence)
-            # RDKit doesn't directly expose lone pairs, so we use implicit H count
-            lone_pairs = atom.GetNumExplicitLonePairs() if hasattr(atom, 'GetNumExplicitLonePairs') else 0
-            
-            charge = atom.GetFormalCharge()
-            
-            # Get site/morphology from properties if present
-            site = atom.GetProp('site') if atom.HasProp('site') else ''
-            morphology = atom.GetProp('morphology') if atom.HasProp('morphology') else ''
-            
-            # Isotope
-            isotope = atom.GetIsotope() if atom.GetIsotope() > 0 else -1
-            
-            # In ring
-            in_ring = ri.IsAtomInAnyRing(idx) if hasattr(ri, 'IsAtomInAnyRing') else False
-            
-            # Bonds
-            bonds = {}
-            for bond in atom.GetBonds():
-                other_idx = bond.GetBeginAtomIdx()
-                if other_idx == idx:
-                    other_idx = bond.GetEndAtomIdx()
-                else:
-                    other_idx = bond.GetBeginAtomIdx()
-                bond_type = bond.GetBondType()
-                # Map RDKit bond types to numeric orders
-                bond_order_map = {
-                    rdchem.BondType.SINGLE: 1,
-                    rdchem.BondType.DOUBLE: 2,
-                    rdchem.BondType.TRIPLE: 3,
-                    rdchem.BondType.AROMATIC: 1.5
-                }
-                order = bond_order_map.get(bond_type, 1)
-                bonds[other_idx + 1] = order  # 1-based indexing for adjlist
-            
-            # Label from property if present
-            label = self._get_label(atom)
-            
-            atoms_info.append({
-                'symbol': symbol,
-                'unpaired': unpaired,
-                'lone_pairs': lone_pairs,
-                'charge': charge,
-                'site': site,
-                'morphology': morphology,
-                'isotope': isotope,
-                'in_ring': in_ring,
-                'bonds': bonds,
-                'label': label
-            })
-        
-        return atoms_info
+        from rmgpu.molecule.adjlist import get_atoms_info
+        return get_atoms_info(self._rdkit)
 
     @classmethod
     def from_adjacency_list(cls, text, saturate_h=False):
@@ -433,7 +450,14 @@ class Molecule:
         # Build RDKit molecule
         rwmol = Chem.RWMol()
         atom_index_map = {}
-        
+
+        # Validate element symbols up front so unknown elements raise a
+        # clean InvalidAdjacencyListError instead of a raw RDKit error.
+        for atom in atoms:
+            if not _is_rdkit_element(atom['symbol']):
+                raise InvalidAdjacencyListError(
+                    f"Unknown element '{atom['symbol']}' in adjacency list.")
+
         # Add atoms
         for aid, atom in enumerate(atoms):
             # aid is now 0-based (aid = i)
@@ -478,11 +502,8 @@ class Molecule:
         # Kekulize if needed
         try:
             Chem.Kekulize(rwmol)
-        except:
+        except Exception:
             pass  # Some molecules may not kekulize
-        
-        # Add explicit hydrogens for adjacency list format
-        Chem.AddHs(rwmol)
-        
+
         mol = Chem.Mol(rwmol)
         return cls._from_rdmol(mol)

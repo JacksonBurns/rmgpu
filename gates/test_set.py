@@ -34,12 +34,12 @@ TEST_MOLECULES = [
     "OCC=O",       # glycolaldehyde
 ]
 
-# Molecule labels for reporting
+# Molecule labels for reporting (must match TEST_MOLECULES order)
 MOLECULE_LABELS = [
     "H2", "O2", "CH2", "C2H2", "N2",
     "ethane", "methane", "water", "ethylene", "isobutane",
-    "methyl_radical", "methoxy_radical", "formaldehyde", "acetaldehyde",
-    "CO2", "benzene", "toluene", "NO2", "HNO3-like", "glycolaldehyde"
+    "methyl_radical", "formaldehyde", "acetaldehyde", "CO2",
+    "benzene", "toluene", "NO2", "HNO3-like", "glycolaldehyde"
 ]
 
 def get_test_molecules():

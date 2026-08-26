@@ -61,11 +61,14 @@ def test_resonance_generation():
         # Load the baseline
         baseline_smiles = load_baseline(baseline_file)
         
-        # Compare: the generated set should include the aromatic form from the baseline
+        # Compare: the generated set should include the aromatic form from the baseline.
+        # The aromatic form is the fully-delocalized representation, whose atom
+        # symbols are all lowercase (e.g. c1ccc2ccccc2c1), as opposed to a Kekule
+        # form that mixes uppercase (sp2 carbon written as C) with lowercase.
         baseline_aromatic = None
         for smi in baseline_smiles:
-            # Aromatic SMILES have lowercase atoms (c, n, o, etc.)
-            if any(c.islower() and c.isalpha() for c in smi):
+            atom_letters = [c for c in smi if c.isalpha()]
+            if atom_letters and all(c.islower() for c in atom_letters):
                 baseline_aromatic = smi
                 break
         

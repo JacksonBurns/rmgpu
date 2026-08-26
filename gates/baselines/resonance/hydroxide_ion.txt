@@ -1,0 +1,4 @@
+# Molecule: [OH-]
+# Resonance structures: 1
+
+[OH-]

@@ -1,0 +1,4 @@
+# Molecule: [NH4+]
+# Resonance structures: 1
+
+[NH4+]

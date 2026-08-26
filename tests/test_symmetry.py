@@ -23,10 +23,10 @@ def test_methane_symmetry(molecule_factory):
 
 
 def test_ethane_symmetry(molecule_factory):
-    """Test ethane - should have symmetry number 3."""
+    """Test ethane - RMG-Py gives 18 (C2H6: 3 about C-C + H rotations)."""
     mol = molecule_factory('CC')
     sym = get_symmetry_number(mol)
-    assert sym == 3
+    assert sym == 18
 
 
 def test_water_symmetry(molecule_factory):
@@ -37,10 +37,10 @@ def test_water_symmetry(molecule_factory):
 
 
 def test_ethylene_symmetry(molecule_factory):
-    """Test ethylene - should have symmetry number 2."""
+    """Test ethylene - RMG-Py gives 4 (C2H4: 2 about C=C + bond)."""
     mol = molecule_factory('C=C')
     sym = get_symmetry_number(mol)
-    assert sym == 2
+    assert sym == 4
 
 
 def test_benzene_symmetry(molecule_factory):

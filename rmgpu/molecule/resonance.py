@@ -192,20 +192,27 @@ def _generate_adj_lone_pair_radical_resonance_structures(mol):
             
             # Create new structure
             new_mol = Chem.RWMol(mol)
-            
-            # Move radical, adjust charges (skip lone pair manipulation)
+
+            # Move the radical from the radical site to the lone-pair site.
+            # The radical site gains a lone pair (charge decreases by 1) and
+            # the lone-pair site gains the radical (charge increases by 1).
+            # This mirrors RMG-Py's adj lone-pair-radical resonance transition.
             new_mol.GetAtomWithIdx(rad_idx).SetNumRadicalElectrons(0)
             new_mol.GetAtomWithIdx(lp_idx).SetNumRadicalElectrons(
                 new_mol.GetAtomWithIdx(lp_idx).GetNumRadicalElectrons() + 1)
-            
-            # Update formal charges
+
+            # Update formal charges (rad site -1, lone-pair site +1)
             new_mol.GetAtomWithIdx(rad_idx).SetFormalCharge(
-                new_mol.GetAtomWithIdx(rad_idx).GetFormalCharge() + 1)
+                new_mol.GetAtomWithIdx(rad_idx).GetFormalCharge() - 1)
             new_mol.GetAtomWithIdx(lp_idx).SetFormalCharge(
-                new_mol.GetAtomWithIdx(lp_idx).GetFormalCharge() - 1)
-            
-            if Chem.Kekulize(new_mol):
-                structures.append(Molecule._from_rdmol(Chem.Mol(new_mol)))
+                new_mol.GetAtomWithIdx(lp_idx).GetFormalCharge() + 1)
+
+            try:
+                new_mol.UpdatePropertyCache()
+                Chem.SanitizeMol(new_mol)
+            except Exception:
+                continue
+            structures.append(Molecule._from_rdmol(Chem.Mol(new_mol)))
     return structures
 
 
@@ -253,27 +260,33 @@ def generate_resonance_structures(molecule: Molecule) -> list[Molecule]:
     # Get RDKit molecule and analyze features
     rdmol = molecule._rdkit
     features = _analyze_molecule(rdmol)
-    
+
     # Generate resonance structures using different algorithms
     new_structures = []
-    
+
     if features['is_radical'] and not features['is_aromatic']:
         new_structures.extend(_generate_allyl_delocalization_resonance_structures(rdmol))
-    
+
     if features['hasLonePairs'] and not features['is_aromatic']:
         new_structures.extend(_generate_lone_pair_multiple_bond_resonance_structures(rdmol))
         new_structures.extend(_generate_adj_lone_pair_radical_resonance_structures(rdmol))
-    
+
     if features['is_aromatic']:
         new_structures.extend(_generate_optimal_aromatic_resonance_structures(rdmol))
         new_structures.extend(_generate_kekule_structure(rdmol))
-    
-    # Add new structures if they're different from the original
+
+    # Deduplicate against the input (canonical SMILES)
+    all_structures = [molecule.copy()]
+    input_smi = molecule.to_smiles()
     for structure in new_structures:
-        if structure.to_smiles() != molecule.to_smiles():
-            results.append(structure)
-    
-    return results
+        smi = structure.to_smiles()
+        if smi != input_smi:
+            all_structures.append(structure)
+
+    # Filtration: keep only representative structures (RMG-Py
+    # filtration.filter_structures), always preserving the input.
+    from rmgpu.molecule.resonance_filtration import filter_structures
+    return filter_structures(all_structures, molecule.copy())
 
 
 # Expose this function as a method on Molecule

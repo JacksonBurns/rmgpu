@@ -1,0 +1,4 @@
+# Molecule: C=CC=C
+# Resonance structures: 1
+
+C=CC=C
