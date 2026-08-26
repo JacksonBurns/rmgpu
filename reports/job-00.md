@@ -104,6 +104,15 @@ yarl==1.24.5
 
 ```
 
+## Environment Changes Since Job-00
+
+- **openbabel** (conda-forge) added to the `rmgpu` env in job-01/step-08
+  (2026-08-25). Required because rmgpu's `Molecule.to_smiles` mirrors
+  RMG-Py's translator, which canonicalizes N/S-containing molecules with
+  OpenBabel (`rmgpu/molecule/molecule.py` falls back to RDKit if the import
+  fails, but then `gates/gate_01.py` smiles_parity fails for NO2 and HNO3).
+  Install: `conda install -n rmgpu -c conda-forge openbabel`.
+
 ## Checkpoint Inventory
 
 From step-01 report:
