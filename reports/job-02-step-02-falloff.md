@@ -4,6 +4,7 @@
 
 - `rmgpu/kinetics/models.py`: Extended Marcus model with a `dG` storage field; method signature now accepts an optional `dG` parameter defaulting to the stored value.
 - `tests/test_kinetics_models.py`: Added `test_marcus_stores_and_uses_dG` to verify that the Marcus model stores and correctly uses a default `dG` value.
+- Commit: 26e0df3
 
 ## Checks run
 

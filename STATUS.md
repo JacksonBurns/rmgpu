@@ -129,7 +129,7 @@ documented finding) and the session log has the evidence.
 ### 2026-08-26 - job-02/step-02
 built: Extended Marcus model with dG storage field in rmgpu/kinetics/models.py; added test_marcus_stores_and_uses_dG to tests/test_kinetics_models.py
 checks: GREEN - pytest tests/test_kinetics_models.py -v: 19 passed
-commits: <commit>
+commits: 26e0df3
 next: job-02/step-03-thermodb
 
 ### 2026-08-26 - job-02/step-01
