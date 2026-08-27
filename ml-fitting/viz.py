@@ -55,10 +55,10 @@ def parity_plot(
     if error_band == "auto":
         if "log" in target_name.lower():
             error_band = 0.5
-            error_desc = "1/2\ log\ unit"
+            error_desc = "1/2 log unit"
         else:
             error_band = np.percentile(np.abs(yt - yp), 90)  # 90th percentile of absolute errors
-            error_desc = f"{error_band:.2f}\ (90th\ %-ile\ of\ absolute\ errors)"
+            error_desc = f"{error_band:.2f} (90th %-ile of absolute errors)"
     else:
         error_desc = f"{error_band:.2f}"
 
@@ -108,7 +108,7 @@ def parity_plot(
     ax.text(
         0.95,
         0.02,
-        f"$\\it{{Error\ band:\ {error_desc}}}$",
+        f"Error band: {error_desc}",
         transform=ax.transAxes,
         fontsize=9,
         verticalalignment="bottom",

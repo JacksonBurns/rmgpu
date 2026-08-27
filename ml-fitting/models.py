@@ -17,7 +17,7 @@ RIGR_RXN_FEATURIZER = featurizers.CondensedGraphOfReactionFeaturizer(
 )
 
 
-def smooth_clamp(x, min_val, max_val, beta=10.0):
+def smooth_clamp(x, min_val, max_val, beta=5.0):
     # approximate clamp using softplus
     # 1. Soft approximation of max(min_val, x)
     low_clip = min_val + F.softplus(x - min_val, beta=beta)

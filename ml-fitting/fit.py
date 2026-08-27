@@ -22,6 +22,7 @@ def fit(
     val_loader,
     test_loader,
     target_names: tuple[str, ...],
+    epochs: int = 100,
 ):
     ckpt = ModelCheckpoint(
         Path(f"checkpoints/{name}"),
@@ -36,7 +37,7 @@ def fit(
         enable_progress_bar=True,
         accelerator="auto",
         devices=1,
-        max_epochs=100,
+        max_epochs=epochs,
         callbacks=[ckpt, es],
     )
 
@@ -77,6 +78,10 @@ def main():
     thermo_df = thermo_df.replace([np.inf, -np.inf], np.nan)
     thermo_upper_bounds = thermo_df[list(THERMO_TARGETS)].max().values
     thermo_lower_bounds = thermo_df[list(THERMO_TARGETS)].min().values
+
+    # TODO: augment training data with resonance structures to try and
+    # back in some resonance invariance to the CheMeleon-based thermo
+    # model. kinetics models already invariant because of RIGR
 
     thermo_transform = BoundedOutputTransform(
         mean=thermo_df[list(THERMO_TARGETS)].mean().values,
@@ -125,6 +130,7 @@ def main():
         kinetics_val_loader,
         kinetics_test_loader,
         KINETICS_TARGETS,
+        epochs=200,
     )
 
 
