@@ -15,7 +15,8 @@ RIGR_RXN_FEATURIZER = featurizers.CondensedGraphOfReactionFeaturizer(
     atom_featurizer=RIGRAtomFeaturizer(), bond_featurizer=RIGRBondFeaturizer()
 )
 
-def smooth_clamp(x, min_val, max_val, beta=5.0):
+
+def smooth_clamp(x, min_val, max_val, beta=10.0):
     # approximate clamp using softplus
     # 1. Soft approximation of max(min_val, x)
     low_clip = min_val + F.softplus(x - min_val, beta=beta)
@@ -67,7 +68,14 @@ def get_thermo_model(transform: BoundedOutputTransform):
     return models.MPNN(
         mp,
         chemprop_nn.MeanAggregation(),
-        chemprop_nn.RegressionFFN(output_transform=transform, input_dim=mp.output_dim, activation=nn.GELU()),
+        chemprop_nn.RegressionFFN(
+            output_transform=transform,
+            input_dim=mp.output_dim,
+            activation=nn.GELU(),
+            n_layers=2,
+            hidden_dim=512,
+            n_tasks=len(transform.lower_bounds),
+        ),
         False,
         [chemprop_nn.metrics.RMSE(), chemprop_nn.metrics.MAE()],
     )
@@ -85,6 +93,9 @@ def get_kinetics_model(transform: BoundedOutputTransform):
             input_dim=mp.output_dim,
             output_transform=transform,
             activation=nn.GELU(),
+            n_layers=2,
+            hidden_dim=512,
+            n_tasks=len(transform.lower_bounds),
         ),
         False,
         [chemprop_nn.metrics.RMSE(), chemprop_nn.metrics.MAE()],

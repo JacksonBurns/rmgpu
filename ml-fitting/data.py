@@ -228,7 +228,10 @@ def df_to_chemprop(thermo_df: pd.DataFrame, kinetics_df: pd.DataFrame):
     # thermo
     smis = thermo_df.loc[:, "smiles"].values
     ys = thermo_df.loc[:, THERMO_TARGETS].values
-    all_data = [data.MoleculeDatapoint.from_smi(smi, y, keep_h=True, add_h=True) for smi, y in zip(smis, ys)]
+    all_data = [
+        data.MoleculeDatapoint.from_smi(smi, y, keep_h=True, add_h=True)
+        for smi, y in zip(smis, ys)
+    ]
     mols = [d.mol for d in all_data]
     train_indices, val_indices, test_indices = data.make_split_indices(
         mols, "random", (0.8, 0.1, 0.1)
@@ -239,14 +242,17 @@ def df_to_chemprop(thermo_df: pd.DataFrame, kinetics_df: pd.DataFrame):
     train_dset = data.MoleculeDataset(train_data[0], CHEMELEON_MOL_FEATURIZER)
     val_dset = data.MoleculeDataset(val_data[0], CHEMELEON_MOL_FEATURIZER)
     test_dset = data.MoleculeDataset(test_data[0], CHEMELEON_MOL_FEATURIZER)
-    thermo_train_loader = data.build_dataloader(train_dset)
-    thermo_val_loader = data.build_dataloader(val_dset, shuffle=False)
-    thermo_test_loader = data.build_dataloader(test_dset, shuffle=False)
+    thermo_train_loader = data.build_dataloader(train_dset, num_workers=1, persistent_workers=True)
+    thermo_val_loader = data.build_dataloader(val_dset, shuffle=False, num_workers=1, persistent_workers=True)
+    thermo_test_loader = data.build_dataloader(test_dset, shuffle=False, num_workers=1, persistent_workers=True)
 
     # kinetics
     smis = kinetics_df.loc[:, "rxn_smiles"].values
     ys = kinetics_df.loc[:, KINETICS_TARGETS].values
-    all_data = [data.ReactionDatapoint.from_smi(smi, y, keep_h=True, add_h=True) for smi, y in zip(smis, ys)]
+    all_data = [
+        data.ReactionDatapoint.from_smi(smi, y, keep_h=True, add_h=True)
+        for smi, y in zip(smis, ys)
+    ]
     mols = [d.rct for d in all_data]
     train_indices, val_indices, test_indices = data.make_split_indices(
         mols, "random", (0.8, 0.1, 0.1)
@@ -257,9 +263,9 @@ def df_to_chemprop(thermo_df: pd.DataFrame, kinetics_df: pd.DataFrame):
     train_dset = data.ReactionDataset(train_data[0], RIGR_RXN_FEATURIZER)
     val_dset = data.ReactionDataset(val_data[0], RIGR_RXN_FEATURIZER)
     test_dset = data.ReactionDataset(test_data[0], RIGR_RXN_FEATURIZER)
-    kinetics_train_loader = data.build_dataloader(train_dset)
-    kinetics_val_loader = data.build_dataloader(val_dset, shuffle=False)
-    kinetics_test_loader = data.build_dataloader(test_dset, shuffle=False)
+    kinetics_train_loader = data.build_dataloader(train_dset, num_workers=1, persistent_workers=True)
+    kinetics_val_loader = data.build_dataloader(val_dset, shuffle=False, num_workers=1, persistent_workers=True)
+    kinetics_test_loader = data.build_dataloader(test_dset, shuffle=False, num_workers=1, persistent_workers=True)
     return (
         thermo_train_loader,
         thermo_val_loader,
