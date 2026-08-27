@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-03-step-03-cli.md (job-03 step-02 done: reactors + remaining blocks + extends, 25 tests pass)
+NEXT: prompts/steps/job-03-step-04-legacy.md (job-03 step-03 done: CLI run/validate/schema/version, 7 tests pass)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -55,7 +55,7 @@ documented finding) and the session log has the evidence.
 | 02/05 | Transport/StatMech/Solvation facades + job-02 gate | gate_02.py GREEN (5/5: counts, content hash, 25-species lookup, 1793-rxn rate round-trip max rel 1.4e-14, gap list) + pytest 182 | done |
 | 03/01 | Input schema: core blocks | test_schemas_core.py | done |
 | 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | done |
-| 03/03 | CLI: run/validate/schema/version | test_cli.py | pending |
+| 03/03 | CLI: run/validate/schema/version | test_cli.py | done |
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | pending |
 | 03/05 | Job-03 gate (lossless import of 47 examples) | gate_03.py (target 47/47) | pending |
 | 04/01 | ML infra: checkpoint inventory + synthetic test model | test_ml_base.py + synthetic ckpts | pending |
@@ -125,6 +125,12 @@ documented finding) and the session log has the evidence.
   checkpoints are consumed via the new estimators' own load path (PLAN.md 3/5/6/8a.3).
 
 ## Session log (append newest at bottom)
+
+### 2026-08-27 - job-03/step-03
+built: rmgpu/cli.py (run/validate/schema/version + stub import/export/diff/inspect), examples/minimal.yaml, tests/test_cli.py (7 tests)
+checks: GREEN - rmgpu validate examples/minimal.yaml -> exit 0, rmgpu run examples/minimal.yaml -> valid YAML, pytest tests/test_cli.py -q -> 7 passed
+commits: 0ae66ed
+next: job-03/step-04-legacy (read prompts/steps/job-03-step-04-legacy.md)
 
 ### 2026-08-26 - job-02/step-05 (completed - job-02 gate GREEN, job CLOSED)
 built: TransportDB/StatMechDB/SolvationDB facades (rmgpu/db/loaders.py) sized for jobs
