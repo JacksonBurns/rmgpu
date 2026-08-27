@@ -10,6 +10,8 @@ class QuantityError(Exception):
     """Raised for invalid quantity operations or unit mismatches."""
 
 
+
+
 class Quantity:
     """
     Physical quantity with units, backed by pint.
@@ -134,3 +136,7 @@ class Quantity:
         if not isinstance(other, Quantity):
             raise QuantityError('Cannot divide Quantity by non-Quantity')
         return other / self
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        return {'type': 'string'}
