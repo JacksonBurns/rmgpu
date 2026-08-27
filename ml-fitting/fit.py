@@ -1,9 +1,9 @@
 from pathlib import Path
 
+import numpy as np
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
 from lightning.pytorch.loggers import TensorBoardLogger
-from lightning.pytorch.utilities.seed import seed_everything
 
 from config import THERMO_TARGETS, KINETICS_TARGETS
 from data import (
@@ -41,11 +41,12 @@ def fit(name: str, mpnn, train_loader, val_loader, test_loader):
 
 
 def main():
-    seed_everything(42, workers=True)
+    pl.seed_everything(42, workers=True)
     db_root = Path("/home/jackson/rmgpu/rmgdb/db")
 
     # thermo
     thermo_df = fetch_thermo_training_data(db_root / "thermo.db")
+    thermo_df = thermo_df.replace([np.inf, -np.inf], np.nan)  # nan automatically masked in loss function
     # TODO: augment with resonance structures to make chemeleon resonance invariant (-ish)
     thermo_upper_bounds = thermo_df[THERMO_TARGETS].max().values
     thermo_lower_bounds = thermo_df[THERMO_TARGETS].min().values
@@ -59,6 +60,7 @@ def main():
 
     # kinetics
     kinetics_df = fetch_kinetics_training_data(db_root / "kinetics.db")
+    kinetics_df = kinetics_df.replace([np.inf, -np.inf], np.nan)
     kinetics_upper_bounds = kinetics_df[KINETICS_TARGETS].max().values
     kinetics_lower_bounds = kinetics_df[KINETICS_TARGETS].min().values
     kinetics_transform = BoundedUnscaleTransform(
@@ -92,3 +94,6 @@ def main():
         kinetics_val_loader,
         kinetics_test_loader,
     )
+
+if __name__ == "__main__":
+    main()

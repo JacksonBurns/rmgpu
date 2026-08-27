@@ -78,8 +78,8 @@ def fetch_thermo_training_data(thermo_db_path: str | Path) -> pd.DataFrame:
         )
 
     # log transform H and S
-    df["log_H298"] = np.log10(df["H298_J_mol"].clip(lower=1e-300))
-    df["log_S298"] = np.log10(df["S298_J_mol_K"].clip(lower=1e-300))
+    df["log_H298"] = np.log10(df["H298_J_mol"])
+    df["log_S298"] = np.log10(df["S298_J_mol_K"])
 
     output_cols = [
         "smiles",
@@ -195,7 +195,7 @@ def fetch_kinetics_training_data(kinetics_db_path: str | Path) -> pd.DataFrame:
         a_val = row["arr_A_val"]
         deg = row["degeneracy"] if row["degeneracy"] and row["degeneracy"] > 0 else 1.0
         per_site_a = a_val / deg
-        return np.log10(max(per_site_a, 1e-300))
+        return np.log10(per_site_a)
 
     df["Ea_J_mol"] = df.apply(normalize_ea, axis=1)
     df["log10_A"] = df.apply(normalize_log10_a, axis=1)
