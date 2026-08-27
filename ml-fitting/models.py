@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import torch
+import torch.nn.functional as F
 from torch import nn
 from numpy.typing import ArrayLike
 
@@ -14,8 +15,15 @@ RIGR_RXN_FEATURIZER = featurizers.CondensedGraphOfReactionFeaturizer(
     atom_featurizer=RIGRAtomFeaturizer(), bond_featurizer=RIGRBondFeaturizer()
 )
 
+def smooth_clamp(x, min_val, max_val, beta=5.0):
+    # approximate clamp using softplus
+    # 1. Soft approximation of max(min_val, x)
+    low_clip = min_val + F.softplus(x - min_val, beta=beta)
+    # 2. Soft approximation of min(max_val, low_clip) -> max_val - max(0, max_val - low_clip)
+    return max_val - F.softplus(max_val - low_clip, beta=beta)
 
-class BoundedUnscaleTransform(nn.Module):
+
+class BoundedOutputTransform(nn.Module):
     def __init__(
         self,
         mean: ArrayLike,
@@ -29,38 +37,23 @@ class BoundedUnscaleTransform(nn.Module):
         mean = torch.cat([torch.zeros(pad), torch.tensor(mean, dtype=torch.float)])
         scale = torch.cat([torch.ones(pad), torch.tensor(scale, dtype=torch.float)])
 
-        self.register_buffer("mean", mean.unsqueeze(0))
-        self.register_buffer("scale", scale.unsqueeze(0))
         self.register_buffer(
             "lower_bounds", torch.tensor(lower_bounds, dtype=torch.float)
         )
         self.register_buffer(
             "upper_bounds", torch.tensor(upper_bounds, dtype=torch.float)
         )
-        self.register_buffer(
-            "scaled_lower_bounds",
-            None
-            if self.lower_bounds is None
-            else (self.lower_bounds - self.mean) / self.scale,
-        )
-        self.register_buffer(
-            "scaled_upper_bounds",
-            None
-            if self.upper_bounds is None
-            else (self.upper_bounds - self.mean) / self.scale,
-        )
 
     def forward(self, X: torch.Tensor) -> torch.Tensor:
         if self.training:
             # During training, apply boundedness constraints in a differentiable way
-            return torch.clamp(X, self.scaled_lower_bounds, self.scaled_upper_bounds)
+            return smooth_clamp(X, self.lower_bounds, self.upper_bounds)
         else:
-            # During inference, apply boundedness constraints and unscaling
-            X_unscaled = X * self.scale + self.mean
-            return torch.clamp(X_unscaled, self.lower_bounds, self.upper_bounds)
+            # During inference, apply boundedness constraints in a non-differentiable way (clamping)
+            return torch.clamp(X, self.lower_bounds, self.upper_bounds)
 
 
-def get_thermo_model(transform: BoundedUnscaleTransform):
+def get_thermo_model(transform: BoundedOutputTransform):
     if not Path("chemeleon_mp.pt").exists():
         from urllib.request import urlretrieve
 
@@ -74,13 +67,13 @@ def get_thermo_model(transform: BoundedUnscaleTransform):
     return models.MPNN(
         mp,
         chemprop_nn.MeanAggregation(),
-        chemprop_nn.RegressionFFN(output_transform=transform, input_dim=mp.output_dim),
+        chemprop_nn.RegressionFFN(output_transform=transform, input_dim=mp.output_dim, activation=nn.GELU()),
         False,
         [chemprop_nn.metrics.RMSE(), chemprop_nn.metrics.MAE()],
     )
 
 
-def get_kinetics_model(transform: BoundedUnscaleTransform):
+def get_kinetics_model(transform: BoundedOutputTransform):
     mp = chemprop_nn.BondMessagePassing(
         d_v=RIGR_RXN_FEATURIZER.atom_fdim,
         d_e=RIGR_RXN_FEATURIZER.bond_fdim,
@@ -91,6 +84,7 @@ def get_kinetics_model(transform: BoundedUnscaleTransform):
         chemprop_nn.RegressionFFN(
             input_dim=mp.output_dim,
             output_transform=transform,
+            activation=nn.GELU(),
         ),
         False,
         [chemprop_nn.metrics.RMSE(), chemprop_nn.metrics.MAE()],

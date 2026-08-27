@@ -77,23 +77,30 @@ def fetch_thermo_training_data(thermo_db_path: str | Path) -> pd.DataFrame:
             axis=1,
         )
 
-    # log transform H and S
-    df["log_H298"] = np.log10(df["H298_J_mol"])
-    df["log_S298"] = np.log10(df["S298_J_mol_K"])
+    # log transforms
+    df["log_H298_J_mol"] = np.log10(df["H298_J_mol"])
+    df["log_S298_J_mol_K"] = np.log10(df["S298_J_mol_K"])
+    df["log_Cp_1_J_mol_K"] = np.log10(df["Cp_1_J_mol_K"])
+    df["log_Cp_2_J_mol_K"] = np.log10(df["Cp_2_J_mol_K"])
+    df["log_Cp_3_J_mol_K"] = np.log10(df["Cp_3_J_mol_K"])
+    df["log_Cp_4_J_mol_K"] = np.log10(df["Cp_4_J_mol_K"])
+    df["log_Cp_5_J_mol_K"] = np.log10(df["Cp_5_J_mol_K"])
+    df["log_Cp_6_J_mol_K"] = np.log10(df["Cp_6_J_mol_K"])
+    df["log_Cp_7_J_mol_K"] = np.log10(df["Cp_7_J_mol_K"])
 
     output_cols = [
         "smiles",
         "label",
         "source_library",
-        "log_H298",
-        "log_S298",
-        "Cp_1_J_mol_K",
-        "Cp_2_J_mol_K",
-        "Cp_3_J_mol_K",
-        "Cp_4_J_mol_K",
-        "Cp_5_J_mol_K",
-        "Cp_6_J_mol_K",
-        "Cp_7_J_mol_K",
+        "log_H298_J_mol",
+        "log_S298_J_mol_K",
+        "log_Cp_1_J_mol_K",
+        "log_Cp_2_J_mol_K",
+        "log_Cp_3_J_mol_K",
+        "log_Cp_4_J_mol_K",
+        "log_Cp_5_J_mol_K",
+        "log_Cp_6_J_mol_K",
+        "log_Cp_7_J_mol_K",
     ]
     return df[output_cols]
 
@@ -178,8 +185,8 @@ def fetch_kinetics_training_data(kinetics_db_path: str | Path) -> pd.DataFrame:
     )
     df = df.dropna(subset=["rxn_smiles"]).copy()
 
-    # Normalize Ea to J/mol
-    def normalize_ea(row):
+    # Normalize Ea to J/mol, log
+    def normalize_log_ea(row):
         ea = row["arr_Ea_val"]
         unit = str(row["arr_Ea_unit"]).lower()
         if "kcal" in unit:
@@ -188,7 +195,7 @@ def fetch_kinetics_training_data(kinetics_db_path: str | Path) -> pd.DataFrame:
             return ea * 1000.0
         elif "cal" in unit:
             return ea * 4.184
-        return ea
+        return np.log10(ea)
 
     # Log10-transform the pre-exponential factor A normalized by reaction degeneracy
     def normalize_log10_a(row):
@@ -197,7 +204,7 @@ def fetch_kinetics_training_data(kinetics_db_path: str | Path) -> pd.DataFrame:
         per_site_a = a_val / deg
         return np.log10(per_site_a)
 
-    df["Ea_J_mol"] = df.apply(normalize_ea, axis=1)
+    df["log_Ea_J_mol"] = df.apply(normalize_log_ea, axis=1)
     df["log10_A"] = df.apply(normalize_log10_a, axis=1)
     df["n"] = df["arr_n"].fillna(0.0)
 
@@ -211,7 +218,7 @@ def fetch_kinetics_training_data(kinetics_db_path: str | Path) -> pd.DataFrame:
         "label",
         "log10_A",
         "n",
-        "Ea_J_mol",
+        "log_Ea_J_mol",
         "arr_A_unit",
     ]
     return df[output_cols]
@@ -221,7 +228,7 @@ def df_to_chemprop(thermo_df: pd.DataFrame, kinetics_df: pd.DataFrame):
     # thermo
     smis = thermo_df.loc[:, "smiles"].values
     ys = thermo_df.loc[:, THERMO_TARGETS].values
-    all_data = [data.MoleculeDatapoint.from_smi(smi, y) for smi, y in zip(smis, ys)]
+    all_data = [data.MoleculeDatapoint.from_smi(smi, y, keep_h=True, add_h=True) for smi, y in zip(smis, ys)]
     mols = [d.mol for d in all_data]
     train_indices, val_indices, test_indices = data.make_split_indices(
         mols, "random", (0.8, 0.1, 0.1)
@@ -239,7 +246,7 @@ def df_to_chemprop(thermo_df: pd.DataFrame, kinetics_df: pd.DataFrame):
     # kinetics
     smis = kinetics_df.loc[:, "rxn_smiles"].values
     ys = kinetics_df.loc[:, KINETICS_TARGETS].values
-    all_data = [data.ReactionDatapoint.from_smi(smi, y) for smi, y in zip(smis, ys)]
+    all_data = [data.ReactionDatapoint.from_smi(smi, y, keep_h=True, add_h=True) for smi, y in zip(smis, ys)]
     mols = [d.rct for d in all_data]
     train_indices, val_indices, test_indices = data.make_split_indices(
         mols, "random", (0.8, 0.1, 0.1)

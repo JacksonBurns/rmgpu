@@ -17,3 +17,7 @@ conda-meta/
 RMG-Py/
 RMG-database/
 rmgdb/
+# ml output/input files
+*.pt
+checkpoints
+logs
