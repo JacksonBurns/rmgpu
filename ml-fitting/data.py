@@ -190,19 +190,19 @@ def fetch_kinetics_training_data(kinetics_db_path: str | Path) -> pd.DataFrame:
         ea = row["arr_Ea_val"]
         unit = str(row["arr_Ea_unit"]).lower()
         if "kcal" in unit:
-            return ea * 4184.0
+            ea *= 4184.0
         elif "kj" in unit:
-            return ea * 1000.0
+            ea *= 1000.0
         elif "cal" in unit:
-            return ea * 4.184
-        return np.log10(ea)
+            ea *= 4.184
+        return np.log10(ea) if ea > 0 else np.nan
 
     # Log10-transform the pre-exponential factor A normalized by reaction degeneracy
     def normalize_log10_a(row):
         a_val = row["arr_A_val"]
         deg = row["degeneracy"] if row["degeneracy"] and row["degeneracy"] > 0 else 1.0
         per_site_a = a_val / deg
-        return np.log10(per_site_a)
+        return np.log10(per_site_a) if per_site_a > 0 else np.nan
 
     df["log_Ea_J_mol"] = df.apply(normalize_log_ea, axis=1)
     df["log10_A"] = df.apply(normalize_log10_a, axis=1)

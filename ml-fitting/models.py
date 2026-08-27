@@ -8,6 +8,7 @@ from numpy.typing import ArrayLike
 from chemprop import featurizers, models, nn as chemprop_nn
 from chemprop.featurizers.atom import RIGRAtomFeaturizer
 from chemprop.featurizers.bond import RIGRBondFeaturizer
+from chemprop.nn.metrics import ChempropMetric, MetricRegistry, LossFunctionRegistry
 
 
 CHEMELEON_MOL_FEATURIZER = featurizers.SimpleMoleculeMolGraphFeaturizer()
@@ -22,6 +23,13 @@ def smooth_clamp(x, min_val, max_val, beta=10.0):
     low_clip = min_val + F.softplus(x - min_val, beta=beta)
     # 2. Soft approximation of min(max_val, low_clip) -> max_val - max(0, max_val - low_clip)
     return max_val - F.softplus(max_val - low_clip, beta=beta)
+
+
+@MetricRegistry.register("huber")
+@LossFunctionRegistry.register("huber")
+class HuberMetric(ChempropMetric):
+    def _calc_unreduced_loss(self, preds, targets, *args):
+        return F.smooth_l1_loss(preds, targets, reduction="none", beta=1.0)
 
 
 class BoundedOutputTransform(nn.Module):
@@ -96,7 +104,9 @@ def get_kinetics_model(transform: BoundedOutputTransform):
             n_layers=2,
             hidden_dim=512,
             n_tasks=len(transform.lower_bounds),
+            # kinetics data has some strange outliers, thus huber loss
+            criterion=HuberMetric(),
         ),
         False,
-        [chemprop_nn.metrics.RMSE(), chemprop_nn.metrics.MAE()],
+        [HuberMetric(), chemprop_nn.metrics.RMSE(), chemprop_nn.metrics.MAE()],
     )

@@ -12,7 +12,7 @@ def parity_plot(
     target_name: str,
     *,
     model_name: str = "Chemprop",
-    error_band: float = 0.5,
+    error_band: float | str = "auto",
     save_path: str | Path | None = None,
     gridsize: int = 70,
     figsize: tuple[float, float] = (5.0, 4.0),
@@ -52,6 +52,16 @@ def parity_plot(
     cb.set_label("Sample count")
 
     # Guide lines: y = x, y = x +/- error_band
+    if error_band == "auto":
+        if "log" in target_name.lower():
+            error_band = 0.5
+            error_desc = "1/2\ log\ unit"
+        else:
+            error_band = np.percentile(np.abs(yt - yp), 90)  # 90th percentile of absolute errors
+            error_desc = f"{error_band:.2f}\ (90th\ %-ile\ of\ absolute\ errors)"
+    else:
+        error_desc = f"{error_band:.2f}"
+
     ax.plot([lim_min, lim_max], [lim_min, lim_max], "r", linewidth=1.0)
     ax.plot(
         [lim_min, lim_max],
@@ -94,6 +104,16 @@ def parity_plot(
         horizontalalignment="right",
         bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="none", alpha=0.7),
     )
+    # italicized error band annotation underneath the metrics
+    ax.text(
+        0.95,
+        0.02,
+        f"$\\it{{Error\ band:\ {error_desc}}}$",
+        transform=ax.transAxes,
+        fontsize=9,
+        verticalalignment="bottom",
+        horizontalalignment="right",
+    )
 
     if save_path is not None:
         save_path = Path(save_path)
@@ -111,7 +131,7 @@ def plot_multitask_parity(
     *,
     output_dir: str | Path,
     model_name: str = "Chemprop",
-    error_band: float = 1.0,
+    error_band: float | str = "auto",
 ) -> None:
     """Iterates through targets and outputs individual styled parity plots."""
     out = Path(output_dir)
