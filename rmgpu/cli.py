@@ -142,10 +142,43 @@ def version() -> None:
 
 
 @main.command(name="import")
-def import_() -> None:
-    """Import a legacy RMG Python script into YAML (not yet implemented)."""
-    click.echo(NOT_IMPLEMENTED)
-    sys.exit(0)
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--to", required=True, type=click.Path(dir_okay=False), help="Output YAML file path.")
+def import_(path: str, to: str) -> None:
+    """Import a legacy RMG Python script into YAML."""
+    from rmgpu.importer.legacy import import_legacy, LegacyImporterError
+    from rmgpu.schemas.input import Input
+
+    try:
+        doc = import_legacy(path)
+    except LegacyImporterError as e:
+        click.echo(f"Import error: {e}", err=True)
+        sys.exit(1)
+
+    # Add import notes as YAML comment
+    notes = doc.pop('import_notes', [])
+    notes_text = ""
+    if notes:
+        notes_text = "# IMPORT-NOTES:\n"
+        for note in notes:
+            notes_text += f"# - {note}\n"
+
+    # Validate against schema
+    try:
+        input_model = Input(**doc)
+    except Exception as e:
+        click.echo(f"Schema validation error: {e}", err=True)
+        sys.exit(1)
+
+    output = input_model.model_dump()
+
+    # Write YAML
+    with open(to, 'w') as f:
+        if notes_text:
+            f.write(notes_text)
+        f.write(yaml.dump(output, Dumper=QuantityDumper, default_flow_style=False))
+
+    click.echo(f"Imported {path} -> {to}")
 
 
 @main.command()
