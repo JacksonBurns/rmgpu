@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-03-step-04-legacy.md (job-03 step-03 done: CLI run/validate/schema/version, 7 tests pass)
+NEXT: prompts/steps/job-03-step-05-gate.md (job-03 step-04 done: legacy importer + CLI, 50/50 files import OK)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -56,7 +56,7 @@ documented finding) and the session log has the evidence.
 | 03/01 | Input schema: core blocks | test_schemas_core.py | done |
 | 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | done |
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | done |
-| 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | pending |
+| 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | done |
 | 03/05 | Job-03 gate (lossless import of 47 examples) | gate_03.py (target 47/47) | pending |
 | 04/01 | ML infra: checkpoint inventory + synthetic test model | test_ml_base.py + synthetic ckpts | pending |
 | 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | pending |
@@ -356,6 +356,12 @@ next: job-01 is CLOSED. Start job-02: prompts/steps/job-02-step-01-arrhenius.md
 env change: rmgpu conda env gained openbabel 3.2.1 (conda-forge) + deps for N/S SMILES canonicalization.
 leftover (needs human consent to delete): untracked debug_*.py probes in repo root from earlier
   step-08 sessions; gates/dump_resonance.py and scripts/atomtype_reference.py are step-03/05 helpers.
+
+### 2026-08-27 - job-03/step-04
+built: rmgpu/importer/legacy.py (AST-based visitor for legacy RMG input files), scripts/legacy_dump.py (tests all 50 files), tests/test_importer_basic.py (28 tests), rmgpu/cli.py import command
+checks: GREEN - legacy_dump on all 50 files: 50/50 success, 0 import notes, 0 failures; pytest tests/test_importer_basic.py: 28 passed
+commits: d62b85b
+next: job-03/step-05-gate (read prompts/steps/job-03-step-05-gate.md)
 
 ### 2026-08-27 - job-03/step-01
 built: rmgpu/schemas/input.py (Quantity, StructureValue, DatabaseBlock, Species, ForbiddenEntry, Input, resolve_extends); tests/test_schemas_core.py (20 tests)
