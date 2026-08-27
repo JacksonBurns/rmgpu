@@ -150,7 +150,7 @@ checks: GREEN - /home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_02.py:
   (tol 1e-10); 20 reactions excluded = documented coverage gaps (16 chebyshev coeffs not
   stored, 2 nested MultiArrhenius-in-PDep NULL, 1 nested T0!=1 not stored, 1 negative-A
   source defect). pytest tests/ -q: 182 passed.
-commits: <this commit>
+commits: 703a297
 next: job-03 start: prompts/steps/job-03-step-01-core.md (job brief
   prompts/job-03-input-schema.md). Key context for later jobs: assemble_rate_model
   returns None for the 20 excluded reactions (route to ML estimator, job-04); efficiency
