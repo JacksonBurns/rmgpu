@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-03-step-01-core.md (job-02 CLOSED - gate_02.py GREEN 2026-08-26, all 5 checks; gap list in reports/job-02.md. Job-03 brief: prompts/job-03-input-schema.md)
+NEXT: prompts/steps/job-03-step-02-blocks.md (job-03 step-01 done: core schema models, 20 tests pass)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -53,7 +53,7 @@ documented finding) and the session log has the evidence.
 | 02/03 | ThermoDB facade + thermo models (Wilhoit/NASA7) | test_thermodb.py | done |
 | 02/04 | KineticsDB facade + family-definition storage | test_kineticsdb.py + storage finding | done |
 | 02/05 | Transport/StatMech/Solvation facades + job-02 gate | gate_02.py GREEN (5/5: counts, content hash, 25-species lookup, 1793-rxn rate round-trip max rel 1.4e-14, gap list) + pytest 182 | done |
-| 03/01 | Input schema: core blocks | test_schemas_core.py | pending |
+| 03/01 | Input schema: core blocks | test_schemas_core.py | done |
 | 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | pending |
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | pending |
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | pending |
@@ -350,3 +350,9 @@ next: job-01 is CLOSED. Start job-02: prompts/steps/job-02-step-01-arrhenius.md
 env change: rmgpu conda env gained openbabel 3.2.1 (conda-forge) + deps for N/S SMILES canonicalization.
 leftover (needs human consent to delete): untracked debug_*.py probes in repo root from earlier
   step-08 sessions; gates/dump_resonance.py and scripts/atomtype_reference.py are step-03/05 helpers.
+
+### 2026-08-27 - job-03/step-01
+built: rmgpu/schemas/input.py (Quantity, StructureValue, DatabaseBlock, Species, ForbiddenEntry, Input, resolve_extends); tests/test_schemas_core.py (20 tests)
+checks: GREEN - pytest tests/test_schemas_core.py -q: 20 passed
+commits: 4ae76c8
+next: job-03/step-02-blocks
