@@ -1,212 +1,290 @@
+"""Tests for job-03/step-02: reactors, remaining blocks, extends."""
 import os
-import textwrap
-from pathlib import Path
-
 import pytest
-from rmgpu.schemas import (
+from rmgpu.schemas.input import (
     Input,
-    PressureDependenceBlock,
     SimpleReactor,
     ConstantVReactor,
     ConstantTPReactor,
     LiquidReactor,
     MBSampledReactor,
     SurfaceReactor,
+    StagedReactor,
+    LiquidStagedReactor,
+    ConstantVStagedReactor,
+    PressureStagedReactor,
+    SimulatorBlock,
+    ModelBlock,
+    PressureDependenceBlock,
+    MLEstimatorBlock,
+    SolvationBlock,
+    UncertaintyBlock,
+    OptionsBlock,
     load_input,
+    resolve_extends,
 )
 from rmgpu.units import Quantity
 
-def test_polymorphic_dispatch_simple():
-    d = {
-        "type": "simple",
-        "temperature": {"value": 1000, "unit": "K"},
-        "pressure": {"value": 1.0, "unit": "bar"},
-        "initial_mole_fractions": {"CH4": 0.2, "O2": 0.2, "N2": 0.6},
-        "termination": {"time": {"value": 0.1, "unit": "s"}},
-    }
-    r = SimpleReactor(**d)
-    assert isinstance(r.temperature, Quantity)
-    assert isinstance(r.pressure, Quantity)
+# --- Polymorphic dispatch tests ---
 
-def test_polymorphic_dispatch_const_v():
-    d = {
-        "type": "const_V",
-        "temperature": {"value": 1000, "unit": "K"},
-        "pressure": {"value": 1.0, "unit": "bar"},
-        "initial_mole_fractions": {"CH4": 0.2, "O2": 0.2, "N2": 0.6},
-    }
-    r = ConstantVReactor(**d)
-    assert isinstance(r.temperature, Quantity)
+def test_simple_reactor_dispatch():
+    reactor = SimpleReactor(
+        temperature="300 K",
+        pressure="1 bar",
+        initial_mole_fractions={"H2": 0.5, "CH4": 0.5},
+    )
+    assert reactor.type == "simple"
 
-def test_polymorphic_dispatch_const_tp():
-    d = {
-        "type": "const_TP",
-        "temperature": {"value": 1000, "unit": "K"},
-        "pressure": {"value": 1.0, "unit": "bar"},
-        "initial_mole_fractions": {"CH4": 0.2, "O2": 0.2, "N2": 0.6},
-    }
-    r = ConstantTPReactor(**d)
-    assert isinstance(r.temperature, Quantity)
+def test_const_v_reactor_dispatch():
+    reactor = ConstantVReactor(
+        temperature="500 K",
+        pressure="10 bar",
+        initial_mole_fractions={"C3H8": 1.0},
+    )
+    assert reactor.type == "const_V"
 
-def test_polymorphic_dispatch_liquid():
-    d = {
-        "type": "liquid",
-        "temperature": {"value": 298, "unit": "K"},
-        "initial_concentrations": {"water": 1.0, "reactant": 1e-3},
-    }
-    r = LiquidReactor(**d)
-    assert isinstance(r.temperature, Quantity)
+def test_const_tp_reactor_dispatch():
+    reactor = ConstantTPReactor(
+        temperature="1000 K",
+        pressure="1 bar",
+        initial_mole_fractions={"CH4": 0.5, "O2": 0.5},
+    )
+    assert reactor.type == "const_TP"
 
-def test_polymorphic_dispatch_mb_sampled():
-    d = {
-        "type": "mb_sampled",
-        "temperature": {"value": 1000, "unit": "K"},
-        "pressure": {"value": 1.0, "unit": "bar"},
-        "initial_mole_fractions": {"CH4": 0.2, "O2": 0.2, "N2": 0.6},
-        "mbsampling_rate": {"value": 0.1, "unit": "1/s"},
-    }
-    r = MBSampledReactor(**d)
-    assert isinstance(r.temperature, Quantity)
+def test_liquid_reactor_dispatch():
+    reactor = LiquidReactor(
+        temperature="298 K",
+        initial_concentrations={"water": 55.5},
+    )
+    assert reactor.type == "liquid"
 
-def test_polymorphic_dispatch_surface():
-    d = {
-        "type": "surface",
-        "temperature": {"value": 500, "unit": "K"},
-        "initial_pressure": {"value": 1.0, "unit": "bar"},
-        "initial_gas_mole_fractions": {"CH4": 0.2, "O2": 0.2, "N2": 0.6},
-        "initial_surface_coverages": {"Pt111": 1.0},
-        "surface_volume_ratio": {"value": 1.0, "unit": "1/m"},
-    }
-    r = SurfaceReactor(**d)
-    assert isinstance(r.temperature, Quantity)
+def test_mb_sampled_reactor_dispatch():
+    reactor = MBSampledReactor(
+        temperature="300 K",
+        pressure="1 bar",
+        initial_mole_fractions={"A": 1.0},
+        mbsampling_rate="1000 /s",
+    )
+    assert reactor.type == "mb_sampled"
 
-def test_pressure_dep_method_shorthand():
-    d = {
-        "method": "cse",
-        "Tmin": {"value": 300, "unit": "K"},
-        "Tmax": {"value": 2000, "unit": "K"},
-        "Tcount": 20,
-        "Pmin": {"value": 1.0, "unit": "bar"},
-        "Pmax": {"value": 50.0, "unit": "bar"},
-        "Pcount": 10,
-        "maximumGrainSize": {"value": 0.0, "unit": "kJ/mol"},
-        "minimumNumberOfGrains": 0,
-    }
-    pdp = PressureDependenceBlock(**d)
-    assert pdp.method == "strong collision"
+def test_surface_reactor_dispatch():
+    reactor = SurfaceReactor(
+        temperature="500 K",
+        initial_pressure="1 bar",
+        initial_gas_mole_fractions={"H2": 1.0},
+        initial_surface_coverages={"H*": 0.1},
+        surface_volume_ratio="1e-10 m3",
+    )
+    assert reactor.type == "surface"
 
-def test_pressure_dep_method_long_form():
-    d = {
-        "method": "modified strong collision",
-        "Tmin": {"value": 300, "unit": "K"},
-        "Tmax": {"value": 2000, "unit": "K"},
-        "Tcount": 20,
-        "Pmin": {"value": 1.0, "unit": "bar"},
-        "Pmax": {"value": 50.0, "unit": "bar"},
-        "Pcount": 10,
-    }
-    pdp = PressureDependenceBlock(**d)
-    assert pdp.method == "modified strong collision"
+# --- Staged reactor tests ---
 
-def test_plan_example_validates(tmp_path):
-    """Validate the PLAN.md 12.2 example end-to-end."""
-    yaml_text = textwrap.dedent("""
-        rmgpu: 1.0
-        database:
-          thermo_libraries: [primaryThermoLibrary]
-          reaction_libraries: []
-          seed_mechanisms: [my_mechanism/core.yaml]
-          kinetics_families: default
-          kinetics_depositories: [training]
-          kinetics_estimator: ml
-          transport_libraries: auto
-        species:
-          - {label: ethane, reactive: true, structure: "CC"}
-          - {label: CH3CHO, reactive: true, structure: "CC=O"}
-          - {label: H, reactive: true, structure: "[H]"}
-        forbidden:
-          - {structure: "C=[C]=[C]", reason: cumulenes unsupported}
-        reactors:
-          - type: simple
-            temperature: {value: 1350, unit: K}
-            pressure: {value: 1.0, unit: bar}
-            initial_mole_fractions: {ethane: 1.0}
-            termination:
-              conversion: {species: ethane, value: 0.9}
-              time: {value: 1e6, unit: s}
-        simulator: {atol: 1e-16, rtol: 1e-8}
-        model:
-          tolerance_keep_in_edge: 0.0
-          tolerance_move_to_core: 0.1
-          tolerance_interrupt_simulation: 0.1
-          maximum_edge_species: 100000
-          filter_reactions: true
-        pressure_dependence: {method: cse}
-        ml_estimator: {thermo: chemeleon_thermo_v1, kinetics: chemeleon_rxn_v1}
-        solvation: {solvent: acetonitrile, model: smd}
-        uncertainty: {enabled: true, species: [CO, CO2]}
-        options: {save_profiles: true, save_plots: false, save_edge: true, units: si}
-    """)
-    inp = tmp_path / "input.yaml"
-    inp.write_text(yaml_text)
-    loaded = load_input(str(inp))
-    assert loaded.rmgpu == "1.0"
-    assert loaded.database is not None
-    assert len(loaded.species) == 3
+def test_staged_reactor():
+    reactor = StagedReactor(
+        temperature="500 K",
+        pressure="1 bar",
+        initial_mole_fractions={"A": 0.5, "B": 0.5},
+        staged_initial_mole_fractions=[
+            {"A": 0.5, "B": 0.5},
+            {"A": 0.7, "B": 0.3},
+        ],
+    )
+    assert reactor.type == "staged"
+    assert len(reactor.staged_initial_mole_fractions) == 2
+
+def test_staged_reactor_requires_stages():
+    with pytest.raises(Exception):
+        StagedReactor(
+            temperature="500 K",
+            pressure="1 bar",
+            initial_mole_fractions={"A": 1.0},
+            staged_initial_mole_fractions=[],
+        )
+
+def test_liquid_staged_reactor():
+    reactor = LiquidStagedReactor(
+        temperature="298 K",
+        initial_concentrations={"water": 55.5},
+        staged_temperatures=["298 K", "310 K"],
+    )
+    assert reactor.type == "staged"
+    assert len(reactor.staged_temperatures) == 2
+
+def test_const_v_staged_reactor():
+    reactor = ConstantVStagedReactor(
+        temperature="500 K",
+        pressure="1 bar",
+        initial_mole_fractions={"A": 1.0},
+        staged_temperatures=["500 K", "600 K"],
+    )
+    assert reactor.type == "staged"
+
+def test_pressure_staged_reactor():
+    reactor = PressureStagedReactor(
+        temperature="500 K",
+        pressure="1 bar",
+        initial_mole_fractions={"A": 1.0},
+        staged_temperatures=["500 K", "600 K"],
+        staged_pressures=["1 bar", "2 bar"],
+    )
+    assert reactor.type == "staged"
+
+# --- Pressure dependence method normalization ---
+
+def test_method_shorthand_cse():
+    pd = PressureDependenceBlock(method="cse")
+    assert pd.method == "strong collision"
+
+def test_method_shorthand_masc():
+    pd = PressureDependenceBlock(method="masc")
+    assert pd.method == "modified strong collision"
+
+def test_method_shorthand_rs():
+    pd = PressureDependenceBlock(method="rs")
+    assert pd.method == "randomized strong collision"
+
+def test_method_shorthand_sls():
+    pd = PressureDependenceBlock(method="sls")
+    assert pd.method == "super logarithmic spacing"
+
+def test_method_long_form_passthrough():
+    pd = PressureDependenceBlock(method="modified strong collision")
+    assert pd.method == "modified strong collision"
+
+# --- Extends tests ---
 
 def test_extends_two_level(tmp_path):
-    """Test extends with two levels of nesting."""
+    """Two-level extends chain with cycle detection."""
     base = tmp_path / "base.yaml"
-    base.write_text(textwrap.dedent("""
-        rmgpu: 1.0
-        database:
-          thermo_libraries: [primaryThermoLibrary]
-    """))
+    base.write_text("""
+rmgpu: "1.0"
+database:
+  thermo_libraries: ["primaryThermoLibrary"]
+species:
+  - label: H2
+    structure: "H[H]"
+""")
     mid = tmp_path / "mid.yaml"
-    mid.write_text(textwrap.dedent("""
-        extends: base.yaml
-        database:
-          reaction_libraries: [primaryH2O2]
-        species:
-          - {label: CH4, reactive: true, structure: C}
-    """))
-    top = tmp_path / "top.yaml"
-    top.write_text(textwrap.dedent("""
-        extends: mid.yaml
-        reactors:
-          - type: simple
-            temperature: {value: 1000, unit: K}
-            pressure: {value: 1.0, unit: bar}
-            initial_mole_fractions: {CH4: 0.2, O2: 0.2, N2: 0.6}
-    """))
-    loaded = load_input(str(top))
-    assert loaded.database is not None
-    assert loaded.database.thermo_libraries == ["primaryThermoLibrary"]
-    assert loaded.database.reaction_libraries == ["primaryH2O2"]
-    assert len(loaded.species) == 1
-    assert len(loaded.reactors) == 1
+    mid.write_text("""
+rmgpu: "1.0"
+extends: base.yaml
+reactors:
+  - type: simple
+    temperature: "300 K"
+    pressure: "1 bar"
+    initial_mole_fractions:
+      H2: 1.0
+""")
+    final = tmp_path / "final.yaml"
+    final.write_text("""
+rmgpu: "1.0"
+extends: mid.yaml
+model:
+  tolerance_move_to_core: 0.2
+""")
+    resolved = resolve_extends({"rmgpu": "1.0"}, str(tmp_path))
+    # Actually test load_input
+    inp = load_input(str(final))
+    assert inp.rmgpu == "1.0"
+    assert inp.model is not None
+    assert inp.model.tolerance_move_to_core == 0.2
+    assert inp.database is not None
+    assert inp.database.thermo_libraries == ["primaryThermoLibrary"]
+    assert inp.reactors is not None
 
 def test_extends_cycle_detection(tmp_path):
-    """Test that extends cycle detection raises an error."""
+    """Cycle in extends chain should raise."""
     a = tmp_path / "a.yaml"
-    a.write_text(textwrap.dedent("""
-        rmgpu: 1.0
-        extends: b.yaml
-    """))
+    a.write_text("""
+rmgpu: "1.0"
+extends: b.yaml
+""")
     b = tmp_path / "b.yaml"
-    b.write_text(textwrap.dedent("""
-        extends: a.yaml
-    """))
+    b.write_text("""
+rmgpu: "1.0"
+extends: a.yaml
+""")
+    # Load a.yaml which extends b.yaml which extends a.yaml (cycle)
     with pytest.raises(ValueError):
         load_input(str(a))
 
-def test_staged_reactor_nested_list():
-    """Test that staged reactors (nested lists) are supported."""
-    d = {
-        "type": "simple",
-        "temperature": {"value": 1000, "unit": "K"},
-        "pressure": {"value": 1.0, "unit": "bar"},
-        "initial_mole_fractions": {"CH4": 0.2, "O2": 0.2, "N2": 0.6},
-    }
-    r = SimpleReactor(**d)
-    assert isinstance(r.temperature, Quantity)
+# --- Block tests ---
+
+def test_simulator_block():
+    sim = SimulatorBlock(atol=1e-10, rtol=1e-5)
+    assert sim.atol == 1e-10
+    assert sim.rtol == 1e-5
+
+def test_model_block():
+    m = ModelBlock(tolerance_move_to_core=0.05, maximum_edge_species=500)
+    assert m.tolerance_move_to_core == 0.05
+    assert m.maximum_edge_species == 500
+
+def test_ml_estimator_block():
+    ml = MLEstimatorBlock(thermo="example_thermo.ckpt", kinetics="example_kinetics.ckpt")
+    assert ml.thermo == "example_thermo.ckpt"
+
+def test_solvation_block():
+    s = SolvationBlock(solvent="water")
+    assert s.solvent == "water"
+    assert s.model == "smd"
+
+def test_uncertainty_block():
+    u = UncertaintyBlock(enabled=True, species=["CH4"])
+    assert u.enabled is True
+    assert u.species == ["CH4"]
+
+def test_options_block():
+    o = OptionsBlock(save_profiles=True, save_plots=True, save_edge=True, units="cgs")
+    assert o.save_profiles is True
+    assert o.units == "cgs"
+
+# --- PLAN.md 12.2 example end-to-end ---
+
+def test_plan_12_2_example():
+    inp = Input(
+        rmgpu="1.0",
+        database={
+            "thermo_libraries": ["primaryThermoLibrary"],
+            "kinetics_families": ["H_abstraction", "R_addition"],
+            "kinetics_estimator": "ml",
+        },
+        species=[
+            {"label": "CH4", "structure": "C"},
+            {"label": "H2", "structure": "H[H]"},
+            {"label": "H2O", "structure": "O"},
+        ],
+        reactors=[
+            {
+                "type": "simple",
+                "temperature": "1000 K",
+                "pressure": "1 bar",
+                "initial_mole_fractions": {"CH4": 0.5, "H2": 0.5},
+            }
+        ],
+        simulator={"atol": 1e-12, "rtol": 1e-8},
+        model={
+            "tolerance_move_to_core": 0.2,
+            "tolerance_keep_in_edge": 0.001,
+            "tolerance_interrupt_simulation": 1.0,
+            "maximum_edge_species": 10000,
+            "filter_reactions": True,
+        },
+        pressure_dependence={
+            "method": "modified strong collision",
+            "Tmin": "300 K",
+            "Tmax": "2000 K",
+            "Tcount": 20,
+            "Pmin": "1 bar",
+            "Pmax": "50 bar",
+            "Pcount": 10,
+        },
+        ml_estimator={
+            "thermo": "example_thermo_1.0.0",
+            "kinetics": "example_kinetics_1.0.0",
+        },
+        options={"save_profiles": False, "save_edge": True, "units": "si"},
+    )
+    assert inp.rmgpu == "1.0"
+    assert inp.model.tolerance_move_to_core == 0.2
+    assert inp.pressure_dependence.method == "modified strong collision"

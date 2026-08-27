@@ -28,11 +28,13 @@ class Quantity:
     def from_string(cls, text):
         """Parse strings like '1350 K' or '-5e3 m^2/mol/s'."""
         text = text.strip()
-        match = re.match(r'^([+-]?\d+\.?\d*(?:[eE][+-]?\d+)?)\s*(.*)$', text)
+        match = re.match(r'^([+-]?\d+\.?\d*(?:[eE][+-]?\d+)?)\s*([a-zA-Z/\w^]+?)\s*$', text)
         if not match:
             raise QuantityError(f'Invalid quantity string: {text!r}')
         value = float(match.group(1))
         units = match.group(2).strip()
+        # Convert m3 to m^3 for pint compatibility
+        units = re.sub(r'\bm3\b', 'm^3', units)
         return cls(value, units)
 
     def to_si(self):

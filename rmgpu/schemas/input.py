@@ -22,6 +22,10 @@ __all__ = [
     "LiquidReactor",
     "MBSampledReactor",
     "SurfaceReactor",
+    "StagedReactor",
+    "LiquidStagedReactor",
+    "ConstantVStagedReactor",
+    "PressureStagedReactor",
     "Reactors",
     "SimulatorBlock",
     "ModelBlock",
@@ -42,10 +46,7 @@ def _coerce_quantity(v: Any) -> Quantity:
     if isinstance(v, Quantity):
         return v
     if isinstance(v, str):
-        m = re.match(r"^\s*([0-9.eE+-]+)\s*([A-Za-z/\s]+?)\s*$", v)
-        if not m:
-            raise ValueError(f"Invalid quantity string: {v!r}")
-        return Quantity(float(m.group(1)), m.group(2))
+        return Quantity.from_string(v)
     if isinstance(v, dict):
         return Quantity(v["value"], v["unit"])
     raise ValueError(f"Invalid quantity input: {v!r}")
@@ -245,7 +246,78 @@ class SurfaceReactor(pydantic.BaseModel):
     def _convert_quantity(cls, v: Any) -> Quantity:
         return _coerce_quantity(v)
 
-Reactors = Union[SimpleReactor, ConstantVReactor, ConstantTPReactor, LiquidReactor, MBSampledReactor, SurfaceReactor]
+class StagedReactor(SimpleReactor):
+    """Staged simple reactor: same T/P across stages, changing composition."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    type: Literal["simple", "staged"] = "staged"
+    staged_initial_mole_fractions: List[Dict[str, Union[float, List[float]]]]
+
+    @model_validator(mode="after")
+    def _validate_stages(self) -> "StagedReactor":
+        if not self.staged_initial_mole_fractions:
+            raise ValueError("staged reactor requires at least one staged_initial_mole_fractions entry")
+        return self
+
+class LiquidStagedReactor(LiquidReactor):
+    """Staged liquid reactor with per-stage temperature."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    type: Literal["liquid", "staged"] = "staged"
+    staged_temperatures: List[Quantity]
+
+    @field_validator("staged_temperatures", mode="before")
+    @classmethod
+    def _convert_staged_temperatures(cls, v: Any) -> Any:
+        if isinstance(v, list):
+            return [_coerce_quantity(x) for x in v]
+        return v
+
+class ConstantVStagedReactor(ConstantVReactor):
+    """Staged constant-V reactor with per-stage temperature."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    type: Literal["const_V", "staged"] = "staged"
+    staged_temperatures: List[Quantity]
+
+    @field_validator("staged_temperatures", mode="before")
+    @classmethod
+    def _convert_staged_temperatures(cls, v: Any) -> Any:
+        if isinstance(v, list):
+            return [_coerce_quantity(x) for x in v]
+        return v
+
+class PressureStagedReactor(ConstantTPReactor):
+    """Staged reactor with per-stage temperature and pressure."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    type: Literal["staged"] = "staged"
+    staged_temperatures: List[Quantity]
+    staged_pressures: List[Quantity]
+
+    @field_validator("staged_temperatures", "staged_pressures", mode="before")
+    @classmethod
+    def _convert_staged_quantities(cls, v: Any) -> Any:
+        if isinstance(v, list):
+            return [_coerce_quantity(x) for x in v]
+        return v
+
+Reactors = List[Union[
+    SimpleReactor,
+    ConstantVReactor,
+    ConstantTPReactor,
+    LiquidReactor,
+    MBSampledReactor,
+    SurfaceReactor,
+    StagedReactor,
+    LiquidStagedReactor,
+    ConstantVStagedReactor,
+    PressureStagedReactor,
+]]
 
 class SimulatorBlock(pydantic.BaseModel):
     """Simulator tolerances."""
@@ -336,7 +408,7 @@ class Input(pydantic.BaseModel):
     database: Optional[DatabaseBlock] = None
     species: Optional[List[Species]] = None
     forbidden: Optional[List[ForbiddenEntry]] = None
-    reactors: Optional[List[Dict[str, Any]]] = None
+    reactors: Optional[Reactors] = None
     simulator: Optional[SimulatorBlock] = None
     model: Optional[ModelBlock] = None
     pressure_dependence: Optional[PressureDependenceBlock] = None
