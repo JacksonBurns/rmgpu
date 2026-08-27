@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-03-step-02-blocks.md (job-03 step-01 done: core schema models, 20 tests pass)
+NEXT: prompts/steps/job-03-step-03-cli.md (job-03 step-02 done: reactors + remaining blocks + extends, 25 tests pass)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -54,7 +54,7 @@ documented finding) and the session log has the evidence.
 | 02/04 | KineticsDB facade + family-definition storage | test_kineticsdb.py + storage finding | done |
 | 02/05 | Transport/StatMech/Solvation facades + job-02 gate | gate_02.py GREEN (5/5: counts, content hash, 25-species lookup, 1793-rxn rate round-trip max rel 1.4e-14, gap list) + pytest 182 | done |
 | 03/01 | Input schema: core blocks | test_schemas_core.py | done |
-| 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | pending |
+| 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | done |
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | pending |
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | pending |
 | 03/05 | Job-03 gate (lossless import of 47 examples) | gate_03.py (target 47/47) | pending |
@@ -356,3 +356,9 @@ built: rmgpu/schemas/input.py (Quantity, StructureValue, DatabaseBlock, Species,
 checks: GREEN - pytest tests/test_schemas_core.py -q: 20 passed
 commits: 4ae76c8
 next: job-03/step-02-blocks
+
+### 2026-08-27 - job-03/step-02
+built: rmgpu/schemas/input.py extended (Reactors polymorphic Union, StagedReactor, LiquidStagedReactor, ConstantVStagedReactor, PressureStagedReactor, SimulatorBlock, ModelBlock, PressureDependenceBlock, MLEstimatorBlock, SolvationBlock, UncertaintyBlock, OptionsBlock); rmgpu/units.py fixed (_coerce_quantity regex for exponential notation); tests/test_schemas_blocks.py (25 tests)
+checks: GREEN - pytest tests/test_schemas_blocks.py -q: 25 passed
+commits: 7cec009
+next: job-03/step-03-cli
