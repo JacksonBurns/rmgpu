@@ -1,0 +1,13 @@
+{
+  "thermo": {
+    "primaryThermoLibrary": 48,
+    "BurcatNS": 109,
+    "BurkeH2O2": 13,
+    "NOx2018": 148
+  },
+  "kinetics": {
+    "primaryH2O2": 50,
+    "primaryNitrogenLibrary": 442,
+    "NOx2018": 1321
+  }
+}

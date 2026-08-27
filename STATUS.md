@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-02-step-04-kineticsdb.md (job-01 CLOSED - gate GREEN 2026-08-25; job-02 step 01-03 done; job-02 brief is prompts/job-02-database.md)
+NEXT: prompts/steps/job-03-step-01-core.md (job-02 CLOSED - gate_02.py GREEN 2026-08-26, all 5 checks; gap list in reports/job-02.md. Job-03 brief: prompts/job-03-input-schema.md)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -16,7 +16,7 @@ at a time.)
 |-----|-------|------|--------|
 | 00 | Env + package skeleton + test scaffolding | smoke test (gate_00.py) | done |
 | 01 | Units + molecule layer | adjlist/atomtype/resonance parity (gate_01.py) | done |
-| 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | pending |
+| 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | done |
 | 03 | YAML input schema + CLI + legacy importer | 47 example input.py -> yaml, lossless (gate_03.py) | pending |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | pending |
 | 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | pending |
@@ -52,7 +52,7 @@ documented finding) and the session log has the evidence.
 | 02/02 | Rate models: falloff, Chebyshev, Marcus, tunneling | test_kinetics_models.py | done |
 | 02/03 | ThermoDB facade + thermo models (Wilhoit/NASA7) | test_thermodb.py | done |
 | 02/04 | KineticsDB facade + family-definition storage | test_kineticsdb.py + storage finding | done |
-| 02/05 | Transport/StatMech/Solvation facades + job-02 gate | gate_02.py | pending |
+| 02/05 | Transport/StatMech/Solvation facades + job-02 gate | gate_02.py GREEN (5/5: counts, content hash, 25-species lookup, 1793-rxn rate round-trip max rel 1.4e-14, gap list) + pytest 182 | done |
 | 03/01 | Input schema: core blocks | test_schemas_core.py | pending |
 | 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | pending |
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | pending |
@@ -125,6 +125,73 @@ documented finding) and the session log has the evidence.
   checkpoints are consumed via the new estimators' own load path (PLAN.md 3/5/6/8a.3).
 
 ## Session log (append newest at bottom)
+
+### 2026-08-26 - job-02/step-05 (completed - job-02 gate GREEN, job CLOSED)
+built: TransportDB/StatMechDB/SolvationDB facades (rmgpu/db/loaders.py) sized for jobs
+  06/07/11; Databases.from_config aggregate (rmgpu/db/__init__.py) constructing all 5
+  sub-facades from a config dict (mirrors the YAML database: block); typed entry dataclasses
+  (rmgpu/data/entries.py); assemble_rate_model EXTENDED with MultiPDepArrhenius (a reaction
+  with several kinetics_pdep_arrhenius rows = sum of temperature-banded PDepArrhenius
+  blocks, exact RMG-Py semantics) + PDepArrhenius rate model added to rmgpu/kinetics/models.py;
+  shared gate normalizer (gates/normalizer.py, used by BOTH sides); real baseline generator
+  (gates/generate_db_baselines.py, runs in rmg_env) + gates/baselines/db_baselines.json;
+  rewritten gates/gate_02.py with the 5 real checks; tests/test_db.py (facades + aggregate);
+  reports/job-02-step-05-miscdb.md + reports/job-02.md.
+  NOTE: the stub gate_02.py (mock checks) left by the interrupted session is REPLACED -
+  every check is now real. Also fixed two latent parity bugs found while wiring the gate:
+  (a) molecule-unit A-factor conversions were inverted (1/Na instead of *Na) in
+  rmgpu/data/kinetics.py; (b) the R constant now matches RMG-Py's 8.314472 (was CODATA
+  8.31446261815324 - a 1.1e-6 relative gap that alone fails the 1e-10 rate round-trip);
+  Na also aligned to RMG-Py's 6.02214179e23.
+checks: GREEN - /home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_02.py:
+  PASS all 5: counts 7/7 EXACT (48/109/13/148 + 50/442/1321); content hash byte-identical
+  (thermo primaryThermoLibrary 8d925198..., kinetics primaryH2O2 7ccae319...);
+  lookup 25/25 (rel tol 1e-12); rate round-trip 1793 reactions max rel diff 1.375e-14
+  (tol 1e-10); 20 reactions excluded = documented coverage gaps (16 chebyshev coeffs not
+  stored, 2 nested MultiArrhenius-in-PDep NULL, 1 nested T0!=1 not stored, 1 negative-A
+  source defect). pytest tests/ -q: 182 passed.
+commits: <this commit>
+next: job-03 start: prompts/steps/job-03-step-01-core.md (job brief
+  prompts/job-03-input-schema.md). Key context for later jobs: assemble_rate_model
+  returns None for the 20 excluded reactions (route to ML estimator, job-04); efficiency
+  coefficients ARE stored in rmgdb (kinetics_efficiencies_table, 6608 rows) but not yet
+  attached to assembled models (job-06/07 concern); full gap table in reports/job-02.md.
+
+### 2026-08-26 - job-02/step-05 (interrupted - state checkpoint)
+built (UNCOMMITTED): TransportDB/StatMechDB/SolvationDB facades + Databases.from_config
+  aggregate (rmgpu/db/loaders.py, rmgpu/db/__init__.py); ThermoDB.get_entry_grouped_by_label
+  (merges NASA-segment + Cp-data rows per label, loaders.py); rate-model assembler
+  rmgpu/data/kinetics.py (assemble_rate_model: Arrhenius/MultiArrhenius/Lindemann/Troe/
+  ThirdBody/PDepArrhenius, SI units, T0 defaults); stub gates/gate_02.py + gates/
+  generate_db_counts.py + gates/baselines/db_counts.json + tests/test_db.py
+  NOTE: the gate_02.py in the tree is a STUB with mock/proxy checks (content hash = hash of
+  name+count, rate round-trip mocked, lookup parity skipped) - it does NOT satisfy the job
+  gate definition. It must be rewritten.
+verified: pytest tests/ -q: 182 passed. Baseline counts confirmed genuine (regenerate + diff
+  before trusting; NOx2018 kinetics 1321, primaryThermoLibrary 48 distinct labels = RMG-Py).
+  Rate-model math verified line-by-line vs RMG-Py sources (rmgpy/kinetics/falloff.pyx,
+  arrhenius.pyx): ThirdBody/Lindemann/Troe/PDepArrhenius (log-log in P, adjacent-pressure
+  interpolation) /MultiArrhenius all match. PDepArrhenius pressures link via pdep_id (fixed).
+  A-factor "*|/ x" in RMG repr is the uncertainty annotation, NOT a degeneracy factor - no
+  degeneracy correction needed at gate level (degeneracy lives in the reaction object).
+rmgdb gaps found (for the gate-5 gap list): (1) Wilhoit fit coefficients a0-a3/B/H0/S0 and
+  Cp0/CpInf NOT stored - only the 7 Tdata/Cpdata points + H298/S298 (view columns exist but
+  are NULL); (2) kinetics_chebyshev_coeffs_table is EMPTY (114 chebyshev rows, 0 coeffs) -
+  Chebyshev reactions cannot be assembled (return None, documented); (3) efficiencies ARE
+  stored (kinetics_efficiencies_table, 6608 rows) - assemble_rate_model does not expose them
+  yet (job-06/07 concern); (4) MultiPDepArrhenius = multiple pdep rows per reaction (144 rxns
+  have 2) - assembler currently takes the first pdep row only.
+next: (resume step-05) 1) shared normalizer for content-hash (RMG-Py side in rmg_env,
+  rmgpu side in rmgpu env, same output format: label + model type + SI coeffs/T-bounds,
+  sorted YAML); 2) real gates/generate_db_counts.py run in rmg_env -> baselines
+  (counts + content dumps + 25-species thermo values + 100-reaction k(300,1e5)/k(1000,1e5));
+  3) rewrite gates/gate_02.py with the 5 real checks; 4) extend assemble_rate_model to sum
+  multiple pdep rows (MultiPDepArrhenius parity); 5) reports/job-02-step-05-miscdb.md +
+  commit. Interp: rmgpu env = /home/jackson/miniforge3/envs/rmgpu/bin/python (rmgdb import
+  FAILED there - use sqlite3 directly on /home/jackson/rmgpu/rmgdb/db/*.db); rmg_env has
+  rmgpy 4.0.0 (cythonized; introspect via dir()/getattr). Example files:
+  /home/jackson/rmg/RMG-Py/examples/rmg/{superminimal,c3h4}/input.py; c3h4 chemkin
+  species_dictionary.txt exists (final model - good lookup-parity pool).
 
 ### 2026-08-26 - job-02/step-04
 built: KineticsDB facade (rmgpu/db/loaders.py) with library/family/reaction lookup, substructure match support, family definition parsing; kinetics retrieval skeleton (rmgpu/data/kinetics.py); tests/test_kineticsdb.py

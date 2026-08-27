@@ -1,4 +1,8 @@
-"""Data-only entry classes for the rmgpu database layer."""
+"""Data-only entry classes for the rmgpu database layer.
+
+These are plain dataclasses with no behaviour - the rate/thermo math lives in
+rmgpu/data/thermo.py, rmgpu/data/kinetics.py, and rmgpu/kinetics/models.py.
+"""
 
 from __future__ import annotations
 
@@ -122,3 +126,155 @@ class KineticsEntry:
             "reference": self.reference,
             "reference_type": self.reference_type,
         }
+
+
+@dataclass
+class TransportEntry:
+    """Transport property entry (Lennard-Jones parameters + collision data).
+
+    Consumed by jobs 06/07 (collision parameters, transport property estimates).
+    """
+
+    label: str
+    adjacency_list: str
+    library_name: str
+    shape_index: float
+    epsilon: float
+    epsilon_unit: str
+    sigma: float
+    sigma_unit: str
+    dipole_moment: float
+    dipole_moment_unit: str
+    polarizability: float
+    polarizability_unit: str
+    rot_relax_coll_num: float
+
+
+@dataclass
+class StatMechEntry:
+    """A statistical-mechanics conformer entry (one row of a statmech library).
+
+    Consumed by job 07 (statmech + master equation).
+    """
+
+    label: str
+    adjacency_list: str
+    library_name: str
+    energy: float
+    energy_unit: str
+    spin_multiplicity: Optional[int]
+    optical_isomers: Optional[int]
+    mass: Optional[float] = None
+    mass_unit: Optional[str] = None
+    nonlinear_inertia: Optional[list[float]] = None
+    nonlinear_inertia_unit: Optional[str] = None
+    nonlinear_symmetry: Optional[int] = None
+    linear_inertia: Optional[float] = None
+    linear_inertia_unit: Optional[str] = None
+    linear_symmetry: Optional[int] = None
+    harmonic_freq: list[float] = field(default_factory=list)
+    harmonic_freq_unit: Optional[str] = None
+
+
+@dataclass
+class StatMechGroup:
+    """A group characteristic-frequency entry (statmech groups view).
+
+    Consumed by job 07 for group additivity frequency contributions.
+    """
+
+    name: str
+    label: str
+    group: str
+    symmetry: int
+    lower: float
+    upper: float
+    degeneracy: int
+
+
+@dataclass
+class SolvationEntry:
+    """A solvation group entry."""
+
+    label: str
+    group: str
+    short_description: str
+    long_description: str
+    solute_pointer: Optional[str] = None
+
+
+@dataclass
+class SoluteLibraryEntry:
+    """A solute library entry with Abraham solvation parameters."""
+
+    label: str
+    name: str
+    molecule: str
+    short_description: str
+    long_description: str
+    S: float
+    B: float
+    E: float
+    L: float
+    A: float
+    V: float
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "label": self.label,
+            "name": self.name,
+            "molecule": self.molecule,
+            "S": self.S,
+            "B": self.B,
+            "E": self.E,
+            "L": self.L,
+            "A": self.A,
+            "V": self.V,
+        }
+
+
+@dataclass
+class SolventLibraryEntry:
+    """A solvent library entry (Abraham + viscosity + DIPPR parameters).
+
+    Consumed by job 11 (solvation plugin + liquid reactors).
+    """
+
+    label: str
+    name: str
+    molecule: str
+    # Abraham group-contribution parameters (solvent)
+    s_g: Optional[float] = None
+    b_g: Optional[float] = None
+    e_g: Optional[float] = None
+    l_g: Optional[float] = None
+    a_g: Optional[float] = None
+    c_g: Optional[float] = None
+    # Hydrogen-bond parameters
+    s_h: Optional[float] = None
+    b_h: Optional[float] = None
+    e_h: Optional[float] = None
+    l_h: Optional[float] = None
+    a_h: Optional[float] = None
+    c_h: Optional[float] = None
+    # DIPPR viscosity parameters
+    A: Optional[float] = None
+    B: Optional[float] = None
+    C: Optional[float] = None
+    D: Optional[float] = None
+    E: Optional[float] = None
+    alpha: Optional[float] = None
+    beta: Optional[float] = None
+    eps: Optional[float] = None
+    n: Optional[float] = None
+    name_in_coolprop: Optional[str] = None
+    dGsolvCount: Optional[float] = None
+    dGsolvMAE_val: Optional[float] = None
+    dGsolvMAE_unit: Optional[str] = None
+    dHsolvCount: Optional[float] = None
+    dHsolvMAE_val: Optional[float] = None
+    dHsolvMAE_unit: Optional[str] = None
+
+    def to_dict(self) -> dict[str, Any]:
+        from dataclasses import asdict
+        return asdict(self)

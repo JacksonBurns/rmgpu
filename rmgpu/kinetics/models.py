@@ -24,11 +24,18 @@ from typing import Dict, Optional
 
 import numpy as np
 
-R = 8.31446261815324  # J/(mol K)
+# RMG-Py's gas-law constant (rmgpy.constants.R). rmgpu reproduces RMG-Py's
+# rate numerics to the job-02 gate's 1e-10 relative tolerance, so it must use
+# RMG-Py's exact value, not CODATA's 8.31446261815324 (a 1.1e-6 relative gap
+# in R alone shifts k by ~Ea/RT * 1.1e-6, far above 1e-10).
+R = 8.314472  # J/(mol K), RMG-Py parity
 kB = 1.380649e-23  # J/K
 h = 6.62607015e-34  # J*s
 c = 299792458.0  # m/s
-Na = 6.02214076e23  # mol^-1
+# RMG-Py's Avogadro constant (rmgpy.constants.Na) - the molecule-unit rate
+# conversions below (and in rmgpu/data/kinetics.py) reproduce RMG-Py's
+# Quantity layer exactly, so they must use RMG-Py's value.
+Na = 6.02214179e23  # mol^-1 (RMG-Py parity)
 
 MODEL_REGISTRY = {}
 
