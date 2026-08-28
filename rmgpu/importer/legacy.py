@@ -1,8 +1,20 @@
 """
-Legacy RMG Python input importer.
+Legacy RMG Python input importer (lossless, AST-only, no exec).
 
-Converts legacy RMG .py input files into schema-shaped dictionaries
-for rmgpu's YAML-based input system. Uses AST parsing only (no exec).
+Converts legacy RMG ``.py`` input files into rmgpu schema-shaped documents
+(snake_case, ``rmgpu: 1.0``). The importer is the job-03 gate's lossless path
+(PLAN.md 12.2/12.3, risk 8): every DSL value must survive, and anything it
+cannot express is reported LOUDLY as an IMPORT-NOTE (never silently defaulted).
+
+Design:
+- Top-level DSL calls are dispatched by name (``DSL_SCHEMA_KEYS``).
+- Arguments are converted with ``node_to_value``: literals via
+  ``ast.literal_eval``, numeric arithmetic (BinOp/UnaryOp) via a safe,
+  stdlib-only evaluator, structure-helper calls (SMILES/InChI/adjacencyList/
+  adjacencyListGroup/fragment_adj/fragment_SMILES/SMARTS) into
+  ``StructureValue`` dicts. Anything else becomes an IMPORT-NOTE.
+- Unknown keys, repeated calls, and list-valued (staged) reactor fields are
+  preserved as-is so the document round-trips losslessly.
 """
 
 import ast
@@ -10,82 +22,24 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from rmgpu.schemas.input import Input
-
-
-# DSL function mapping: DSL name -> (schema_key, schema_type)
-# DSL functions that don't map to a schema key are marked with None
-DSL_MAPPINGS = {
-    # Database functions
-    'database': ('database', 'dict'),
-    'thermoLibraries': ('thermo_libraries', 'list'),
-    'reactionLibraries': ('reaction_libraries', 'list'),
-    'seedMechanisms': ('seed_mechanisms', 'list'),
-    'kineticsFamilies': ('kinetics_families', 'string_or_list'),
-    'kineticsDepositories': ('kinetics_depositories', 'string_or_list'),
-    'kineticsEstimator': ('kinetics_estimator', 'string'),
-    'transportLibraries': ('transport_libraries', 'list'),
-
-    # Species functions
-    'species': ('species', 'list'),
-    'forbidden': ('forbidden', 'list'),
-    'SMILES': ('structure_smiles', 'string'),
-    'InChI': ('structure_inchi', 'string'),
-    'adjacencyList': ('structure_adjlist', 'string'),
-    'adjacencyListGroup': ('structure_group_adjlist', 'string'),
-
-    # Reactor functions
-    'simpleReactor': ('reactors', 'list'),
-    'constantVIdealGasReactor': ('reactors', 'list'),
-    'constantTPIdealGasReactor': ('reactors', 'list'),
-    'liquidReactor': ('reactors', 'list'),
-    'mbsampledReactor': ('reactors', 'list'),
-    'surfaceReactor': ('reactors', 'list'),
-
-    # Simulator/model functions
-    'simulator': ('simulator', 'dict'),
-    'model': ('model', 'dict'),
-    'pressureDependence': ('pressure_dependence', 'dict'),
-    'mlEstimator': ('ml_estimator', 'dict'),
-    'options': ('options', 'dict'),
-    'solvation': ('solvation', 'dict'),
-    'uncertainty': ('uncertainty', 'dict'),
-    'generatedSpeciesConstraints': ('generated_species_constraints', 'dict'),
-    'quantumMechanics': ('quantum_mechanics', 'dict'),
-    'restartFromSeed': ('restart_from_seed', 'dict'),
-    'catalystProperties': ('catalyst_properties', 'dict'),
-
-    # Quantity/unit functions (handled inline)
-    'Quantity': None,
-    'Energy': None,
-    'RateCoefficient': None,
-    'Concentration': None,
-
-    # Structure helpers
-    'fragment_adj': None,
-    'fragment_SMILES': None,
-    'fragment_adjacencyList': None,
-    'coreSpeciesFile': None,
-    'react': None,
-
-    # Liquid/surface specific
-    'liquidVolumetricMassTransferCoefficientPowerLaw': None,
-    'constantTVLiquidReactor': ('reactors', 'list'),
-    'liquidSurfaceReactor': ('reactors', 'list'),
-}
-
-# Sentinel values that have special meaning
-AUTO_TOKENS = {'auto', 'AUTO'}
-PAH_LIB_TOKENS = {'<PAH_libs>', 'PAH_LIBS'}
+__all__ = [
+    "import_legacy",
+    "LegacyImporterError",
+    "ImportNote",
+    "node_to_value",
+    "DSL_SCHEMA_KEYS",
+    "REACTOR_TYPE_NAMES",
+]
 
 
 class LegacyImporterError(Exception):
     """Raised when the legacy importer cannot process a file."""
+
     pass
 
 
 class ImportNote:
-    """A note about something the importer couldn't express."""
+    """A loud note about something the importer could not express verbatim."""
 
     def __init__(self, function_name: str, line_number: int, message: str):
         self.function_name = function_name
@@ -95,597 +49,530 @@ class ImportNote:
     def __str__(self):
         return f"Line {self.line_number}: {self.function_name} - {self.message}"
 
+    def to_dict(self):
+        return {
+            "line": self.line_number,
+            "function": self.function_name,
+            "message": self.message,
+        }
 
-def _node_to_literal(node: ast.AST) -> Any:
-    """Convert an AST node to a literal value if possible."""
+
+# DSL function -> top-level schema key (None: not a schema block)
+DSL_SCHEMA_KEYS = {
+    # database() is handled specially (its kwargs are the DatabaseBlock fields)
+    "database": "database",
+    # list blocks
+    "species": "species",
+    "forbidden": "forbidden",
+    "simpleReactor": "reactors",
+    "constantVIdealGasReactor": "reactors",
+    "constantTPIdealGasReactor": "reactors",
+    "liquidReactor": "reactors",
+    "mbsampledReactor": "reactors",
+    "surfaceReactor": "reactors",
+    "constantTVLiquidReactor": "reactors",
+    "liquidSurfaceReactor": "reactors",
+    # single-block (dict) functions
+    "simulator": "simulator",
+    "model": "model",
+    "pressureDependence": "pressure_dependence",
+    "mlEstimator": "ml_estimator",
+    "solvation": "solvation",
+    "uncertainty": "uncertainty",
+    "options": "options",
+    "generatedSpeciesConstraints": "generated_species_constraints",
+    "catalystProperties": "catalyst_properties",
+    "quantumMechanics": "quantum_mechanics",
+    # not part of the rmgpu schema (QM out of scope, PLAN 8a.3) - preserved
+    # verbatim at the document level with an IMPORT-NOTE, for losslessness.
+    "restartFromSeed": None,
+    "coreSpeciesFile": None,
+    "react": None,
+}
+
+# reactor DSL function -> schema `type` literal
+REACTOR_TYPE_NAMES = {
+    "simpleReactor": "simple",
+    "constantVIdealGasReactor": "const_V",
+    "constantTPIdealGasReactor": "const_TP",
+    "liquidReactor": "liquid",
+    "mbsampledReactor": "mb_sampled",
+    "surfaceReactor": "surface",
+    "constantTVLiquidReactor": "liquid",
+    "liquidSurfaceReactor": "liquid_surface",
+}
+
+# structure-helper DSL functions -> StructureValue field
+STRUCTURE_FUNCS = {
+    "SMILES": "smiles",
+    "InChI": "inchi",
+    "adjacencyList": "adjlist",
+    "adjacencyListGroup": "group_adjlist",
+    "fragment_adj": "fragment_adjlist",
+    "fragment_SMILES": "smiles",
+    "SMARTS": "smarts",
+}
+
+_QUANTITY_TUPLE_RE = re.compile(
+    r"^\(\s*([0-9.eE+-]+)\s*,\s*(['\"])(.+?)\2\s*\)$"
+)
+
+# Safe-eval whitelist: names that may appear in numeric arithmetic sub-
+# expressions of legacy inputs (RMG's Quantity DSL allows math).
+_ALLOWED_NAMES = {"pi": 3.141592653589793, "e": 2.718281828459045}
+
+
+def _safe_arith(node: ast.AST) -> Optional[float]:
+    """Evaluate a numeric arithmetic AST node (BinOp/UnaryOp/Num) safely.
+
+    Only binary ops +,-,*,/ and unary +/- on numbers are allowed; anything
+    else (names not in the whitelist, calls, subscripts) returns None.
+    """
+    if isinstance(node, ast.Expression):
+        return _safe_arith(node.body)
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+            return node.value
+        return None
+    if isinstance(node, ast.BinOp) and isinstance(
+            node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div)):
+        left = _safe_arith(node.left)
+        right = _safe_arith(node.right)
+        if left is None or right is None:
+            return None
+        if isinstance(node.op, ast.Add):
+            return left + right
+        if isinstance(node.op, ast.Sub):
+            return left - right
+        if isinstance(node.op, ast.Mult):
+            return left * right
+        if right == 0:
+            return None
+        return left / right
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        v = _safe_arith(node.operand)
+        if v is None:
+            return None
+        return v if isinstance(node.op, ast.UAdd) else -v
+    if isinstance(node, ast.Name):
+        return _ALLOWED_NAMES.get(node.id)
+    return None
+
+
+def _call_name(node: ast.Call) -> Optional[str]:
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    return None
+
+
+def _node_to_container(node: ast.AST, source: str, notes: List[ImportNote],
+                        context: str = "") -> Any:
+    """Convert an AST container (list/tuple/dict/set) node, evaluating
+    arithmetic and structure calls on its items. Returns a sentinel-dict when
+    an item cannot be expressed (a note is recorded loudly)."""
+    if isinstance(node, ast.Dict):
+        out = {}
+        for k, val in zip(node.keys, node.values):
+            if k is None:  # **unpacking
+                notes.append(ImportNote("<dict>", node.lineno,
+                                        f"**unpacking in dict literal in {context}"))
+                continue
+            key = node_to_value(k, source, notes, context)
+            valv = node_to_value(val, source, notes, context)
+            if isinstance(valv, dict) and "__import_note__" in valv:
+                return valv
+            if isinstance(key, str) or isinstance(key, (int, float, bool)):
+                out[key] = valv
+            else:
+                notes.append(ImportNote("<dict>", node.lineno,
+                                        f"non-scalar dict key {key!r} in {context}"))
+        return out
+    if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+        items = []
+        for elt in node.elts:
+            v = node_to_value(elt, source, notes, context)
+            if isinstance(v, dict) and "__import_note__" in v:
+                return v
+            items.append(v)
+        if isinstance(node, ast.Set):
+            return items  # sets become lists (order-stable via sorted later if needed)
+        return items
+    return node_to_value(node, source, notes, context)
+
+
+def node_to_value(node: ast.AST, source: str, notes: List[ImportNote],
+                  context: str = "") -> Any:
+    """Convert an AST argument node to a schema value.
+
+    Returns the value, or a dict ``{"__import_note__": ...}`` sentinel when the
+    node cannot be expressed (the caller records the note and keeps a
+    placeholder so nothing is silently dropped).
+    """
+    # Container nodes: convert recursively (arithmetic + calls inside)
+    if isinstance(node, (ast.Dict, ast.List, ast.Tuple, ast.Set)):
+        return _node_to_container(node, source, notes, context)
+
+    # Literal: string, number, bool, None
     try:
         return ast.literal_eval(node)
-    except (ValueError, SyntaxError):
-        return None
+    except (ValueError, SyntaxError, TypeError):
+        pass
+
+    # Structure-helper call: SMILES(...), InChI(...), adjacencyList(...), ...
+    if isinstance(node, ast.Call):
+        name = _call_name(node)
+        if name in STRUCTURE_FUNCS and node.args and not node.keywords:
+            inner = node_to_value(node.args[0], source, notes, context)
+            if isinstance(inner, str):
+                # NOTE: no 'fragment' flag here - it is redundant (already
+                # encoded in the field name) and would not round-trip
+                # losslessly against the canonical value.
+                return {STRUCTURE_FUNCS[name]: inner}
+            return {"__import_note__": {
+                "line": node.lineno, "function": name,
+                "message": f"structure argument of {name}() is not a plain string (nested call)",
+            }}
+        if name in ("Quantity", "Energy", "RateCoefficient", "Concentration") \
+                and len(node.args) == 2:
+            v = node_to_value(node.args[0], source, notes, context)
+            u = node_to_value(node.args[1], source, notes, context)
+            if isinstance(v, (int, float)) and isinstance(u, str):
+                return {"value": v, "unit": u}
+            return {"__import_note__": {
+                "line": node.lineno, "function": name,
+                "message": f"{name}() arguments are not (number, unit-string)",
+            }}
+        # Any other call: try to capture it structurally
+        args = [node_to_value(a, source, notes, context) for a in node.args]
+        kwargs = {kw.arg: node_to_value(kw.value, source, notes, context)
+                  for kw in node.keywords if kw.arg is not None}
+        note = {"line": node.lineno, "function": name or "<call>",
+                "message": f"unmapped call {name}() preserved structurally in {context or 'document'}"}
+        return {"__call__": name, "args": args, "kwargs": kwargs,
+                "__import_note__": note}
+
+    # Numeric arithmetic (e.g. 1./6.5, 7.585e-3*2.0, -2.892)
+    if isinstance(node, (ast.BinOp, ast.UnaryOp)):
+        v = _safe_arith(node)
+        if v is not None:
+            return v
+        return {"__import_note__": {
+            "line": node.lineno, "function": "<arith>",
+            "message": f"arithmetic sub-expression not safely evaluable in {context or 'document'}",
+        }}
+
+    # Comprehensions and other exotic nodes: capture source, loud note.
+    src = ast.get_source_segment(source, node)
+    return {"__import_note__": {
+        "line": node.lineno, "function": type(node).__name__,
+        "message": f"non-literal node {type(node).__name__} preserved in source in {context or 'document'}: {src[:200]!r}",
+    }, "__source__": src}
 
 
-def _convert_quantity(value: Any) -> Optional[Dict[str, Any]]:
-    """Convert a (value, unit) tuple to a Quantity dict."""
-    if isinstance(value, tuple) and len(value) == 2:
-        val, unit = value
-        if isinstance(val, (int, float)) and isinstance(unit, str):
-            return {"value": val, "unit": unit}
-    return None
+def _is_quantity_pair(v: Any) -> bool:
+    """A legacy RMG Quantity is a (number, unit-string) tuple or list."""
+    return (isinstance(v, (tuple, list)) and len(v) == 2
+            and isinstance(v[0], (int, float)) and not isinstance(v[0], bool)
+            and isinstance(v[1], str))
 
 
-def _parse_structure(structure_node: ast.AST) -> Optional[Dict[str, str]]:
-    """Parse a structure specification node (SMILES, InChI, or adjacency list)."""
-    if not isinstance(structure_node, ast.Call):
-        return None
-
-    func_name = getattr(structure_node.func, 'id', None)
-    if func_name is None:
-        # Handle dotted names like Molecule.from_smiles
-        if isinstance(structure_node.func, ast.Attribute):
-            func_name = structure_node.func.attr
-
-    if func_name is None:
-        return None
-
-    if not structure_node.args:
-        return None
-
-    str_node = structure_node.args[0]
-    str_val = _node_to_literal(str_node)
-    if not isinstance(str_val, str):
-        return None
-
-    # Map function names to structure types
-    if func_name in ('SMILES', 'smiles', 'from_smiles'):
-        return {"smiles": str_val}
-    elif func_name in ('InChI', 'inchi', 'from_inchi'):
-        return {"inchi": str_val}
-    elif func_name in ('adjacencyList', 'adjacency_list', 'from_adjacency_list'):
-        return {"adjlist": str_val}
-    elif func_name in ('adjacencyListGroup', 'adjacency_list_group', 'from_adjacency_list'):
-        return {"group_adjlist": str_val}
-    elif func_name in ('SMARTS', 'smarts'):
-        return {"smarts": str_val}
-
-    return None
+def _coerce_list_value(v: Any) -> Any:
+    """Normalize evaluated values: quantity pairs -> {value,unit} dicts,
+    other tuples -> lists (YAML friendliness). Recurses into containers."""
+    if _is_quantity_pair(v):
+        return {"value": v[0], "unit": v[1]}
+    if isinstance(v, list):
+        return [_coerce_list_value(x) for x in v]
+    if isinstance(v, tuple):
+        return [_coerce_list_value(x) for x in v]
+    if isinstance(v, set):
+        return sorted(_coerce_list_value(x) for x in v)
+    if isinstance(v, dict):
+        return {k: _coerce_list_value(x) for k, x in v.items()}
+    return v
 
 
-def _parse_termination_conditions(kwargs: Dict[str, ast.AST]) -> Optional[Dict[str, Any]]:
-    """Parse termination condition kwargs into a TerminationCondition dict."""
-    result = {}
-
-    if 'terminationConversion' in kwargs:
-        conv_node = kwargs['terminationConversion']
-        conv_val = _node_to_literal(conv_node)
-        if isinstance(conv_val, dict):
-            result['conversion'] = conv_val
-
-    if 'terminationTime' in kwargs:
-        time_node = kwargs['terminationTime']
-        time_val = _node_to_literal(time_node)
-        qty = _convert_quantity(time_val)
-        if qty:
-            result['time'] = qty
-
-    if 'terminationRateRatio' in kwargs:
-        ratio_node = kwargs['terminationRateRatio']
-        ratio_val = _node_to_literal(ratio_node)
-        if isinstance(ratio_val, (int, float)):
-            result['rate_ratio'] = ratio_val
-
-    if not result:
-        return None
-
-    return result
+def _collect_notes(obj: Any, notes: List[ImportNote], path: str = ""):
+    """Recursively harvest __import_note__ sentinels into `notes`."""
+    if isinstance(obj, dict):
+        note = obj.get("__import_note__")
+        if isinstance(note, dict):
+            notes.append(ImportNote(note.get("function", "?"),
+                                    note.get("line", 0), note.get("message", "")))
+        for k, v in obj.items():
+            _collect_notes(v, notes, f"{path}.{k}")
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            _collect_notes(v, notes, f"{path}[{i}]")
 
 
-class LegacyVisitor(ast.NodeVisitor):
-    """AST visitor that parses legacy RMG input files into schema-shaped dicts."""
+def _snake_key(kwarg: str) -> str:
+    """camelCase -> snake_case (RMG DSL -> schema convention)."""
+    s = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", kwarg)
+    return s.lower()
 
-    def __init__(self):
-        self.result = {}
-        self.import_notes = []
-        self.species_list = []
-        self.forbidden_list = []
-        self.reactors_list = []
-        self.current_context = None  # 'species', 'forbidden', 'reactor', etc.
-        self._skip_nested_structures = False
 
-    def visit_Call(self, node: ast.Call):
-        """Visit a function call."""
-        func_name = self._get_func_name(node)
-        if func_name is None:
-            self._generic_visit(node)
-            return
+class LegacyVisitor:
+    """Walks top-level DSL calls of a legacy input file."""
 
-        mapping = DSL_MAPPINGS.get(func_name)
-        if mapping is None:
-            # Check if it's a structure function
-            if func_name in ('SMILES', 'InChI', 'adjacencyList', 'adjacencyListGroup', 'SMARTS'):
-                if not self._skip_nested_structures:
-                    self._visit_structure_call(node, func_name)
-            else:
-                # Unhandled function - add import note
-                self._add_import_note(func_name, node.lineno, f"Unhandled function: {func_name}")
-            return
+    def __init__(self, source: str):
+        self.source = source
+        self.result: Dict[str, Any] = {}
+        self.notes: List[ImportNote] = []
+        self.reactors: List[Dict[str, Any]] = []
+        self._seen_blocks = set()
 
-        schema_key, schema_type = mapping
+    def _note(self, func: str, line: int, msg: str):
+        self.notes.append(ImportNote(func, line, msg))
 
-        if schema_type == 'list':
-            self._visit_list_function(node, func_name, schema_key)
-        elif schema_type == 'dict':
-            self._visit_dict_function(node, func_name, schema_key)
-        elif schema_type == 'string':
-            self._visit_string_function(node, func_name, schema_key)
-        elif schema_type == 'string_or_list':
-            self._visit_string_or_list_function(node, func_name, schema_key)
-        elif schema_type == 'structure_smiles':
-            self._visit_structure_call(node, func_name)
-
-        # Don't visit nested calls for species/forbidden/reactor functions
-        # because they handle their nested structure calls internally
-        if func_name not in ('SMILES', 'InChI', 'adjacencyList', 'adjacencyListGroup', 'SMARTS',
-                             'species', 'forbidden',
-                             'simpleReactor', 'constantVIdealGasReactor', 'constantTPIdealGasReactor',
-                             'liquidReactor', 'mbsampledReactor', 'surfaceReactor',
-                             'constantTVLiquidReactor', 'liquidSurfaceReactor'):
-            self._generic_visit(node)
-
-    def _get_func_name(self, node: ast.Call) -> Optional[str]:
-        """Extract the function name from a call node."""
-        if isinstance(node.func, ast.Name):
-            return node.func.id
-        elif isinstance(node.func, ast.Attribute):
-            return node.func.attr
-        return None
-
-    def _add_import_note(self, function_name: str, line_number: int, message: str):
-        """Add an import note for something we couldn't express."""
-        self.import_notes.append(ImportNote(function_name, line_number, message))
-
-    def _visit_list_function(self, node: ast.Call, func_name: str, schema_key: str):
-        """Visit a function that adds to a list (species, forbidden, reactors)."""
-        if func_name == 'species':
-            self._visit_species(node)
-        elif func_name == 'forbidden':
-            self._visit_forbidden(node)
-        elif func_name in ('simpleReactor', 'constantVIdealGasReactor', 'constantTPIdealGasReactor',
-                           'liquidReactor', 'mbsampledReactor', 'surfaceReactor',
-                           'constantTVLiquidReactor', 'liquidSurfaceReactor'):
-            self._visit_reactor(node, func_name)
-        else:
-            # Generic list function - just add the call info
-            if schema_key not in self.result:
-                self.result[schema_key] = []
-            # Try to parse arguments
-            args = []
-            for arg in node.args:
-                lit = _node_to_literal(arg)
-                args.append(lit)
-            self.result[schema_key].append({"name": func_name, "args": args})
-
-    def _visit_dict_function(self, node: ast.Call, func_name: str, schema_key: str):
-        """Visit a function that sets a dict (database, simulator, model, etc.)."""
-        if schema_key not in self.result:
-            self.result[schema_key] = {}
-
-        # Parse keyword arguments
-        kwargs = {}
+    # -- database() ---------------------------------------------------------
+    def visit_database(self, node: ast.Call):
+        db: Dict[str, Any] = {}
         for kw in node.keywords:
             if kw.arg is None:
-                continue  # Skip **kwargs
-            val_node = kw.value
-            lit = _node_to_literal(val_node)
-            if lit is not None:
-                kwargs[kw.arg] = lit
-
-        # Merge into result
-        self.result[schema_key].update(kwargs)
-
-    def _visit_string_function(self, node: ast.Call, func_name: str, schema_key: str):
-        """Visit a function that sets a string value."""
-        if not node.args:
-            return
-        lit = _node_to_literal(node.args[0])
-        if lit is not None:
-            self.result[schema_key] = lit
-
-    def _visit_string_or_list_function(self, node: ast.Call, func_name: str, schema_key: str):
-        """Visit a function that sets a string or list value."""
-        if not node.args:
-            return
-        lit = _node_to_literal(node.args[0])
-        if lit is not None:
-            self.result[schema_key] = lit
-
-    def _visit_species(self, node: ast.Call):
-        """Visit a species() call."""
-        # Handle both positional and keyword arguments
-        kwargs = {}
-        for kw in node.keywords:
-            if kw.arg is not None:
-                kwargs[kw.arg] = kw.value
-
-        # Get label from positional arg or keyword arg
-        if len(node.args) >= 1:
-            label_node = node.args[0]
-            label = _node_to_literal(label_node)
-        elif 'label' in kwargs:
-            label = _node_to_literal(kwargs['label'])
-        else:
-            return
-
-        if not isinstance(label, str):
-            return
-
-        # Get structure from positional arg or keyword arg
-        if len(node.args) >= 2:
-            structure_node = node.args[1]
-        elif 'structure' in kwargs:
-            structure_node = kwargs['structure']
-        else:
-            return
-
-        structure = _parse_structure(structure_node)
-        if structure is None:
-            # Try to parse from a string arg
-            structure_val = _node_to_literal(structure_node)
-            if isinstance(structure_val, str):
-                structure = {"smiles": structure_val}
-            else:
-                return
-
-        # Parse other kwargs for reactive, etc.
-        other_kwargs = {k: v for k, v in kwargs.items() if k not in ('label', 'structure')}
-        parsed_kwargs = {}
-        for kw_name, kw_node in other_kwargs.items():
-            lit = _node_to_literal(kw_node)
-            if lit is not None:
-                parsed_kwargs[kw_name] = lit
-
-        species_entry = {
-            "label": label,
-            "structure": structure,
-            "reactive": parsed_kwargs.get('reactive', True),
-        }
-        if 'thermo' in parsed_kwargs:
-            species_entry['thermo'] = parsed_kwargs['thermo']
-        if 'kinetics' in parsed_kwargs:
-            species_entry['kinetics'] = parsed_kwargs['kinetics']
-        if 'constraints' in parsed_kwargs:
-            species_entry['constraints'] = parsed_kwargs['constraints']
-
-        self.species_list.append(species_entry)
-
-    def _visit_forbidden(self, node: ast.Call):
-        """Visit a forbidden() call."""
-        # Handle both positional and keyword arguments
-        kwargs = {}
-        for kw in node.keywords:
-            if kw.arg is not None:
-                kwargs[kw.arg] = kw.value
-
-        # Get label from positional arg or keyword arg
-        if len(node.args) >= 1:
-            label_node = node.args[0]
-            label = _node_to_literal(label_node)
-        elif 'label' in kwargs:
-            label = _node_to_literal(kwargs['label'])
-        else:
-            return
-
-        if not isinstance(label, str):
-            return
-
-        # Get structure from positional arg or keyword arg
-        if len(node.args) >= 2:
-            structure_node = node.args[1]
-        elif 'structure' in kwargs:
-            structure_node = kwargs['structure']
-        else:
-            return
-
-        structure = _parse_structure(structure_node)
-        if structure is None:
-            structure_val = _node_to_literal(structure_node)
-            if isinstance(structure_val, str):
-                structure = {"smiles": structure_val}
-            else:
-                return
-
-        forbidden_entry = {
-            "structure": structure,
-            "reason": None,
-        }
-        self.forbidden_list.append(forbidden_entry)
-
-    def _visit_reactor(self, node: ast.Call, func_name: str):
-        """Visit a reactor function call."""
-        # Determine reactor type from function name
-        reactor_type_map = {
-            'simpleReactor': 'simple',
-            'constantVIdealGasReactor': 'const_V',
-            'constantTPIdealGasReactor': 'const_TP',
-            'liquidReactor': 'liquid',
-            'mbsampledReactor': 'mb_sampled',
-            'surfaceReactor': 'surface',
-            'constantTVLiquidReactor': 'const_V_liquid',
-            'liquidSurfaceReactor': 'liquid_surface',
-        }
-        reactor_type = reactor_type_map.get(func_name, 'unknown')
-
-        reactor = {"type": reactor_type}
-
-        # Parse keyword arguments first (more common in legacy files)
-        kwargs = {}
-        for kw in node.keywords:
-            if kw.arg is not None:
-                kwargs[kw.arg] = kw.value
-
-        # Parse temperature
-        if 'temperature' in kwargs:
-            temp_node = kwargs['temperature']
-            temp_val = _node_to_literal(temp_node)
-            qty = _convert_quantity(temp_val)
-            if qty:
-                reactor['temperature'] = qty
-        elif len(node.args) >= 1:
-            temp_val = _node_to_literal(node.args[0])
-            qty = _convert_quantity(temp_val)
-            if qty:
-                reactor['temperature'] = qty
-
-        # Parse pressure (for gas reactors)
-        if reactor_type in ('simple', 'const_V', 'const_TP', 'mb_sampled'):
-            if 'pressure' in kwargs:
-                press_node = kwargs['pressure']
-                press_val = _node_to_literal(press_node)
-                qty = _convert_quantity(press_val)
-                if qty:
-                    reactor['pressure'] = qty
-            elif len(node.args) >= 2:
-                press_val = _node_to_literal(node.args[1])
-                qty = _convert_quantity(press_val)
-                if qty:
-                    reactor['pressure'] = qty
-
-        # Parse initialMoleFractions or initialConcentrations
-        if 'initialMoleFractions' in kwargs:
-            imf_node = kwargs['initialMoleFractions']
-            imf_val = _node_to_literal(imf_node)
-            if isinstance(imf_val, dict):
-                reactor['initial_mole_fractions'] = imf_val
-        elif 'initialConcentrations' in kwargs:
-            ic_node = kwargs['initialConcentrations']
-            ic_val = _node_to_literal(ic_node)
-            if isinstance(ic_val, dict):
-                reactor['initial_concentrations'] = ic_val
-        elif len(node.args) >= 3:
-            imf_node = node.args[2]
-            imf_val = _node_to_literal(imf_node)
-            if isinstance(imf_val, dict):
-                reactor['initial_mole_fractions'] = imf_val
-
-        # Parse other kwargs
-        termination = {}
-        for kw_name, val_node in kwargs.items():
-            if kw_name in ('temperature', 'pressure', 'initialMoleFractions', 'initialConcentrations'):
+                self._note("database", node.lineno, "unparsed **kwargs in database()")
                 continue
-            lit = _node_to_literal(val_node)
+            v = node_to_value(kw.value, self.source, self.notes, "database")
+            if isinstance(v, dict) and "__import_note__" in v:
+                _collect_notes(v, self.notes, "database")
+                v = {"__dropped__": v.get("__source__") or "see import_notes"}
+            db[_snake_key(kw.arg)] = _coerce_list_value(v)
+        if db:
+            self.result["database"] = db
 
-            if kw_name == 'terminationConversion':
-                if isinstance(lit, dict):
-                    termination['conversion'] = lit
-            elif kw_name == 'terminationTime':
-                qty = _convert_quantity(lit)
-                if qty:
-                    termination['time'] = qty
-            elif kw_name == 'terminationRateRatio':
-                if isinstance(lit, (int, float)):
-                    termination['rate_ratio'] = lit
-            elif kw_name == 'nSims':
-                if isinstance(lit, int):
-                    reactor['n_sims'] = lit
-            elif kw_name == 'sensitivity':
-                reactor['sensitivity'] = lit
-            elif kw_name == 'sensitivityThreshold':
-                reactor['sensitivity_threshold'] = lit
-            elif kw_name == 'constantSpecies':
-                reactor['constant_species'] = lit
-            elif kw_name == 'balanceSpecies':
-                reactor['balance_species'] = lit
-            elif kw_name == 'mbsamplingRate':
-                qty = _convert_quantity(lit)
-                if qty:
-                    reactor['mbsampling_rate'] = qty
-            elif kw_name == 'initialPressure':
-                qty = _convert_quantity(lit)
-                if qty:
-                    reactor['initial_pressure'] = qty
-            elif kw_name == 'initialGasMoleFractions':
-                reactor['initial_gas_mole_fractions'] = lit
-            elif kw_name == 'initialSurfaceCoverages':
-                reactor['initial_surface_coverages'] = lit
-            elif kw_name == 'surfaceVolumeRatio':
-                qty = _convert_quantity(lit)
-                if qty:
-                    reactor['surface_volume_ratio'] = qty
-            elif kw_name == 'liquidVolume':
-                qty = _convert_quantity(lit)
-                if qty:
-                    reactor['liquid_volume'] = qty
-            elif kw_name == 'residenceTime':
-                qty = _convert_quantity(lit)
-                if qty:
-                    reactor['residence_time'] = qty
+    # -- species() / forbidden() -------------------------------------------
+    def visit_species(self, node: ast.Call):
+        entries = self.result.setdefault("species", [])
+        self._add_entry(node, entries, "species", has_label=True)
 
-        if termination:
-            reactor['termination'] = termination
+    def visit_forbidden(self, node: ast.Call):
+        entries = self.result.setdefault("forbidden", [])
+        self._add_entry(node, entries, "forbidden", has_label=True)
 
-        self.reactors_list.append(reactor)
+    def _add_entry(self, node: ast.Call, entries: List[Dict[str, Any]],
+                   func: str, has_label: bool):
+        kwargs = {kw.arg: kw.value for kw in node.keywords if kw.arg is not None}
+        # label / structure may be positional: species('CH4', SMILES('C'))
+        if len(node.args) >= 1 and "label" not in kwargs:
+            kwargs["label"] = node.args[0]
+        if len(node.args) >= 2 and "structure" not in kwargs:
+            kwargs["structure"] = node.args[1]
+        if "structure" not in kwargs:
+            self._note(func, node.lineno, "no structure argument")
+            return
+        entry: Dict[str, Any] = {}
+        if has_label and "label" in kwargs:
+            label = node_to_value(kwargs["label"], self.source, self.notes, func)
+            entry["label"] = label
+        structure = node_to_value(kwargs["structure"], self.source, self.notes, func)
+        if isinstance(structure, dict) and "__import_note__" in structure:
+            _collect_notes(structure, self.notes, f"{func}.structure")
+            structure = {"smiles": None}  # placeholder; note is recorded loudly
+        entry["structure"] = structure
+        for kw_name, kw_node in kwargs.items():
+            if kw_name in ("label", "structure"):
+                continue
+            v = node_to_value(kw_node, self.source, self.notes, func)
+            if isinstance(v, dict) and "__import_note__" in v:
+                _collect_notes(v, self.notes, f"{func}.{kw_name}")
+                continue
+            entry[_snake_key(kw_name)] = _coerce_list_value(v)
+        entries.append(entry)
 
-    def _visit_structure_call(self, node: ast.Call, func_name: str):
-        """Visit a structure function call (SMILES, InChI, adjacencyList)."""
-        pass  # Structure parsing is handled in _parse_structure
+    # -- reactors -----------------------------------------------------------
+    def visit_reactor(self, node: ast.Call, func: str):
+        rtype = REACTOR_TYPE_NAMES[func]
+        reactor: Dict[str, Any] = {"type": rtype}
+        staged: Dict[str, Any] = {}
+        kwargs = {kw.arg: kw.value for kw in node.keywords if kw.arg is not None}
+        # positional args are DSL-specific; record them positionally
+        for i, a in enumerate(node.args):
+            v = node_to_value(a, self.source, self.notes, func)
+            if isinstance(v, dict) and "__import_note__" in v:
+                _collect_notes(v, self.notes, f"{func}.arg{i}")
+                continue
+            reactor[f"arg{i}"] = _coerce_list_value(v)
+        for kw_name, kw_node in kwargs.items():
+            v = node_to_value(kw_node, self.source, self.notes, func)
+            if isinstance(v, dict) and "__import_note__" in v:
+                _collect_notes(v, self.notes, f"{func}.{kw_name}")
+                continue
+            key = _snake_key(kw_name)
+            if key == "termination_conversion":
+                self._set_termination(reactor, "conversion", v)
+            elif key == "termination_time":
+                self._set_termination(reactor, "time", v)
+            elif key == "termination_rate_ratio":
+                self._set_termination(reactor, "rate_ratio", v)
+            elif key == "termination_criticality":
+                self._set_termination(reactor, "criticality", v)
+            else:
+                val = _coerce_list_value(v)
+                # staged reactor: list-valued temperature/pressure fields
+                # become staged_* (the legacy DSL expresses staged runs via
+                # a list of (T, unit) / (P, unit) tuples in simpleReactor)
+                if isinstance(val, list) and key in ("temperature", "pressure"):
+                    staged[f"staged_{key}s"] = val
+                else:
+                    reactor[key] = val
+        if staged:
+            reactor["type"] = "staged"
+            reactor.update(staged)
+        self.reactors.append(reactor)
 
-    def _generic_visit(self, node: ast.AST):
-        """Fallback visit that processes children, skipping nested calls."""
-        for child in ast.iter_child_nodes(node):
-            if isinstance(child, ast.Call):
-                continue  # Don't visit nested calls
-            self.visit(child)
+    def _set_termination(self, reactor: Dict[str, Any], field: str, value: Any):
+        term = reactor.setdefault("termination", {})
+        term[field] = _coerce_list_value(value)
 
-    def get_result(self) -> Tuple[Dict[str, Any], List[ImportNote]]:
-        """Return the parsed result and import notes."""
-        # Add species, forbidden, reactors to result
-        if self.species_list:
-            self.result['species'] = self.species_list
-        if self.forbidden_list:
-            self.result['forbidden'] = self.forbidden_list
-        if self.reactors_list:
-            self.result['reactors'] = self.reactors_list
+    # -- single-block functions --------------------------------------------
+    def visit_block(self, node: ast.Call, schema_key: str, func: str,
+                    target: Optional[Dict[str, Any]] = None):
+        # Repeated single-block calls: RMG replaces the block (new object),
+        # so the earlier call's values are discarded, not merged.
+        if target is None:
+            if schema_key in self._seen_blocks:
+                self.result[schema_key] = {}
+                self._note(func, node.lineno,
+                           f"repeated {func}() call: the earlier call's values are discarded, "
+                           f"not merged (RMG last-wins semantics)")
+            self._seen_blocks.add(schema_key)
+            block = self.result.setdefault(schema_key, {})
+        else:
+            block = target
+        for kw in node.keywords:
+            if kw.arg is None:
+                self._note(func, node.lineno, f"unparsed **kwargs in {func}()")
+                continue
+            v = node_to_value(kw.value, self.source, self.notes, func)
+            if isinstance(v, dict) and "__import_note__" in v:
+                _collect_notes(v, self.notes, f"{func}.{kw.arg}")
+                continue
+            block[_snake_key(kw.arg)] = _coerce_list_value(v)
+        for i, a in enumerate(node.args):
+            v = node_to_value(a, self.source, self.notes, func)
+            if isinstance(v, dict) and "__import_note__" in v:
+                _collect_notes(v, self.notes, f"{func}.arg{i}")
+                continue
+            block[f"arg{i}"] = _coerce_list_value(v)
 
-        return self.result, self.import_notes
+    def visit_top(self, tree: ast.Module):
+        for stmt in tree.body:
+            if not (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call)):
+                if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
+                    continue
+                # non-call top-level statement: loud note, keep source
+                self._note(
+                    "<top>",
+                    getattr(stmt, "lineno", 0),
+                    f"top-level {type(stmt).__name__} statement (preserved): "
+                    f"{ast.get_source_segment(self.source, stmt)[:120]!r}",
+                )
+                continue
+            call = stmt.value
+            name = _call_name(call)
+            if name is None:
+                self._note("<call>", call.lineno, "anonymous call expression")
+                continue
+            if name == "database":
+                self.visit_database(call)
+            elif name in ("species", "forbidden"):
+                getattr(self, f"visit_{name}")(call)
+            elif name in REACTOR_TYPE_NAMES:
+                self.visit_reactor(call, name)
+            elif name in DSL_SCHEMA_KEYS:
+                schema_key = DSL_SCHEMA_KEYS[name]
+                if schema_key is None:
+                    # out-of-schema function: preserve verbatim, loud note
+                    self._visit_legacy_block(call, name)
+                else:
+                    self.visit_block(call, schema_key, name)
+            else:
+                # unmapped top-level function: preserve structurally, loud note
+                self._visit_legacy_block(call, name)
+        if self.reactors:
+            self.result["reactors"] = self.reactors
 
+    def _visit_legacy_block(self, call: ast.Call, name: str):
+        """Preserve an unmapped/out-of-schema call under _legacy.<name>.
 
-def _parse_quantity_arg(node: ast.AST) -> Optional[Dict[str, Any]]:
-    """Parse a Quantity() call node into a quantity dict."""
-    if not isinstance(node, ast.Call):
-        return None
-    if len(node.args) < 2:
-        return None
-    val_node = node.args[0]
-    unit_node = node.args[1]
-    val = _node_to_literal(val_node)
-    unit = _node_to_literal(unit_node)
-    if isinstance(val, (int, float)) and isinstance(unit, str):
-        return {"value": val, "unit": unit}
-    return None
+        Per-function blocks: repeated calls to the SAME function replace
+        (RMG last-wins) with a loud note; different functions coexist.
+        """
+        legacy = self.result.setdefault("_legacy", {})
+        if name in self._seen_blocks:
+            legacy[name] = {}
+            self._note(name, call.lineno,
+                       f"repeated {name}() call: the earlier call's values are "
+                       f"discarded, not merged (RMG last-wins semantics)")
+        self._seen_blocks.add(name)
+        self.visit_block(call, name, name, target=legacy.setdefault(name, {}))
+        self._note(name, call.lineno,
+                  f"not part of the rmgpu schema; values preserved under _legacy.{name}")
 
 
 def import_legacy(path: str) -> Dict[str, Any]:
-    """
-    Import a legacy RMG Python input file into a schema-shaped dictionary.
+    """Import a legacy RMG .py input file into a schema-shaped dict.
 
-    Args:
-        path: Path to the legacy .py input file.
-
-    Returns:
-        A dictionary with schema-shaped keys and values, plus an 'import_notes'
-        key containing any notes about things that couldn't be expressed.
-
-    Raises:
-        LegacyImporterError: If the file cannot be parsed or imported.
+    The returned dict validates against ``rmgpu.schemas.input.Input`` (with an
+    ``import_notes`` list, always present, possibly empty). Values are NEVER
+    silently dropped: anything unrepresentable is captured in ``import_notes``
+    (and, when possible, kept under a placeholder).
     """
     path = os.path.abspath(path)
-
     if not os.path.exists(path):
         raise LegacyImporterError(f"File not found: {path}")
-
-    try:
-        with open(path, 'r') as f:
-            source = f.read()
-    except IOError as e:
-        raise LegacyImporterError(f"Could not read file: {e}")
-
+    with open(path, "r") as f:
+        source = f.read()
     try:
         tree = ast.parse(source, filename=path)
     except SyntaxError as e:
         raise LegacyImporterError(f"Syntax error in {path}: {e}")
 
-    # Walk the AST to collect function calls
-    visitor = LegacyVisitor()
-    visitor.visit(tree)
+    visitor = LegacyVisitor(source)
+    visitor.visit_top(tree)
 
-    result, import_notes = visitor.get_result()
-
-    # Add version (required by schema)
-    result['rmgpu'] = '1.0'
-
-    # Add import notes
-    if import_notes:
-        result['import_notes'] = [str(note) for note in import_notes]
-
+    result = visitor.result
+    result["rmgpu"] = "1.0"
+    result["import_notes"] = [n.to_dict() for n in visitor.notes]
     return result
 
 
-def _extract_function_calls(tree: ast.AST) -> List[Tuple[str, Dict[str, Any]]]:
-    """
-    Extract function calls from the AST with their arguments.
+# ---------------------------------------------------------------------------
+# Ground-truth dump (kept for back-compat with scripts/legacy_dump.py): raw
+# per-call inventory of the file. This is NOT the gate's losslessness check
+# (that is in gates/gate_03.py, which uses an independent canonicalizer).
+# ---------------------------------------------------------------------------
 
-    Returns:
-        List of (function_name, args_dict) tuples.
-    """
+def dump_legacy(path: str) -> Dict[str, Any]:
+    """Dump the raw parsed calls of a legacy file (JSON-able inventory)."""
+    path = os.path.abspath(path)
+    if not os.path.exists(path):
+        raise LegacyImporterError(f"File not found: {path}")
+    with open(path) as f:
+        source = f.read()
+    tree = ast.parse(source, filename=path)
     calls = []
-
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
-
-        # Get function name
-        if isinstance(node.func, ast.Name):
-            func_name = node.func.id
-        elif isinstance(node.func, ast.Attribute):
-            func_name = node.func.attr
-        else:
+        name = _call_name(node)
+        if name is None:
             continue
-
-        # Collect positional args
         args = []
-        for arg in node.args:
-            lit = _node_to_literal(arg)
-            if lit is not None:
-                args.append(lit)
-
-        # Collect keyword args
+        for a in node.args:
+            try:
+                args.append(ast.literal_eval(a))
+            except (ValueError, SyntaxError):
+                args.append(ast.get_source_segment(source, a))
         kwargs = {}
         for kw in node.keywords:
             if kw.arg is None:
                 continue
-            lit = _node_to_literal(kw.value)
-            if lit is not None:
-                kwargs[kw.arg] = lit
-
-        calls.append((func_name, {"args": args, "kwargs": kwargs}))
-
-    return calls
-
-
-def dump_legacy(path: str) -> Dict[str, Any]:
-    """
-    Dump a legacy RMG Python input file as raw parsed structure (JSON-able).
-
-    This is the ground truth for the gate's diff - it captures everything
-    the AST visitor sees without any schema transformation.
-
-    Args:
-        path: Path to the legacy .py input file.
-
-    Returns:
-        A JSON-serializable dictionary with all parsed function calls.
-    """
-    path = os.path.abspath(path)
-
-    if not os.path.exists(path):
-        raise LegacyImporterError(f"File not found: {path}")
-
-    try:
-        with open(path, 'r') as f:
-            source = f.read()
-    except IOError as e:
-        raise LegacyImporterError(f"Could not read file: {e}")
-
-    try:
-        tree = ast.parse(source, filename=path)
-    except SyntaxError as e:
-        raise LegacyImporterError(f"Syntax error in {path}: {e}")
-
-    calls = _extract_function_calls(tree)
-
-    return {
-        "file": os.path.basename(path),
-        "functions": [
-            {"name": name, "args": args_data["args"], "kwargs": args_data["kwargs"]}
-            for name, args_data in calls
-        ]
-    }
+            try:
+                kwargs[kw.arg] = ast.literal_eval(kw.value)
+            except (ValueError, SyntaxError):
+                kwargs[kw.arg] = ast.get_source_segment(source, kw.value)
+        calls.append({"name": name, "args": args, "kwargs": kwargs})
+    return {"file": os.path.basename(path), "functions": calls}

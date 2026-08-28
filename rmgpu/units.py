@@ -139,4 +139,12 @@ class Quantity:
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema, handler):
-        return {'type': 'string'}
+        return {
+            "anyOf": [
+                {"type": "string"},
+                {"type": "object",
+                 "properties": {"value": {"type": "number"}, "unit": {"type": "string"}},
+                 "required": ["value", "unit"]},
+            ],
+            "description": "Quantity: 'value unit' string or {value, unit} map",
+        }

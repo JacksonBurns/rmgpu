@@ -79,8 +79,20 @@ class TestSpecies:
 
 class TestForbiddenEntry:
     def test_valid_entry(self):
+        # job-03/step-05: a bare SMILES string is coerced to StructureValue
+        # (mirrors Species), so forbidden() from the legacy DSL round-trips.
         entry = ForbiddenEntry(structure="C=[C]=[C]", reason="cumulenes unsupported")
-        assert entry.structure == "C=[C]=[C]"
+        assert entry.structure.value == "C=[C]=[C]"
+        assert entry.reason == "cumulenes unsupported"
+
+    def test_valid_entry_with_label_and_dict(self):
+        entry = ForbiddenEntry(
+            label="no_radicals",
+            structure={"smiles": "[C]"},
+            reason="radicals not allowed",
+        )
+        assert entry.label == "no_radicals"
+        assert entry.structure.value == "[C]"
 
 
 class TestInput:
@@ -95,8 +107,14 @@ class TestInput:
         assert inp.rmgpu == "1.0"
 
     def test_invalid_version(self):
-        with pytest.raises(ValueError):
-            Input(rmgpu="2.0")
+        # job-03/step-05: the version is a free "X.Y" identifier (the schema
+        # accepts any major.minor); malformed versions are still rejected.
+        for bad in ["1.0.0", "abc", "1.", "", "1.0.0.0"]:
+            with pytest.raises(ValueError):
+                Input(rmgpu=bad)
+        # well-formed X.Y versions are accepted (versioning is informational)
+        Input(rmgpu="1.0")
+        Input(rmgpu="2.0")
 
     def test_missing_version(self):
         with pytest.raises(ValueError):
@@ -118,21 +136,35 @@ class TestResolveExtends:
         assert result == doc
 
     def test_extends_with_extends_in_extended(self, tmp_path):
-        base = tmp_path / "base.yaml"
-        ext = tmp_path / "ext.yaml"
-        base.write_text(textwrap.dedent("""
+        """job-03/step-05: nested extends chains (A -> B -> C) resolve."""
+        leaf = tmp_path / "leaf.yaml"
+        mid = tmp_path / "mid.yaml"
+        leaf.write_text(textwrap.dedent("""
             rmgpu: 1.0
-            database:
-              thermo_libraries:
-                - primaryThermoLibrary
+            species:
+              - label: leaf
+                structure:
+                  smiles: "C"
         """))
-        ext.write_text(textwrap.dedent("""
+        mid.write_text(textwrap.dedent("""
             rmgpu: 1.0
-            extends: ./other.yaml
+            extends: ./leaf.yaml
+            options:
+              name: mid
         """))
-        doc = {"rmgpu": "1.0", "extends": str(ext)}
-        with pytest.raises(ValueError):
-            resolve_extends(doc)
+        doc = {"rmgpu": "1.0", "extends": str(mid)}
+        result = resolve_extends(doc, str(tmp_path))
+        assert "species" in result
+        assert result["options"]["name"] == "mid"
+        assert "extends" not in result
+
+    def test_extends_cycle_raises(self, tmp_path):
+        a = tmp_path / "A.yaml"
+        b = tmp_path / "B.yaml"
+        a.write_text("rmgpu: 1.0\nextends: ./B.yaml\n")
+        b.write_text("rmgpu: 1.0\nextends: ./A.yaml\n")
+        with pytest.raises(ValueError, match="Cycle"):
+            resolve_extends({"rmgpu": "1.0", "extends": str(a)}, str(tmp_path))
 
     def test_extends_missing_file(self, tmp_path):
         doc = {"rmgpu": "1.0", "extends": "/nonexistent/file.yaml"}

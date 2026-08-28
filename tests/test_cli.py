@@ -138,11 +138,27 @@ def test_version():
     from rmgpu import __version__
     assert result.output.strip() == __version__
 
-def test_import_not_implemented():
+def test_import_roundtrip(tmp_path):
+    """job-03/step-05: `rmgpu import` is implemented (lossless legacy import)."""
+    src = tmp_path / "input.py"
+    src.write_text(
+        "database(thermoLibraries=['primaryThermoLibrary'], "
+        "reactionLibraries=['primaryReactions'])\n"
+        "species(label='CH4', structure=SMILES('C'))\n"
+        "simpleReactor(temperature=(800, 'K'), pressure=(1.0, 'bar'), "
+        "initialMoleFractions={'CH4': 1.0}, terminationTime=(100, 'us'))\n"
+        "simulator(atol=1e-16, rtol=1e-8)\n"
+        "model(toleranceMoveToCore=0.1)\n"
+    )
+    out = tmp_path / "out.yaml"
     runner = CliRunner()
-    result = runner.invoke(main, ["import"])
-    assert result.exit_code == 0
-    assert "not yet implemented" in result.output
+    result = runner.invoke(main, ["import", str(src), "--to", str(out)])
+    assert result.exit_code == 0, result.output
+    assert out.exists()
+    from rmgpu.schemas.input import load_input
+    doc = load_input(str(out))
+    assert doc.rmgpu == "1.0"
+    assert doc.species[0].label == "CH4"
 
 def test_export_diff_inspect_not_implemented(tmp_path):
     dummy = tmp_path / "dummy.txt"
