@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import torch
@@ -26,7 +27,7 @@ class MLCoverageError(Exception):
 class CpModel:
     """Interpolates discrete Cp values into a Wilhoit-compatible model."""
 
-    def __init__(self, T: np.ndarray, Cp: np.ndarray, wilhoit: "WilhoitModel"):
+    def __init__(self, T: np.ndarray, Cp: np.ndarray, wilhoit: Optional[WilhoitModel]):
         self.T = T
         self.Cp = Cp
         self.wilhoit = wilhoit
