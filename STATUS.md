@@ -411,7 +411,7 @@ deviations: corpus is 50 files not the "47" in the step file (38 examples/rmg +
   12 test/regression in RMG-Py v4.0.0; "47" is stale) - target met as N==50.
   Lossless diff uses the independent canonicalizer, not legacy_dump.py's JSON
   (which would be circular). Details in reports/job-03-step-05-gate.md.
-commits: <hashes below>
+commits: b1ce7d7, 9e682a7, 2fc9951
 next: job-04/step-01: prompts/steps/job-04-step-01-ml-infra.md (job brief
   prompts/job-04-*.md). Key context: schema is lenient (extra=allow) by design -
   consume typed blocks, not extra keys; Species/ForbiddenEntry structure coerce
