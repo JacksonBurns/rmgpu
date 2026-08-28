@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-04-step-05-estimation.md (job-04/step-04 done: Rate registry + tunneling + reverse-rate wiring GREEN; all 8 tests pass)
+NEXT: prompts/steps/job-04-step-06-gate.md (job-04/step-05 done: estimation resolvers library->ML->coverage-error GREEN; 20 tests + 5-species real-DB/real-checkpoint smoke; finding: test_ml_base kinetics tests flaky in-process, pre-existing)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -62,7 +62,7 @@ documented finding) and the session log has the evidence.
 | 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | done |
 | 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | done |
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | done |
-| 04/05 | estimation.py: library -> ML -> coverage error | test_estimation.py | pending |
+| 04/05 | estimation.py: library -> ML -> coverage error | test_estimation.py (20 passed) + 5-species real DB/ckpt smoke (split 3/2/0) | done |
 | 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py (numbers reported) | pending |
 | 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | pending |
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py | pending |
@@ -439,6 +439,50 @@ built: rmgpu/schemas/input.py extended (Reactors polymorphic Union, StagedReacto
 checks: GREEN - pytest tests/test_schemas_blocks.py -q: 25 passed
 commits: 7cec009
 next: job-03/step-03-cli
+
+### 2026-08-28 - job-04/step-05
+built: rmgpu/data/estimation.py (REPLACED the 6c7c627 draft, which did not match the
+  estimator APIs or rmgdb unit conventions): estimate_thermo + estimate_kinetics -
+  the ONLY estimation code (library hit -> library value; else ML; else
+  MLCoverageError, never swallowed; no third branch per PLAN 3/14). EstimationCounts
+  instrumentation (library/ml/coverage split, .total, .as_dict) threaded through.
+  Library hits: rmgdb CGS->SI (kcal/mol, cal/(mol*K)); Tdata/Cpdata grid fitted to a
+  Wilhoit (multi-start scipy least_squares, ~0.1 J/mol/K max residual) so library and
+  ML results share the Cp(T) representation; NASA-only entries (N2: NULL H298/S298 =
+  NaN via pandas - handled by _num) take values from the NASA model as RMG-Py would;
+  a row with no usable model is a coverage gap, not a hit. Kinetics: matched reaction
+  with unassembleable stored rate (rmgdb gap) is NOT a hit - falls to ML (the
+  documented job-02 route); reaction_smiles authoritative ('>>' RIGR format);
+  species_to_smiles/reaction_to_smiles helpers; degeneracy arg applies the PLAN 3b
+  A*degeneracy boundary conversion on the ML branch. rmgpu/data/kinetics.py:
+  lookup_kinetics stub now routes through estimate_kinetics (TODO(job-04) gone;
+  ml=None -> found=False; source tag + degeneracy on KineticsLookupResult).
+  tests/test_estimation.py (20 tests, mock ML + mock DB, exact values).
+  scripts/smoke_estimation.py (integration smoke: 5 seed species of the
+  {superminimal, c3h4} example sets vs REAL rmgdb primaryThermoLibrary + REAL
+  vendored thermo checkpoint).
+checks: GREEN - pytest tests/test_estimation.py -q: 20 passed;
+  scripts/smoke_estimation.py: 5/5 resolved (H2 0.0 J/mol library, O2 -4.3 J/mol
+  library, CH2 496345.5 J/mol ML, C2H2 279372.5 J/mol ML, N2 ~0/191.6 J/(mol*K)
+  NASA-library), split {'library_hits': 3, 'ml_hits': 2, 'coverage_errors': 0,
+  'total': 5}. Full suite: 518 passed + 2 PRE-EXISTING failures in
+  tests/test_ml_base.py (kinetics checkpoint tests flaky when run after other
+  kinetics tests in the same process - ~1.6e-2 Ea non-determinism; which test fails
+  varies per run: test_kinetics_matches_reference / test_single_item_prediction_not_
+  dropped / test_kinetics_deterministic; verified failing identically on the CLEAN
+  tree via git stash; isolated test_ml_base.py runs pass 10/10) - NOT caused by this
+  step; fix-step candidate for the gate session or a later fix step.
+commits: 697262e
+next: job-04/step-06-gate (read prompts/steps/job-04-step-06-gate.md). Key context
+  for the gate: resolvers take (species|reaction dict, db facade, ml object with
+  .thermo/.kinetics attrs, counts, libraries list, [degeneracy for kinetics]) -
+  construct ThermoML/MODELS_DIR + KineticsML once and thread them; counts is the
+  no-fallback proof (gate note 3); library hits are SI, ML kinetics A is CGS cm^3/
+  (mol*s) as the checkpoint emits (PLAN 3b); rmgdb has NO kinetics depositories
+  table (reaction coverage set must come from libraries + mechanism-relevant pairs);
+  the test_ml_base flake is pre-existing (see above) - if gate_04 imports the
+  checkpoint predictors into the same process as other kinetics tests, expect the
+  same ~1.6e-2-order flake on the Ea comparison; tolerances must absorb it.
 
 ### 2026-08-28 - job-04/step-02
 built: rmgpu/ml/thermo_estimator.py (ThermoML, ThermoPrediction, CpModel, WilhoitModel, MLCoverageError); tests/test_thermo_ml.py (6 tests); rmgpu/ml/__init__.py (exports)
