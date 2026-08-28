@@ -9,4 +9,4 @@ THERMO_TARGETS = (
     "log_Cp_6_J_mol_K",
     "log_Cp_7_J_mol_K",
 )
-KINETICS_TARGETS = ("log10_A", "n", "log_Ea_J_mol")
+KINETICS_TARGETS = ("log10_A", "n", "Ea_J_mol")

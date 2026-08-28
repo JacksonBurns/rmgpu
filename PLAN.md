@@ -135,13 +135,13 @@ repo's top-level `models/` directory (committed, not git-ignored). Inference-onl
 the fitting/training code was deliberately NOT copied (model development is outside
 rmgpu's scope, 8a.3) -- only the checkpoints + the minimal inference set:
 
-- `models/chemeleon_thermo_122e91.ckpt` -- CheMeleon MPNN (chemprop), molecule model.
+- `models/chemeleon_thermo_662946.ckpt` -- CheMeleon MPNN (chemprop), molecule model.
   9 targets, all log10-space: `log_H298_J_mol`, `log_S298_J_mol_K`, and
   `log_Cp_1..7_J_mol_K`. The Cp outputs are 7 discrete values at the rmgdb library
   Cp grid T = 300/400/500/600/800/1000/1500 K (the grid the training data uses; the
   rmgdb library rows are ~99.8% on this grid). Trained on 1662 rmgdb
   thermo-library species. Input featurizer: `SimpleMoleculeMolGraphFeaturizer`.
-- `models/chemprop_kinetics_122e91.ckpt` -- Chemprop reaction model (RIGR graph
+- `models/chemprop_kinetics_662946.ckpt` -- Chemprop reaction model (RIGR graph
   featurizer: `CondensedGraphOfReactionFeaturizer` + `RIGRAtomFeaturizer`/
   `RIGRBondFeaturizer`). 3 targets: `log10_A`, `n`, `Ea_J_mol`. Trained on rmgdb
   kinetics-library reactions: the high-pressure-limit Arrhenius parameters, with
@@ -276,7 +276,7 @@ chemprop_example inference pattern, which chemprop's reaction mode plugs into di
 (featurizer + `ReactionDatapoint` + the same load/predict path).
 
 **Confirmed by the deployed model (3b):** the real kinetics checkpoint
-(`models/chemprop_kinetics_122e91.ckpt`) uses chemprop's RIGR reaction featurizer
+(`models/chemprop_kinetics_662946.ckpt`) uses chemprop's RIGR reaction featurizer
 (`CondensedGraphOfReactionFeaturizer` with RIGR atom/bond featurizers) on atom-mapped
 reaction SMILES, and predicts the three Arrhenius parameters `log10_A`, `n`, `Ea`
 (not a k(T) grid). That settles the two open questions here: the reaction mode is
@@ -345,9 +345,9 @@ rmgpu/
   ml/
     base.py             # shared Chemprop load/predict path (per 3a/3b: load the
                         #   vendored models/*.ckpt via models/predict.py's pattern)
-    thermo_estimator.py # CheMeleon checkpoint (models/chemeleon_thermo_122e91.ckpt)
+    thermo_estimator.py # CheMeleon checkpoint (models/chemeleon_thermo_662946.ckpt)
                         #   -> Hf298, S298, Cp(T) (9 log-space targets, 3b)  [SOLE estimator]
-    kinetics_estimator.py # Chemprop reaction checkpoint (models/chemprop_kinetics_122e91.ckpt)
+    kinetics_estimator.py # Chemprop reaction checkpoint (models/chemprop_kinetics_662946.ckpt)
                         #   -> HPL Arrhenius A,n,Ea (3b)                      [SOLE estimator]
   kinetics/
     models.py           # thin numpy/torch rate-expression registry (wraps ML output)
@@ -804,7 +804,7 @@ model:
   filter_reactions: true
 
 pressure_dependence: { method: cse }          # cse|masc|rs|sls; network grain controls, etc.
-ml_estimator:      { thermo: chemeleon_thermo_122e91, kinetics: chemprop_kinetics_122e91 }
+ml_estimator:      { thermo: chemeleon_thermo_662946, kinetics: chemprop_kinetics_662946 }
                    # checkpoint refs -> files in this repo's models/ dir (3b)
 # (no quantum_mechanics block: QM is out of scope entirely, §8a - model improvement
 #  happens outside the package)

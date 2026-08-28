@@ -42,8 +42,8 @@ Create the `rmgpu` conda environment (python 3.11) with every
 dependency, install rmgdb, and locate the CheMeleon checkpoint files so job 04
 knows exactly what it is consuming.
 NOTE (2026-08-27 plan update): the two deployed checkpoints are now VENDORED
-in this repo's top-level `models/` directory (chemeleon_thermo_122e91.ckpt,
-chemprop_kinetics_122e91.ckpt) - see PLAN.md 3b and the updated checkpoint
+in this repo's top-level `models/` directory (chemeleon_thermo_662946.ckpt,
+chemprop_kinetics_662946.ckpt) - see PLAN.md 3b and the updated checkpoint
 inventory in reports/job-00.md. This step's original task (locating
 checkpoints referenced by RMG-Py's ml_estimator DSL) predates that.
 The env must hold: torch (CUDA build - if pip resolves a CPU wheel, fix the

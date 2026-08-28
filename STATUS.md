@@ -126,10 +126,10 @@ documented finding) and the session log has the evidence.
 - [plan 2026-08-27] The hypothetical ML models now EXIST: two checkpoints vendored
   into this repo's top-level models/ dir (inference-only, copied from
   /home/jackson/rmgpu-human-copy/ml-fitting; fitting/training code deliberately NOT
-  copied - training stays out of scope per 8a.3). chemeleon_thermo_122e91.ckpt:
+  copied - training stays out of scope per 8a.3). chemeleon_thermo_662946.ckpt:
   CheMeleon MPNN, 9 log10-space targets (H298, S298, Cp x7 at
   300/400/500/600/800/1000/1500 K), trained on 1662 rmgdb thermo-library species
-  (all H298 positive). chemprop_kinetics_122e91.ckpt: Chemprop RIGR reaction model,
+  (all H298 positive). chemprop_kinetics_662946.ckpt: Chemprop RIGR reaction model,
   targets log10_A (per-site, CGS cm^3/(mol*s)), n, Ea_J_mol (linear), atom-mapped
   reaction SMILES input, trained on rmgdb kinetics-library HPL params. Boundary
   conversions: thermo 10^pred; kinetics A*degeneracy. Load-path constraint: a module

@@ -57,11 +57,11 @@ issue #2559). In rmgpu it is REPLACED, not reused:
     checkpoints: the vendored thermo model is ONE model with 9 outputs.)
   - The checkpoints (copied inference-only from the separate `ml-fitting` repo,
     where model training happens - training stays OUT of scope for rmgpu):
-    - `models/chemeleon_thermo_122e91.ckpt` - CheMeleon MPNN; 9 log10-space
+    - `models/chemeleon_thermo_662946.ckpt` - CheMeleon MPNN; 9 log10-space
       targets: log_H298_J_mol, log_S298_J_mol_K, log_Cp_1..7_J_mol_K (Cp at
       300/400/500/600/800/1000/1500 K); SimpleMoleculeMolGraphFeaturizer;
       trained on 1662 rmgdb thermo-library species.
-    - `models/chemprop_kinetics_122e91.ckpt` - Chemprop RIGR reaction model;
+    - `models/chemprop_kinetics_662946.ckpt` - Chemprop RIGR reaction model;
       targets log10_A, n, Ea_J_mol (A = per-site pre-exponential,
       cm^3/(mol*s)); input = atom-mapped reaction SMILES; trained on rmgdb
       kinetics-library high-pressure-limit params.

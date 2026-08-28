@@ -34,11 +34,11 @@ on py3.11, upstream issue #2559). In rmgpu it is REPLACED:
   checkpoints -- the vendored thermo model is ONE model with 9 outputs; see 3b.)
 - **The checkpoints are vendored in this repo's top-level `models/` directory** (committed,
   copied inference-only from the separate `ml-fitting` repo where the models are trained):
-  - `models/chemeleon_thermo_122e91.ckpt` -- CheMeleon MPNN; targets
+  - `models/chemeleon_thermo_662946.ckpt` -- CheMeleon MPNN; targets
     `log_H298_J_mol, log_S298_J_mol_K, log_Cp_1..7_J_mol_K` (log10-space; Cp at
     300/400/500/600/800/1000/1500 K); featurizer `SimpleMoleculeMolGraphFeaturizer`;
     trained on 1662 rmgdb thermo-library species.
-  - `models/chemprop_kinetics_122e91.ckpt` -- Chemprop reaction model; targets
+  - `models/chemprop_kinetics_662946.ckpt` -- Chemprop reaction model; targets
     `log10_A, n, Ea_J_mol` (A = per-site pre-exponential in cm^3/(mol*s); Ea linear
     J/mol); RIGR featurizer (`CondensedGraphOfReactionFeaturizer`); input = atom-mapped
     reaction SMILES; trained on rmgdb kinetics-library HPL params.

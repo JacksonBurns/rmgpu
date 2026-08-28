@@ -123,7 +123,7 @@ was deliberately NOT copied - model training is out of scope, PLAN.md 8a.3).
 Both checkpoints load and predict in the rmgpu conda env (verified, CPU and
 CUDA) via the pattern in `models/predict.py`.
 
-- **`models/chemeleon_thermo_122e91.ckpt`** (~40 MB, .ckpt = torch zip)
+- **`models/chemeleon_thermo_662946.ckpt`** (~40 MB, .ckpt = torch zip)
   - CheMeleon MPNN molecule model (chemprop).
   - Featurizer: `SimpleMoleculeMolGraphFeaturizer` (explicit hydrogens).
   - Outputs (9, all log10-space; names in `models/config.py`):
@@ -135,7 +135,7 @@ CUDA) via the pattern in `models/predict.py`.
     in the training set are positive; the H298 target is log10 of that
     positive value (so the model can only predict H298 > 0).
   - Boundary conversion: value = 10^pred (H298 J/mol; S298, Cp J/mol/K).
-- **`models/chemprop_kinetics_122e91.ckpt`** (~2.6 MB, .ckpt = torch zip)
+- **`models/chemprop_kinetics_662946.ckpt`** (~2.6 MB, .ckpt = torch zip)
   - Chemprop reaction model, RIGR: `CondensedGraphOfReactionFeaturizer`
     (RIGR atom + bond featurizers) on atom-mapped reaction SMILES.
   - Outputs (3; `models/config.py`): `log10_A, n, Ea_J_mol`.
