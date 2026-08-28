@@ -58,7 +58,7 @@ documented finding) and the session log has the evidence.
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | done |
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | done |
 | 03/05 | Job-03 gate (lossless import) | gate_03.py GREEN (50/50 lossless, 50/50 schema-valid, 50/50 CLI validate, run minimal OK, JSON schema OK) + pytest 472 | done |
-| 04/01 | ML infra: vendored-checkpoint verification + synthetic test model | test_ml_base.py + synthetic ckpts + real-ckpt round-trip | pending |
+| 04/01 | ML infra: vendored-checkpoint verification + load path | test_ml_base.py (both real ckpts: load, reference predictions, determinism) | pending |
 | 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | pending |
 | 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | pending |
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | pending |
@@ -139,6 +139,16 @@ documented finding) and the session log has the evidence.
   ORIENTATION.md, README.md, and reports/job-00.md updated to match.
   User direction: commit the checkpoint binaries directly (no git-ignore, no
   MANIFEST); provenance tracking handled externally.
+- [user 2026-08-28] No synthetic test models for job-04: the synthetic
+  chemprop training script + fixture checkpoints in job-04/step-01 are
+  DROPPED. The checkpoints are real and vendored in the tree, so the
+  tests run them directly. The step-01 reference baseline is generated
+  by models/predict.py's OWN pattern (not rmgpu.ml.base - that would be
+  circular) and committed to gates/baselines/job04/reference_predictions.json;
+  steps 02/03 and the gate assert rmgpu.ml.base reproduces it. Updated:
+  prompts/job-04-ml-estimators.md, prompts/steps/job-04-step-01..06,
+  STATUS.md step table (04/01 row). PLAN.md needed no change (it never
+  mentioned synthetic models).
 
 ## Session log (append newest at bottom)
 

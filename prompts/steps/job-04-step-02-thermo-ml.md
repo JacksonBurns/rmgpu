@@ -5,7 +5,7 @@ Prereq: jobs 01-02 done (Molecule for structures; rate registry; the ml_estimato
 This step is part of that job. The job's overall goal:
 The SOLE property estimators, wrapping the two VENDORED checkpoints in this repo's `models/` directory (PLAN.md 3b): the CheMeleon thermo checkpoint (`models/chemeleon_thermo_662946.ckpt`, 9 log10-space targets: log_H298_J_mol, log_S298_J_mol_K, log_Cp_1..7_J_mol_K at 300/400/500/600/800/1000/1500 K) and the Chemprop RIGR reaction checkpoint (`models/chemprop_kinetics_662946.ckpt`, targets log10_A, n, Ea_J_mol; A = per-site pre-exponential in cm^3/(mol*s); input = atom-mapped reaction SMILES). No group additivity, no rate rules, no fallbacks - by design. Where a model does not cover a structure, the system records a COVERAGE GAP (a finding), it does not silently estimate. THE REPLACEMENT: RMG-Py's existing Chemprop-based estimators (rmgpy/ml/estimator.py) are NOT reused - read only for uncertainty-cutoff concepts and the ml_estimator DSL wiring. rmgpu's estimators are re-implemented wrapping the vendored checkpoints with the inference pattern of `models/predict.py` (the model team's own inference code, copied into this repo) - load checkpoint, featurize with the model's featurizer, data.build_dataloader, pl.Trainer(...).predict. LOAD-PATH CONSTRAINT: the checkpoints pickle-reference `models.BoundedOutputTransform` and `models.HuberMetric`, so a module importable as top-level `models` (i.e. `models/models.py`) is required to load them - do not rename/move it. Boundary conversions (raw -> SI, PLAN.md 3b): thermo = 10^pred; kinetics A = 10^pred * degeneracy (CGS), n as-is, Ea as-is. Deliverables: rmgpu/ml/ (base, thermo_estimator, kinetics_estimator), rmgpu/data/estimation.py (the only estimation code), and the thesis-test gate. The rate registry landed in job 02; this job wires ML output into it.
 The job's gate (run by the job's final step):
-gates/gate_04.py - THE PoC THESIS TEST (PLAN.md 1, 10-Phase 1). Rigorous and honest: 1. Coverage: over the union of species in examples {superminimal, c3h4, minimal, minimal_ml, ethane-oxidation} + all species in primaryThermoLibrary: how many does the thermo model cover? (% + list of uncovered with reasons). Same for reactions (reactant->product pairs from the c3h4/superminimal mechanism-relevant set + the depository subset). 2. Accuracy vs RMG-Py: for every COVERED species (cap ~500, stratified): RMG-Py (library+GA, or ML per minimal_ml config where applicable) gives Hf298/S298/Cp(300,600,1000); compare to rmgpu ML values. Report: N, mean abs err, median, max, p95 for Hf298 (kJ/mol), S298 (J/mol/K), Cp (J/mol/K) + the distributions (histograms in the report). Same for HPL k(T): log10(k_rmgpu/k_rmg) stats at 300/600/1000 K for covered reactions. 3. No-fallback proof: the resolver NEVER falls back (instrumented: count library hits vs ML hits vs coverage errors; the report shows the split). 4. Checkpoint round-trip: BOTH vendored checkpoints (models/chemeleon_thermo_662946.ckpt, models/chemprop_kinetics_662946.ckpt) load via rmgpu.ml.base and reproduce the reference predictions recorded in the step-01 inventory (real checkpoints are present in the tree); the synthetic-chemprop models (step 1) still round-trip through predict() with exact values for the plumbing tests (clearly labeled: plumbing, not accuracy). A RED gate (errors above what makes a mechanism sensible, or coverage below what the test sets need) is a VALID PoC OUTCOME - reported as the thesis- test result with full numbers, recorded in STATUS, user decides. Do not paper over it.
+gates/gate_04.py - THE PoC THESIS TEST (PLAN.md 1, 10-Phase 1). Rigorous and honest: 1. Coverage: over the union of species in examples {superminimal, c3h4, minimal, minimal_ml, ethane-oxidation} + all species in primaryThermoLibrary: how many does the thermo model cover? (% + list of uncovered with reasons). Same for reactions (reactant->product pairs from the c3h4/superminimal mechanism-relevant set + the depository subset). 2. Accuracy vs RMG-Py: for every COVERED species (cap ~500, stratified): RMG-Py (library+GA, or ML per minimal_ml config where applicable) gives Hf298/S298/Cp(300,600,1000); compare to rmgpu ML values. Report: N, mean abs err, median, max, p95 for Hf298 (kJ/mol), S298 (J/mol/K), Cp (J/mol/K) + the distributions (histograms in the report). Same for HPL k(T): log10(k_rmgpu/k_rmg) stats at 300/600/1000 K for covered reactions. 3. No-fallback proof: the resolver NEVER falls back (instrumented: count library hits vs ML hits vs coverage errors; the report shows the split). 4. Checkpoint round-trip: BOTH vendored checkpoints (models/chemeleon_thermo_662946.ckpt, models/chemprop_kinetics_662946.ckpt) load via rmgpu.ml.base and reproduce the reference predictions recorded in the step-01 inventory (real checkpoints are present in the tree); tests run the real checkpoints directly (no synthetic test models - dropped 2026-08-28). A RED gate (errors above what makes a mechanism sensible, or coverage below what the test sets need) is a VALID PoC OUTCOME - reported as the thesis- test result with full numbers, recorded in STATUS, user decides. Do not paper over it.
 
 ## Context (invariant every step)
 
@@ -67,8 +67,8 @@ Read ONLY what is listed plus the direct dependencies you hit (note any extra re
     `ThermoML(models_dir)` - loads the vendored CheMeleon checkpoint
     (models/chemeleon_thermo_662946.ckpt) via base.load_chemprop_model.
     The checkpoint ALWAYS exists in the tree (vendored, step 1 verified
-    it); the synthetic-species-model path (step 1) is only a unit-test
-    fixture for plumbing, not a runtime branch.
+    it); there is no synthetic test model - the tests run this real
+    checkpoint directly.
     `predict(molecule) -> ThermoPrediction(Hf298, S298, Cp_model,
     uncertainties)` in SI. Boundary conversion (PLAN.md 3b): the raw model
     outputs are log10-space - Hf298 = 10^pred (J/mol), S298 = 10^pred
@@ -90,13 +90,12 @@ Read ONLY what is listed plus the direct dependencies you hit (note any extra re
     recorded as a finding; NEVER a silent fallback).
     Batch mode: predict on a list (batching; device per base.py; single
     GPU task rule).
-- tests/test_thermo_ml.py: synthetic-model plumbing (predict on 10 molecules
-  -> exact values through the boundary, SI conversion checked by hand),
-  covers() policy cases (covered / uncovered element set / unparseable),
-  MLCoverageError raised + not swallowed. PLUS a real-checkpoint test:
-  ThermoML on models/chemeleon_thermo_662946.ckpt reproduces the reference
-  predictions recorded in step 1 (CC/CCC/C[CH]CC) - 10^pred conversion
-  verified against the recorded raw values.
+- tests/test_thermo_ml.py: ThermoML on the real vendored checkpoint
+  (models/chemeleon_thermo_662946.ckpt): predict on 10 molecules -> values
+  through the boundary, SI conversion checked by hand (the 10^pred
+  conversion verified against the step-1 recorded raw values for
+  CC/CCC/C[CH]CC); covers() policy cases (covered / uncovered element set /
+  unparseable); MLCoverageError raised + not swallowed.
 - rmgpu/ml/__init__.py: export ThermoML, KineticsML (step 3),
   MLCoverageError, ThermoPrediction, KineticsPrediction.
 
