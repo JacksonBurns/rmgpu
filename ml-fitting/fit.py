@@ -83,36 +83,40 @@ def main():
     # back in some resonance invariance to the CheMeleon-based thermo
     # model. kinetics models already invariant because of RIGR
 
-    thermo_transform = BoundedOutputTransform(
-        mean=thermo_df[list(THERMO_TARGETS)].mean().values,
-        scale=thermo_df[list(THERMO_TARGETS)].std().values,
-        lower_bounds=thermo_lower_bounds,
-        upper_bounds=thermo_upper_bounds,
-    )
-    thermo_mpnn = get_thermo_model(thermo_transform)
-
     # Kinetics
     kinetics_df = fetch_kinetics_training_data(db_root / "kinetics.db")
     kinetics_df = kinetics_df.replace([np.inf, -np.inf], np.nan)
     kinetics_upper_bounds = kinetics_df[list(KINETICS_TARGETS)].max().values
     kinetics_lower_bounds = kinetics_df[list(KINETICS_TARGETS)].min().values
 
-    kinetics_transform = BoundedOutputTransform(
-        mean=kinetics_df[list(KINETICS_TARGETS)].mean().values,
-        scale=kinetics_df[list(KINETICS_TARGETS)].std().values,
-        lower_bounds=kinetics_lower_bounds,
-        upper_bounds=kinetics_upper_bounds,
-    )
-    kinetics_mpnn = get_kinetics_model(kinetics_transform)
-
     (
         thermo_train_loader,
         thermo_val_loader,
         thermo_test_loader,
+        thermo_means,
+        thermo_stds,
         kinetics_train_loader,
         kinetics_val_loader,
         kinetics_test_loader,
+        kinetics_means,
+        kinetics_stds,
     ) = df_to_chemprop(thermo_df, kinetics_df)
+
+    thermo_transform = BoundedOutputTransform(
+        mean=thermo_means,
+        scale=thermo_stds,
+        lower_bounds=thermo_lower_bounds,
+        upper_bounds=thermo_upper_bounds,
+    )
+    thermo_mpnn = get_thermo_model(thermo_transform)
+
+    kinetics_transform = BoundedOutputTransform(
+        mean=kinetics_means,
+        scale=kinetics_stds,
+        lower_bounds=kinetics_lower_bounds,
+        upper_bounds=kinetics_upper_bounds,
+    )
+    kinetics_mpnn = get_kinetics_model(kinetics_transform)
 
     fit(
         "thermo",

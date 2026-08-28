@@ -57,7 +57,9 @@ def parity_plot(
             error_band = 0.5
             error_desc = "1/2 log unit"
         else:
-            error_band = np.percentile(np.abs(yt - yp), 90)  # 90th percentile of absolute errors
+            error_band = np.percentile(
+                np.abs(yt - yp), 90
+            )  # 90th percentile of absolute errors
             error_desc = f"{error_band:.2f} (90th %-ile of absolute errors)"
     else:
         error_desc = f"{error_band:.2f}"
@@ -91,7 +93,7 @@ def parity_plot(
         (
             f"$\\bf{{Spearman \\rho}}:$ {r:.2f}",
             f"$\\bf{{MAE}}:$ {mae:.2f}",
-            f"$\\bf{{MSE}}:$ {mse:.2f}",
+            f"$\\bf{{RMSE}}:$ {np.sqrt(mse):.2f}",
         )
     )
     ax.text(

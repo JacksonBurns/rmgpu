@@ -32,34 +32,63 @@ class HuberMetric(ChempropMetric):
         return F.smooth_l1_loss(preds, targets, reduction="none", beta=1.0)
 
 
+import torch
+import torch.nn.functional as F
+from torch import nn
+from numpy.typing import ArrayLike
+
+
+def smooth_clamp(
+    x: torch.Tensor, min_val: torch.Tensor, max_val: torch.Tensor, beta: float = 5.0
+) -> torch.Tensor:
+    """Differentiable clamp using softplus."""
+    low_clip = min_val + F.softplus(x - min_val, beta=beta)
+    return max_val - F.softplus(max_val - low_clip, beta=beta)
+
+
 class BoundedOutputTransform(nn.Module):
     def __init__(
         self,
         mean: ArrayLike,
         scale: ArrayLike,
+        lower_bounds: ArrayLike,
+        upper_bounds: ArrayLike,
         pad: int = 0,
-        lower_bounds: ArrayLike | None = None,
-        upper_bounds: ArrayLike | None = None,
     ):
         super().__init__()
 
-        mean = torch.cat([torch.zeros(pad), torch.tensor(mean, dtype=torch.float)])
-        scale = torch.cat([torch.ones(pad), torch.tensor(scale, dtype=torch.float)])
+        mean_t = torch.as_tensor(mean, dtype=torch.float32)
+        scale_t = torch.as_tensor(scale, dtype=torch.float32)
+        low_t = torch.as_tensor(lower_bounds, dtype=torch.float32)
+        high_t = torch.as_tensor(upper_bounds, dtype=torch.float32)
 
-        self.register_buffer(
-            "lower_bounds", torch.tensor(lower_bounds, dtype=torch.float)
-        )
-        self.register_buffer(
-            "upper_bounds", torch.tensor(upper_bounds, dtype=torch.float)
-        )
+        # 1. Standardize the bounds into latent Z-score space
+        norm_lower = (low_t - mean_t) / scale_t
+        norm_upper = (high_t - mean_t) / scale_t
 
-    def forward(self, X: torch.Tensor) -> torch.Tensor:
+        if pad > 0:
+            mean_t = torch.cat([torch.zeros(pad, dtype=torch.float32), mean_t])
+            scale_t = torch.cat([torch.ones(pad, dtype=torch.float32), scale_t])
+            norm_lower = torch.cat(
+                [torch.full((pad,), -torch.inf, dtype=torch.float32), norm_lower]
+            )
+            norm_upper = torch.cat(
+                [torch.full((pad,), torch.inf, dtype=torch.float32), norm_upper]
+            )
+
+        self.register_buffer("mean", mean_t)
+        self.register_buffer("scale", scale_t)
+        self.register_buffer("norm_lower", norm_lower)
+        self.register_buffer("norm_upper", norm_upper)
+
+    def forward(self, Z: torch.Tensor) -> torch.Tensor:
         if self.training:
-            # During training, apply boundedness constraints in a differentiable way
-            return smooth_clamp(X, self.lower_bounds, self.upper_bounds)
+            # 1. TRAINING: Clamp in normalized space; output stays normalized for loss computation
+            return smooth_clamp(Z, self.norm_lower, self.norm_upper)
         else:
-            # During inference, apply boundedness constraints in a non-differentiable way (clamping)
-            return torch.clamp(X, self.lower_bounds, self.upper_bounds)
+            # 2. INFERENCE: Hard clamp in normalized space, then unscale to physical units
+            Z_clamped = torch.clamp(Z, self.norm_lower, self.norm_upper)
+            return Z_clamped * self.scale + self.mean
 
 
 def get_thermo_model(transform: BoundedOutputTransform):
@@ -82,7 +111,7 @@ def get_thermo_model(transform: BoundedOutputTransform):
             activation=nn.GELU(),
             n_layers=2,
             hidden_dim=512,
-            n_tasks=len(transform.lower_bounds),
+            n_tasks=len(transform.mean),
         ),
         False,
         [chemprop_nn.metrics.RMSE(), chemprop_nn.metrics.MAE()],
@@ -103,7 +132,7 @@ def get_kinetics_model(transform: BoundedOutputTransform):
             activation=nn.GELU(),
             n_layers=2,
             hidden_dim=512,
-            n_tasks=len(transform.lower_bounds),
+            n_tasks=len(transform.mean),
             # kinetics data has some strange outliers, thus huber loss
             criterion=HuberMetric(),
         ),

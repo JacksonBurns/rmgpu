@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import torch
 
+
 def strip_checkpoint(
     ckpt_path: str | Path,
     output_path: str | Path | None = None,
@@ -42,11 +43,16 @@ def strip_checkpoint(
     reduction = (1 - (final_size_mb / initial_size_mb)) * 100
 
     print(f"Saved:   {output_path}")
-    print(f"Size:    {initial_size_mb:.2f} MB -> {final_size_mb:.2f} MB ({reduction:.1f}% reduction)\n")
+    print(
+        f"Size:    {initial_size_mb:.2f} MB -> {final_size_mb:.2f} MB ({reduction:.1f}% reduction)\n"
+    )
     return output_path
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Strip training state from PyTorch Lightning checkpoints.")
+    parser = argparse.ArgumentParser(
+        description="Strip training state from PyTorch Lightning checkpoints."
+    )
     parser.add_argument(
         "checkpoints",
         nargs="*",
@@ -74,6 +80,7 @@ def main():
     for ckpt in ckpt_files:
         out_file = out_dir / f"{ckpt.parent.name}_{ckpt.stem}_deploy.pt"
         strip_checkpoint(ckpt, out_file)
+
 
 if __name__ == "__main__":
     main()
