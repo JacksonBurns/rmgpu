@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-04-step-02-thermo-ml.md (job-04/step-01 done: both real ckpts load via rmgpu.ml.base, baseline recorded non-circular)
+NEXT: prompts/steps/job-04-step-04-registry.md (job-04/step-03 done: KineticsML + tests GREEN; checkpoint loads + reference repro tol 1e-4)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -59,8 +59,8 @@ documented finding) and the session log has the evidence.
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | done |
 | 03/05 | Job-03 gate (lossless import) | gate_03.py GREEN (50/50 lossless, 50/50 schema-valid, 50/50 CLI validate, run minimal OK, JSON schema OK) + pytest 472 | done |
 | 04/01 | ML infra: vendored-checkpoint verification + load path | test_ml_base.py (both real ckpts: load, reference predictions, determinism) | done |
-| 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | pending |
-| 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | pending |
+| 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | done |
+| 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | done |
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | pending |
 | 04/05 | estimation.py: library -> ML -> coverage error | test_estimation.py | pending |
 | 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py (numbers reported) | pending |
@@ -151,6 +151,12 @@ documented finding) and the session log has the evidence.
   mentioned synthetic models).
 
 ## Session log (append newest at bottom)
+
+### 2026-08-28 - job-04/step-03
+built: rmgpu/ml/kinetics_estimator.py (KineticsML, KineticsPrediction, MLCoverageError); tests/test_kinetics_ml.py (4 tests)
+checks: GREEN - pytest tests/test_kinetics_ml.py -q: 4 passed (KineticsML loads checkpoint, covers valid molecules, predicts, reproduces reference predictions tol 1e-4, raises MLCoverageError, degeneracy conversion)
+commits: (this commit)
+next: job-04/step-04-registry (read prompts/steps/job-04-step-04-registry.md)
 
 ### 2026-08-27 - job-03/step-03
 built: rmgpu/cli.py (run/validate/schema/version + stub import/export/diff/inspect), examples/minimal.yaml, tests/test_cli.py (7 tests)
@@ -433,6 +439,12 @@ built: rmgpu/schemas/input.py extended (Reactors polymorphic Union, StagedReacto
 checks: GREEN - pytest tests/test_schemas_blocks.py -q: 25 passed
 commits: 7cec009
 next: job-03/step-03-cli
+
+### 2026-08-28 - job-04/step-02
+built: rmgpu/ml/thermo_estimator.py (ThermoML, ThermoPrediction, CpModel, WilhoitModel, MLCoverageError); tests/test_thermo_ml.py (6 tests); rmgpu/ml/__init__.py (exports)
+checks: GREEN - pytest tests/test_thermo_ml.py -q: 6 passed (ThermoML loads checkpoint, covers valid molecules, predicts, reproduces reference predictions tol 1e-4, raises MLCoverageError, covers policy)
+commits: 39ac844
+next: job-04/step-03-kinetics-ml (read prompts/steps/job-04-step-03-kinetics-ml.md)
 
 ### 2026-08-28 - job-04/step-01
 built: scripts/record_reference_predictions.py (non-circular baseline: models/predict.py's OWN
