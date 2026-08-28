@@ -450,7 +450,7 @@ checks: GREEN - record_reference_predictions.py: baseline written, re-run "basel
   of size 1 -> would silently lose a single input; values otherwise identical); determinism
   asserted allclose(atol=1e-6) not bitwise (CUDA reduction order; measured spread thermo 4.8e-7
   abs, kinetics 0.0).
-commits: <this commit>
+commits: 46ce772 (code + baseline), efb171e (STATUS + report)
 next: job-04/step-02-thermo-ml (read prompts/steps/job-04-step-02-thermo-ml.md). Key context:
   build on rmgpu.ml.base.load_thermo_checkpoint(); predict_raw takes chemprop
   MoleculeDatapoint.from_smi(smi, keep_h=True, add_h=True); raw outputs are log10-space
