@@ -51,7 +51,7 @@ def suppress_lightning_logs(level=logging.WARNING):
 class CheMeleonThermoPredictor:
     def __init__(
         self,
-        ckpt_path: str | Path = Path("chemeleon_thermo_122e91.ckpt"),
+        ckpt_path: str | Path = Path("chemeleon_thermo_662946.ckpt"),
         batch_size: int = 64,
     ):
         self.model = chemprop_load_model(ckpt_path)
@@ -81,7 +81,7 @@ class CheMeleonThermoPredictor:
 class ChempropKineticsPredictor:
     def __init__(
         self,
-        ckpt_path: str | Path = Path("chemprop_kinetics_122e91.ckpt"),
+        ckpt_path: str | Path = Path("chemprop_kinetics_662946.ckpt"),
         batch_size: int = 64,
     ):
         self.model = chemprop_load_model(ckpt_path)
