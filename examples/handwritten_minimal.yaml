@@ -1,0 +1,58 @@
+# Hand-written minimal input, the canonical new-format example from PLAN.md
+# 12.2. One deliberate deviation from the plan's text: floats are written
+# 1.0e-16 / 1.0e6 (YAML 1.1 requires the digits-and-dot form; bare 1e-16 is
+# parsed as a string by yaml.safe_load, which the JSON schema must reject).
+# Used by the job-03 gate: the pydantic model's JSON schema must validate it.
+rmgpu: "1.0"                  # schema version (forward-compat gate); string, not float
+# extends: ./base.yaml           # optional: layered config (commented out here)
+
+database:
+  thermo_libraries:   [primaryThermoLibrary]
+  reaction_libraries: []
+  seed_mechanisms:    []
+  kinetics_families:  default
+  kinetics_depositories: [training]
+  kinetics_estimator: ml          # 'ml' (Chemprop) -- the PoC default; 'library' also allowed
+  transport_libraries: auto
+
+species:
+  - { label: ethane, reactive: true, structure: "CC" }
+  - { label: CH3CHO, reactive: true, structure: "CC=O" }
+  - { label: H,      reactive: true, structure: "[H]" }
+
+forbidden:
+  - { structure: "C=[C]=[C]", reason: "cumulenes unsupported" }
+
+reactors:
+  - type: simple
+    temperature: { value: 1350, unit: K }
+    pressure:    { value: 1.0,  unit: bar }
+    initial_mole_fractions: { ethane: 1.0 }
+    termination: { conversion: { species: ethane, value: 0.9 }, time: { value: 1000000.0, unit: s } }
+
+simulator: { atol: 1.0e-16, rtol: 1.0e-8 }
+# (PyYAML YAML 1.1 note: floats need a signed exponent - 1.0e-16 parses,
+#  bare 1e-16 and unsigned 1.0e6 do not; the gate relies on this.)
+
+model:
+  tolerance_keep_in_edge: 0.0
+  tolerance_move_to_core: 0.1
+  tolerance_interrupt_simulation: 0.1
+  maximum_edge_species: 100000
+  filter_reactions: true
+
+pressure_dependence: { method: cse }
+
+ml_estimator:
+  thermo: chemeleon_thermo_662946
+  kinetics: chemprop_kinetics_662946
+
+solvation:
+  solvent: acetonitrile
+  model: smd
+
+options:
+  save_profiles: true
+  save_plots: false
+  save_edge: true
+  units: si
