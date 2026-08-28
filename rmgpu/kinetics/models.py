@@ -20,7 +20,7 @@ The registry API is intentionally flat so later jobs can consume it:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import numpy as np
 
@@ -488,3 +488,61 @@ def generate_reverse_rate_coefficient(
     """Compute a thermodynamically consistent reverse rate coefficient."""
     dG_rxn = dH_rxn - T * dS_rxn
     return k_forward * np.exp((dG_rxn - dH_rxn) / (R * T))
+
+
+def generate_reverse_rate_coefficient_with_thermo(
+    k_forward: float,
+    thermo_reactants,
+    thermo_products,
+    T: float,
+) -> float:
+    """Generate reverse rate coefficient using actual thermo models.
+    
+    Args:
+        k_forward: Forward rate coefficient
+        thermo_reactants: List of thermo models for reactants
+        thermo_products: List of thermo models for products
+        T: Temperature in K
+        
+    Returns:
+        Reverse rate coefficient consistent with thermodynamics
+    """
+    # Calculate delta G from thermo models
+    H_reactants = sum(reactant.get_enthalpy(T) for reactant in thermo_reactants)
+    S_reactants = sum(reactant.get_entropy(T) for reactant in thermo_reactants)
+    H_products = sum(product.get_enthalpy(T) for product in thermo_products)
+    S_products = sum(product.get_entropy(T) for product in thermo_products)
+    
+    dH_rxn = H_products - H_reactants
+    dS_rxn = S_products - S_reactants
+    dG_rxn = dH_rxn - T * dS_rxn
+    
+    return k_forward * np.exp((dG_rxn - dH_rxn) / (R * T))
+
+
+@dataclass
+class RateRegistry:
+    """Registry interface for reactor/ME consumption (jobs 06/07/09)."""
+    
+    forward_model: KineticsModel
+    tunneling_model: Optional[object] = None
+    
+    def evaluate(self, T: float, P: float = 0.0) -> float:
+        """Evaluate forward rate coefficient with tunneling correction."""
+        k = self.forward_model.evaluate(T, P)
+        if self.tunneling_model is not None:
+            tunneling = self.tunneling_model
+            if hasattr(tunneling, 'calculate_tunneling_factor'):
+                k *= tunneling.calculate_tunneling_factor(T)
+        return k
+    
+    def forward(self) -> KineticsModel:
+        """Return the forward rate model."""
+        return self.forward_model
+    
+    def reverse(self, thermo_reactants, thermo_products, T: float) -> float:
+        """Generate reverse rate coefficient."""
+        k_forward = self.evaluate(T)
+        return generate_reverse_rate_coefficient_with_thermo(
+            k_forward, thermo_reactants, thermo_products, T
+        )
