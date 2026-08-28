@@ -41,9 +41,16 @@ steps of this job do not need it - everything they need is in their own file.
 Create the `rmgpu` conda environment (python 3.11) with every
 dependency, install rmgdb, and locate the CheMeleon checkpoint files so job 04
 knows exactly what it is consuming.
+NOTE (2026-08-27 plan update): the two deployed checkpoints are now VENDORED
+in this repo's top-level `models/` directory (chemeleon_thermo_122e91.ckpt,
+chemprop_kinetics_122e91.ckpt) - see PLAN.md 3b and the updated checkpoint
+inventory in reports/job-00.md. This step's original task (locating
+checkpoints referenced by RMG-Py's ml_estimator DSL) predates that.
 The env must hold: torch (CUDA build - if pip resolves a CPU wheel, fix the
-index), numpy, scipy, rdkit, pint, chemprop, cantera, chemicals, fluids,
-thermo, torchdae, sqlalchemy, polars, pydantic, click, pytest, pytest-cov.
+index), numpy, scipy, rdkit, pint, chemprop, lightning, cantera, chemicals,
+fluids, thermo, torchdae, sqlalchemy, polars, pydantic, click, pytest,
+pytest-cov (lightning is REQUIRED: both vendored checkpoints load/predict
+through pytorch-lightning).
 torchdae on PyPI is 0.1.1; record whatever version lands - the API surface we
 need is BDF1/BDF2/TR-BDF2/Radau-IIA + index reduction + adjoint (PLAN.md 5).
 
@@ -73,11 +80,13 @@ Read ONLY what is listed plus the direct dependencies you hit (note any extra re
   /home/jackson/rmgpu/rmgdb/db/{thermo,kinetics,transport,solvation,statmech}.db
   must be present - if a .db is missing, run its documented build step and
   record that).
-- Checkpoint inventory: for every checkpoint referenced by RMG-Py's
-  ml_estimator DSL / minimal_ml example (CheMeleon thermo: Hf298 model,
-  S298+Cp model), record: exact path, file format (.ckpt / torchscript /
-  other), and if loadable with the chemprop_example pattern, the model's
-  input featurizer type + output dims.
+- Checkpoint inventory (HISTORICAL, from the original step-01 run): for every
+  checkpoint referenced by RMG-Py's ml_estimator DSL / minimal_ml example
+  (CheMeleon thermo: Hf298 model, S298+Cp model), record: exact path, file
+  format (.ckpt / torchscript / other), and if loadable with the
+  chemprop_example pattern, the model's input featurizer type + output dims.
+  SEE THE UPDATED CHECKPOINT INVENTORY IN reports/job-00.md: the two deployed
+  checkpoints are now vendored in this repo's models/ directory (PLAN.md 3b).
 - A one-off env-verification script (keep it: scripts/check_env.py) that
   imports everything and prints versions - later steps re-run it.
 

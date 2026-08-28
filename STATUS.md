@@ -58,7 +58,7 @@ documented finding) and the session log has the evidence.
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | done |
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | done |
 | 03/05 | Job-03 gate (lossless import of 47 examples) | gate_03.py (target 47/47) | pending |
-| 04/01 | ML infra: checkpoint inventory + synthetic test model | test_ml_base.py + synthetic ckpts | pending |
+| 04/01 | ML infra: vendored-checkpoint verification + synthetic test model | test_ml_base.py + synthetic ckpts + real-ckpt round-trip | pending |
 | 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | pending |
 | 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | pending |
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | pending |
@@ -123,6 +123,22 @@ documented finding) and the session log has the evidence.
   are REPLACED by rmgpu/ml/, re-implemented per chemprop_example/predicting.ipynb.
   RMG's wrapper is reference-only (checkpoint layout, cutoffs, DSL wiring); existing
   checkpoints are consumed via the new estimators' own load path (PLAN.md 3/5/6/8a.3).
+- [plan 2026-08-27] The hypothetical ML models now EXIST: two checkpoints vendored
+  into this repo's top-level models/ dir (inference-only, copied from
+  /home/jackson/rmgpu-human-copy/ml-fitting; fitting/training code deliberately NOT
+  copied - training stays out of scope per 8a.3). chemeleon_thermo_122e91.ckpt:
+  CheMeleon MPNN, 9 log10-space targets (H298, S298, Cp x7 at
+  300/400/500/600/800/1000/1500 K), trained on 1662 rmgdb thermo-library species
+  (all H298 positive). chemprop_kinetics_122e91.ckpt: Chemprop RIGR reaction model,
+  targets log10_A (per-site, CGS cm^3/(mol*s)), n, Ea_J_mol (linear), atom-mapped
+  reaction SMILES input, trained on rmgdb kinetics-library HPL params. Boundary
+  conversions: thermo 10^pred; kinetics A*degeneracy. Load-path constraint: a module
+  importable as top-level `models` (models/models.py) is required to load the
+  checkpoints (pickle references to models.BoundedOutputTransform / models.HuberMetric)
+  - do not rename/move it. PLAN.md 3b is the full contract; job-04 steps 01/02/03/06,
+  ORIENTATION.md, README.md, and reports/job-00.md updated to match.
+  User direction: commit the checkpoint binaries directly (no git-ignore, no
+  MANIFEST); provenance tracking handled externally.
 
 ## Session log (append newest at bottom)
 

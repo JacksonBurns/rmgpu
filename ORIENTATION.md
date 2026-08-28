@@ -16,26 +16,47 @@ numerics with PyTorch (torchdae DAE solver; master equation in torch). Everythin
 (graph ops, database I/O, units, transport, interop) is delegated to packages. No
 Cython, no numba, no fallbacks, no QM, no Arkane.
 
-## The ML estimators are NEW (replacement, not reuse)
+## The ML estimators are NEW (replacement, not reuse) -- and the checkpoints are REAL
 
 RMG-Py already contains a Chemprop-based thermo estimator
 (`rmgpy/ml/estimator.py`, an `MLEstimator` wrapping Chemprop species models; disabled
 on py3.11, upstream issue #2559). In rmgpu it is REPLACED:
 
 - rmgpu's estimators (`rmgpu/ml/thermo_estimator.py`, `rmgpu/ml/kinetics_estimator.py`)
-  are written FRESH, modeled on `/home/jackson/rmgpu/chemprop_example/predicting.ipynb`
-  (the canonical Chemprop v2 inference path: `models.MPNN.load_from_checkpoint`,
-  the model's featurizer, `data.MoleculeDataset` + `data.build_dataloader`,
-  `pl.Trainer(...).predict`).
-- RMG's `ml/estimator.py` is read ONLY as reference: its checkpoint layout
-  (Hf298 model + S298+Cp model), its uncertainty cutoffs, and how the `ml_estimator:`
-  input DSL wires them. Nothing is imported, copied, or wrapped from it.
-- Checkpoints: the existing checkpoints (CheMeleon thermo; any reaction checkpoints)
-  are CONSUMED through the new estimators' own load path - which mirrors
-  chemprop_example's. Do not try to make RMG's MLEstimator work.
+  are written FRESH, wrapping the two vendored checkpoints (see below) with the
+  inference pattern of `/home/jackson/rmgpu/chemprop_example/predicting.ipynb` and,
+  more directly, this repo's own `models/predict.py` (the model team's inference code):
+  load the checkpoint, build a chemprop dataset with the model's featurizer,
+  `data.build_dataloader`, `pl.Trainer(...).predict`.
+- RMG's `ml/estimator.py` is read ONLY as reference: its uncertainty-cutoff concepts and
+  how the `ml_estimator:` input DSL wires checkpoint names. Nothing is imported, copied,
+  or wrapped from it. (Its two-checkpoint Hf298/S298+Cp layout does NOT match our
+  checkpoints -- the vendored thermo model is ONE model with 9 outputs; see 3b.)
+- **The checkpoints are vendored in this repo's top-level `models/` directory** (committed,
+  copied inference-only from the separate `ml-fitting` repo where the models are trained):
+  - `models/chemeleon_thermo_122e91.ckpt` -- CheMeleon MPNN; targets
+    `log_H298_J_mol, log_S298_J_mol_K, log_Cp_1..7_J_mol_K` (log10-space; Cp at
+    300/400/500/600/800/1000/1500 K); featurizer `SimpleMoleculeMolGraphFeaturizer`;
+    trained on 1662 rmgdb thermo-library species.
+  - `models/chemprop_kinetics_122e91.ckpt` -- Chemprop reaction model; targets
+    `log10_A, n, Ea_J_mol` (A = per-site pre-exponential in cm^3/(mol*s); Ea linear
+    J/mol); RIGR featurizer (`CondensedGraphOfReactionFeaturizer`); input = atom-mapped
+    reaction SMILES; trained on rmgdb kinetics-library HPL params.
+  - `models/predict.py` (predictor classes), `models/config.py` (target names),
+    `models/models.py` (inference-only model defs).
+- **Load-path constraint:** the checkpoints pickle-reference
+  `models.BoundedOutputTransform` and `models.HuberMetric` -- a module importable as
+  top-level `models` (i.e. `models/models.py`) is REQUIRED to load them; do not rename
+  or move it, and do not alter those classes.
+- **Boundary conversions** (raw -> SI, PLAN.md 3b): thermo 10^pred (H298 J/mol, S298
+  J/mol/K, Cp 7 grid points J/mol/K); kinetics A = 10^pred * degeneracy (CGS), n as-is,
+  Ea as-is (J/mol). The model's Cp outputs are 7 discrete grid values; the estimator
+  wraps them into rmgpu/data/thermo's Cp(T) representation.
 - A future checkpoint (better model) is a config change (`ml_estimator:` block:
-  name + hash), never a code change (PLAN.md 8a.3: the checkpoint interface is the
-  only seam between model improvement and mechanism generation).
+  name + hash -> file in `models/`), never a code change (PLAN.md 8a.3: the checkpoint
+  interface is the only seam between model improvement and mechanism generation).
+- Training/fitting stays OUT of scope: the `ml-fitting` repo owns model development;
+  rmgpu only ever loads and predicts (PLAN.md 8a.3).
 
 ## What stays, what goes (the retain/delete/external split)
 
@@ -68,8 +89,10 @@ EXTERNAL (never re-implement):
     before writing any loader.
   - torch + torchdae: reactor (sole DAE backend; BDF/TR-BDF2/Radau-IIA; GPU via .to(cuda));
     master-equation time integration; adjoint sensitivity
-  - chemprop: kinetics prediction (reaction mode: RxnMode enum, see PLAN.md 6)
-  - CheMeleon checkpoints: thermo prediction (Hf298, S298, Cp(T))
+  - chemprop + lightning: the two vendored checkpoints in models/ (PLAN.md 3b):
+    thermo = CheMeleon MPNN molecule model (9 log-space targets);
+    kinetics = RIGR reaction model (log10_A, n, Ea). Load/predict pattern in models/predict.py.
+    models/models.py must stay importable as top-level `models` (checkpoint load constraint).
   - chemicals/fluids/thermo (ChEDL): transport correlations
   - pint: units (replaces the cimported Quantity)
   - cantera: ck2yaml interop (RMG already uses it)

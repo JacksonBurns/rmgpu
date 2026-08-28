@@ -126,6 +126,66 @@ upstream issue #2559). It is the historical *seam* for ML in RMG, and in rmgpu i
   (the `ml_estimator:` block: name + hash), never a code change -- the same seam as
   8a.3. The replacement changes *how checkpoints are loaded*, not *who supplies them*.
 
+### 3b. The ML models are REAL: two checkpoints vendored in `models/`
+
+The plan was written assuming the models would exist; they now do. Two trained
+checkpoints were vendored from the separate `ml-fitting` repo
+(`/home/jackson/rmgpu-human-copy/ml-fitting`, where the models are trained) into this
+repo's top-level `models/` directory (committed, not git-ignored). Inference-only:
+the fitting/training code was deliberately NOT copied (model development is outside
+rmgpu's scope, 8a.3) -- only the checkpoints + the minimal inference set:
+
+- `models/chemeleon_thermo_122e91.ckpt` -- CheMeleon MPNN (chemprop), molecule model.
+  9 targets, all log10-space: `log_H298_J_mol`, `log_S298_J_mol_K`, and
+  `log_Cp_1..7_J_mol_K`. The Cp outputs are 7 discrete values at the rmgdb library
+  Cp grid T = 300/400/500/600/800/1000/1500 K (the grid the training data uses; the
+  rmgdb library rows are ~99.8% on this grid). Trained on 1662 rmgdb
+  thermo-library species. Input featurizer: `SimpleMoleculeMolGraphFeaturizer`.
+- `models/chemprop_kinetics_122e91.ckpt` -- Chemprop reaction model (RIGR graph
+  featurizer: `CondensedGraphOfReactionFeaturizer` + `RIGRAtomFeaturizer`/
+  `RIGRBondFeaturizer`). 3 targets: `log10_A`, `n`, `Ea_J_mol`. Trained on rmgdb
+  kinetics-library reactions: the high-pressure-limit Arrhenius parameters, with
+  `log10_A` being the log10 of the PER-SITE pre-exponential (library A divided by
+  reaction-path degeneracy), A in CGS cm^3/(mol*s) (SI m^3 values converted), `n`
+  dimensionless, `Ea` linear in J/mol (kept linear so Ea<=0 chemistry survives).
+  Input: atom-mapped reaction SMILES (reactants>>products).
+- `models/predict.py` -- the two predictor classes (thermo: SMILES -> 9-column
+  DataFrame; kinetics: reaction SMILES -> 3-column DataFrame) built exactly as the
+  model team ran inference. `models/config.py` -- the target names. `models/
+  models.py` -- inference-only model definitions (the two featurizer instances,
+  `BoundedOutputTransform`, `HuberMetric`).
+
+**Load-path constraint (do not break):** chemprop checkpoints pickle class references
+by module path; the checkpoints reference `models.BoundedOutputTransform` and
+`models.HuberMetric`. A module importable as top-level `models` defining those exact
+classes is REQUIRED to load either checkpoint. `models/models.py` therefore cannot
+be renamed, moved, or have those classes altered (verified: the package-level copy
+loads and predicts identically to the original).
+
+**Boundary conversions the estimators (job-04) must apply** (raw output -> SI):
+- Thermo: H298 = 10^pred (J/mol), S298 = 10^pred (J/mol/K), Cp(T_i) = 10^pred
+  (J/mol/K) at the 7 grid points above. NOTE: the H298 target is log10 of a
+  POSITIVE quantity -- the model was trained on the (all-positive) H298 values of
+  the rmgdb thermo library -- so the predicted H298 is always > 0; rmgdb species
+  with negative H298 (formation-scale) are outside the model's training range and
+  must be surfaced as a coverage/accuracy finding by the thesis test, not silently
+  used. The 7-point Cp grid is wrapped into the Wilhoit/NASA Cp(T) representation
+  of `rmgpu/data/thermo.py` (fit or interpolate; job-04 documents the choice).
+- Kinetics: A_reaction = 10^pred_A * degeneracy (CGS cm^3/(mol*s)); n = pred_n;
+  Ea = pred_Ea (J/mol). The estimator multiplies back the per-site convention
+  (the library A is the full-reaction pre-exponential; the model learned A/degen).
+- Reaction SMILES: the recipe engine (job-05) provides the atom correspondence;
+  the kinetics featurizer needs atom-mapped reactant>>product SMILES.
+
+**Training data source = coverage:** both models were trained on rmgdb LIBRARY
+entries (thermo libraries; kinetics library HPL params), so their coverage on
+library species is near-total by construction; the coverage question the thesis
+test must answer (PLAN 13, risk 2) is performance on species/reactions OUTSIDE
+those libraries (intermediates, radicals, TS-adjacent structures). Model
+improvement (incl. new training data) still happens entirely outside rmgpu; the
+`ml_estimator:` block (name + hash) is the seam for re-pointing at a future
+checkpoint.
+
 ---
 
 ## 4. What gets RETAINED (and modernized to numpy/torch, no Cython)
@@ -215,6 +275,14 @@ does NOT reuse that wrapper: the reaction estimator is written fresh on the
 chemprop_example inference pattern, which chemprop's reaction mode plugs into directly
 (featurizer + `ReactionDatapoint` + the same load/predict path).
 
+**Confirmed by the deployed model (3b):** the real kinetics checkpoint
+(`models/chemprop_kinetics_122e91.ckpt`) uses chemprop's RIGR reaction featurizer
+(`CondensedGraphOfReactionFeaturizer` with RIGR atom/bond featurizers) on atom-mapped
+reaction SMILES, and predicts the three Arrhenius parameters `log10_A`, `n`, `Ea`
+(not a k(T) grid). That settles the two open questions here: the reaction mode is
+RIGR, and the output is Arrhenius params (A in CGS cm^3/(mol*s), per the training
+convention in 3b) which the rate registry wraps.
+
 **Architectural note (important for the PoC):** ML gives the *high-pressure-limit* rate.
 *Pressure dependence* (falloff, the master equation) is still a simulation that consumes
 that HPL anchor. So "all-in on ML for kinetics" does **not** remove the master equation;
@@ -275,9 +343,12 @@ rmgpu/
   db/
     loaders.py          # ALL I/O through rmgdb (thermo/kinetics/transport/solvation/statmech)
   ml/
-    base.py             # shared Chemprop load/predict path (per chemprop_example)   [3a]
-    thermo_estimator.py # Chemprop/CheMeleon species model -> Hf298,S298,Cp(T)         [SOLE estimator; REPLACES rmgpy/ml/estimator.py, 3a]
-    kinetics_estimator.py # Chemprop reaction model -> HPL rate / Arrhenius params     [SOLE estimator; net-new]
+    base.py             # shared Chemprop load/predict path (per 3a/3b: load the
+                        #   vendored models/*.ckpt via models/predict.py's pattern)
+    thermo_estimator.py # CheMeleon checkpoint (models/chemeleon_thermo_122e91.ckpt)
+                        #   -> Hf298, S298, Cp(T) (9 log-space targets, 3b)  [SOLE estimator]
+    kinetics_estimator.py # Chemprop reaction checkpoint (models/chemprop_kinetics_122e91.ckpt)
+                        #   -> HPL Arrhenius A,n,Ea (3b)                      [SOLE estimator]
   kinetics/
     models.py           # thin numpy/torch rate-expression registry (wraps ML output)
   pdep/
@@ -298,7 +369,10 @@ rmgpu/
 ```
 
 Dependencies (verified): `torch` (CUDA), `numpy`, `rdkit`, `pint`, `chemicals`, `fluids`,
-`thermo`, `cantera`, `torchdae`, `chemprop` + CheMeleon checkpoints, `rmgdb` (yours).
+`thermo`, `cantera`, `torchdae`, `chemprop` + `lightning` (both checkpoints load/predict
+through chemprop + pytorch-lightning; verified in the rmgpu env), `rmgdb` (yours). The
+two deployed checkpoints live in this repo's top-level `models/` directory (3b) -- they
+are part of the tree, not an external download.
 Optional: `polars` for bulk DB reads. **No Cython, no numba** (numba only if a specific
 master-equation kernel is proven hot; torch covers it).
 
@@ -549,7 +623,8 @@ steps). The gates below are the job gates.
 
 ### Phase 0 -- Foundations + validation harness
 - `rmgpu` package; conda env (py>=3.11, torch+cuda, rdkit, cantera, chemicals/fluids/
-  thermo, pint, torchdae, chemprop, rmgdb, CheMeleon checkpoints).
+  thermo, pint, torchdae, chemprop, lightning, rmgdb; the two ML checkpoints are
+  vendored in this repo's `models/` directory, 3b -- nothing to download).
 - Thin layers first: `units.py` (pint), `molecule/` (RDKit wrapper + atomtype DB +
   resonance + adjlist/SMILES round-trip), `db/loaders.py` (everything via rmgdb).
 - **Gate:** round-trip every molecule in `superminimal`/`c3h4`/`methylformate`; assert
@@ -557,14 +632,17 @@ steps). The gates below are the job gates.
   (entry counts + a hash of the kinetics/thermo tables).
 
 ### Phase 1 -- Static property evaluation (ML is the whole thing)
-- `ml/base.py` (the shared Chemprop load/predict path, per
-  chemprop_example/predicting.ipynb - 3a) + `ml/thermo_estimator.py`
-  (CheMeleon/Chemprop; REPLACES rmgpy/ml/estimator.py, not a re-enable) +
-  `ml/kinetics_estimator.py` (Chemprop reaction model) + `kinetics/models.py`
-  registry + `transport/`.
+- `ml/base.py` (the shared Chemprop load/predict path - the load pattern of
+  `models/predict.py`, per 3a/3b) + `ml/thermo_estimator.py` (wraps the vendored
+  CheMeleon checkpoint, 3b; REPLACES rmgpy/ml/estimator.py, not a re-enable) +
+  `ml/kinetics_estimator.py` (wraps the vendored Chemprop reaction checkpoint, 3b) +
+  `kinetics/models.py` registry + `transport/`.
 - **Gate:** for a fixed set of species/reactions (including intermediates and TS-adjacent
   species), assert predicted Hf298/S298/Cp(T) and HPL k(T) against RMG-Py's values
-  (libraries where present; ML where not). **This is the PoC's thesis test** -- if the
+  (libraries where present; ML where not). The ML side is the vendored checkpoints (3b)
+  with the boundary conversions of 3b (10^x for the log-space targets; A*degeneracy for
+  the per-site pre-exponential). Cp is compared at the model's grid points
+  (300/400/500/600/800/1000/1500 K). **This is the PoC's thesis test** -- if the
   ML estimators don't match RMG's library+GA+rate-rules accuracy here, the PoC's premise
   fails early, which is exactly when you want to find out. Report the error distribution,
   don't hide it. Note: the master equation's TS energy is derived from the ML HPL rate
@@ -626,7 +704,7 @@ steps). The gates below are the job gates.
 | Units | **EXTERNAL (pint)** | Kill the cimported `Quantity`. |
 | Chemkin I/O | **EXTERNAL (Cantera ck2yaml) + thin** | Interop. |
 | Thermo models (NASA/Wilhoit) | **MIXED** | NASA via Cantera/`thermo`; thin numpy Wilhoit. |
-| Thermo/kinetics *estimation* | **EXTERNAL (Chemprop/CheMeleon)** | Sole estimators; REPLACED (3a): fresh re-implementation per chemprop_example; RMG's `ml/estimator.py` (#2559) is reference-only. |
+| Thermo/kinetics *estimation* | **EXTERNAL (Chemprop/CheMeleon)** | Sole estimators (wrappers in rmgpu/ml/); REPLACED (3a): fresh implementation per chemprop_example; RMG's `ml/estimator.py` (#2559) is reference-only. The checkpoints themselves are VENDORed in this repo's `models/` dir (3b). |
 | QM / Arkane | **OUT OF SCOPE (nothing carried over)** | No runtime role (§8a). Model improvement (incl. any QM data-gen) is done outside the package; the checkpoint interface is the seam. No Arkane dependency. |
 | Surface/catalysis (~60 fam) | **PLUGIN (defer, §9.2)** | Reuses recipe engine + ML + reactor interface. |
 | Solvation | **PLUGIN (defer, §9.3)** | Lightest plugin; first to validate the protocol. |
@@ -726,7 +804,8 @@ model:
   filter_reactions: true
 
 pressure_dependence: { method: cse }          # cse|masc|rs|sls; network grain controls, etc.
-ml_estimator:      { thermo: chemeleon_thermo_v1, kinetics: chemeleon_rxn_v1 }   # checkpoint refs
+ml_estimator:      { thermo: chemeleon_thermo_122e91, kinetics: chemprop_kinetics_122e91 }
+                   # checkpoint refs -> files in this repo's models/ dir (3b)
 # (no quantum_mechanics block: QM is out of scope entirely, §8a - model improvement
 #  happens outside the package)
 solvation:        { solvent: acetonitrile, model: smd }                          # optional
@@ -860,15 +939,19 @@ tiny, reviewable, diffable input.
    RMG's library+GA+rate-rules accuracy on mechanism generation. Phase 1 is built to
    expose this early. There is no safety net by design; the deliverable is the measured
    error distribution + the generated mechanisms, not a fallback that hides a gap.
-2. **Coverage of intermediates / transition states by the ML models.** ML thermo models
-   are usually trained on stable species, but the master equation needs Hf298/S298/Cp
-   (for E0) for *intermediates* (and the TS energy, derivable from the HPL rate). If the
-   ML models don't cover intermediates, the pressure-dependence leg starves -- and there
-   is no runtime QM fallback by design. This is the sharpest technical risk. Mitigation
+2. **Coverage of intermediates / transition states by the ML models.** The vendored
+   thermo checkpoint (3b) was trained on rmgdb thermo-LIBRARY species -- 1662 of them,
+   which does include radicals and some intermediates present in those libraries, but
+   the master equation also needs Hf298/S298/Cp for *isomer/TS structures* that are
+   enumerated at runtime and were never in the training libraries. If the ML model does
+   not cover those, the pressure-dependence leg starves -- and there is no runtime QM
+   fallback by design. This is the sharpest technical risk, and it is precisely what the
+   Phase 1 thesis test measures (coverage + accuracy on non-library species). Mitigation
    (research, not code, and entirely OUTSIDE this package): train/validate the CheMeleon
-   models on intermediates using whatever data-generation tooling the model team uses;
-   RMG-GPU's only interface to all of that is the checkpoint name + hash. If the gap
-   proves unfixable, that is a PoC result to report, not a feature to bolt on.
+   models on intermediates using whatever data-generation tooling the model team uses
+   (that is the ml-fitting repo's job); RMG-GPU's only interface to all of that is the
+   checkpoint name + hash in the `ml_estimator:` block. If the gap proves unfixable,
+   that is a PoC result to report, not a feature to bolt on.
 3. **torchdae maturity.** Right shape (GPU, differentiable, vmap, index reduction,
    adjoint) but young (0.1.1, 4 stars). It's the *only* reactor backend now (no scipy
    path). If it regresses on a stiff chemical system, there's no second backend -- so

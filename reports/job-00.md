@@ -115,7 +115,51 @@ yarl==1.24.5
 
 ## Checkpoint Inventory
 
-From step-01 report:
+### Current (2026-08-27 plan update): two checkpoints vendored in this repo's models/
+
+The deployed ML models exist and were copied into this repo's top-level
+`models/` directory (inference-only; the fitting code from the ml-fitting repo
+was deliberately NOT copied - model training is out of scope, PLAN.md 8a.3).
+Both checkpoints load and predict in the rmgpu conda env (verified, CPU and
+CUDA) via the pattern in `models/predict.py`.
+
+- **`models/chemeleon_thermo_122e91.ckpt`** (~40 MB, .ckpt = torch zip)
+  - CheMeleon MPNN molecule model (chemprop).
+  - Featurizer: `SimpleMoleculeMolGraphFeaturizer` (explicit hydrogens).
+  - Outputs (9, all log10-space; names in `models/config.py`):
+    `log_H298_J_mol, log_S298_J_mol_K, log_Cp_1..7_J_mol_K`.
+  - Cp grid: 7 points at T = 300/400/500/600/800/1000/1500 K (the rmgdb
+    library Cp grid; 1659/1662 training rows use exactly this grid).
+  - Training data: 1662 rmgdb thermo-library species (H298/S298/Cpdata all
+    present + adjacency list -> SMILES via rmgpu Molecule). All H298 values
+    in the training set are positive; the H298 target is log10 of that
+    positive value (so the model can only predict H298 > 0).
+  - Boundary conversion: value = 10^pred (H298 J/mol; S298, Cp J/mol/K).
+- **`models/chemprop_kinetics_122e91.ckpt`** (~2.6 MB, .ckpt = torch zip)
+  - Chemprop reaction model, RIGR: `CondensedGraphOfReactionFeaturizer`
+    (RIGR atom + bond featurizers) on atom-mapped reaction SMILES.
+  - Outputs (3; `models/config.py`): `log10_A, n, Ea_J_mol`.
+  - `log10_A` = log10 of the PER-SITE pre-exponential (library A / reaction
+    path degeneracy) in CGS cm^3/(mol*s) (SI m^3 targets converted); `Ea`
+    linear J/mol (kept linear so Ea<=0 chemistry survives); `n` as stored.
+  - Training data: rmgdb kinetics-library reactions with Arrhenius / Troe-HPL
+    / Lindemann-HPL / ArrheniusEP (Ea from E0 + alpha*dH_rxn) / PDepArrhenius
+    (highest-pressure slice) high-pressure-limit parameters.
+  - Boundary conversion: A_reaction = 10^pred_A * degeneracy (CGS); n, Ea
+    as-is (J/mol).
+- **`models/predict.py`** - the model team's predictor classes
+  (`CheMeleonThermoPredictor`, `ChempropKineticsPredictor`); the authoritative
+  inference reference. **`models/models.py`** - inference-only model
+  definitions (the two featurizer instances + `BoundedOutputTransform` +
+  `HuberMetric`).
+- **Load-path constraint:** the checkpoints pickle-reference
+  `models.BoundedOutputTransform` / `models.HuberMetric`, so a module
+  importable as top-level `models` is required to load them.
+  `models/models.py` must not be renamed/moved and those classes must not
+  be altered (verified: a package-level copy aliased as `models` loads and
+  predicts identically).
+
+### Historical (original step-01 run): example checkpoint
 
 - **Path:** `/home/jackson/rmgpu/chemprop_example/example_model_v2_regression_mol.ckpt`
 
@@ -129,7 +173,8 @@ From step-01 report:
 
 - **1-molecule predict test:** ethane (CC) predicted value = `2.166739`.
 
-The checkpoint inventory is complete for job 04 to consume.
+This example checkpoint is NOT a production model; it was the stand-in the
+original plan assumed. It is no longer needed by job 04.
 
 ## rmgdb Install Method
 

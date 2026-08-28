@@ -3,9 +3,9 @@
 Job: job-04 - ML estimators (thermo + kinetics) + rate registry + thesis test
 Prereq: jobs 01-02 done (Molecule for structures; rate registry; the ml_estimator block of job 03)
 This step is part of that job. The job's overall goal:
-The SOLE property estimators, built fresh: CheMeleon/Chemprop for thermo (Hf298, S298, Cp(T)) and Chemprop reaction models for high-pressure-limit kinetics. No group additivity, no rate rules, no fallbacks - by design. Where a model does not cover a structure, the system records a COVERAGE GAP (a finding), it does not silently estimate. THE REPLACEMENT: RMG-Py's existing Chemprop-based estimators (rmgpy/ml/estimator.py, a disabled chemprop species wrapper) are NOT reused - they are read only for their checkpoint layout, uncertainty cutoffs, and the ml_estimator DSL wiring. rmgpu's estimators are re-implemented per /home/jackson/rmgpu/chemprop_example/predicting.ipynb (MPNN.load_from_checkpoint + featurizer + MoleculeDataset + build_dataloader + pl.Trainer.predict). Same for checkpoints: the existing checkpoints are consumed via the new estimators' own load path, which mirrors chemprop_example's - not via RMG's MLEstimator. Deliverables: rmgpu/ml/ (base, thermo_estimator, kinetics_estimator), rmgpu/data/estimation.py (the only estimation code), and the thesis-test gate. The rate registry landed in job 02; this job wires ML output into it.
+The SOLE property estimators, wrapping the two VENDORED checkpoints in this repo's `models/` directory (PLAN.md 3b): the CheMeleon thermo checkpoint (`models/chemeleon_thermo_122e91.ckpt`, 9 log10-space targets: log_H298_J_mol, log_S298_J_mol_K, log_Cp_1..7_J_mol_K at 300/400/500/600/800/1000/1500 K) and the Chemprop RIGR reaction checkpoint (`models/chemprop_kinetics_122e91.ckpt`, targets log10_A, n, Ea_J_mol; A = per-site pre-exponential in cm^3/(mol*s); input = atom-mapped reaction SMILES). No group additivity, no rate rules, no fallbacks - by design. Where a model does not cover a structure, the system records a COVERAGE GAP (a finding), it does not silently estimate. THE REPLACEMENT: RMG-Py's existing Chemprop-based estimators (rmgpy/ml/estimator.py) are NOT reused - read only for uncertainty-cutoff concepts and the ml_estimator DSL wiring. rmgpu's estimators are re-implemented wrapping the vendored checkpoints with the inference pattern of `models/predict.py` (the model team's own inference code, copied into this repo) - load checkpoint, featurize with the model's featurizer, data.build_dataloader, pl.Trainer(...).predict. LOAD-PATH CONSTRAINT: the checkpoints pickle-reference `models.BoundedOutputTransform` and `models.HuberMetric`, so a module importable as top-level `models` (i.e. `models/models.py`) is required to load them - do not rename/move it. Boundary conversions (raw -> SI, PLAN.md 3b): thermo = 10^pred; kinetics A = 10^pred * degeneracy (CGS), n as-is, Ea as-is. Deliverables: rmgpu/ml/ (base, thermo_estimator, kinetics_estimator), rmgpu/data/estimation.py (the only estimation code), and the thesis-test gate. The rate registry landed in job 02; this job wires ML output into it.
 The job's gate (run by the job's final step):
-gates/gate_04.py - THE PoC THESIS TEST (PLAN.md 1, 10-Phase 1). Rigorous and honest: 1. Coverage: over the union of species in examples {superminimal, c3h4, minimal, minimal_ml, ethane-oxidation} + all species in primaryThermoLibrary: how many does the thermo model cover? (% + list of uncovered with reasons). Same for reactions (reactant->product pairs from the c3h4/superminimal mechanism-relevant set + the depository subset). 2. Accuracy vs RMG-Py: for every COVERED species (cap ~500, stratified): RMG-Py (library+GA, or ML per minimal_ml config where applicable) gives Hf298/S298/Cp(300,600,1000); compare to rmgpu ML values. Report: N, mean abs err, median, max, p95 for Hf298 (kJ/mol), S298 (J/mol/K), Cp (J/mol/K) + the distributions (histograms in the report). Same for HPL k(T): log10(k_rmgpu/k_rmg) stats at 300/600/1000 K for covered reactions. 3. No-fallback proof: the resolver NEVER falls back (instrumented: count library hits vs ML hits vs coverage errors; the report shows the split). 4. Synthetic-model plumbing: if the real kinetics checkpoint is absent, the synthetic-chemprop reaction model (step 1) round-trips through predict() with exact values (clearly labeled: plumbing, not accuracy). A RED gate (errors above what makes a mechanism sensible, or coverage below what the test sets need) is a VALID PoC OUTCOME - reported as the thesis- test result with full numbers, recorded in STATUS, user decides. Do not paper over it.
+gates/gate_04.py - THE PoC THESIS TEST (PLAN.md 1, 10-Phase 1). Rigorous and honest: 1. Coverage: over the union of species in examples {superminimal, c3h4, minimal, minimal_ml, ethane-oxidation} + all species in primaryThermoLibrary: how many does the thermo model cover? (% + list of uncovered with reasons). Same for reactions (reactant->product pairs from the c3h4/superminimal mechanism-relevant set + the depository subset). 2. Accuracy vs RMG-Py: for every COVERED species (cap ~500, stratified): RMG-Py (library+GA, or ML per minimal_ml config where applicable) gives Hf298/S298/Cp(300,600,1000); compare to rmgpu ML values. Report: N, mean abs err, median, max, p95 for Hf298 (kJ/mol), S298 (J/mol/K), Cp (J/mol/K) + the distributions (histograms in the report). Same for HPL k(T): log10(k_rmgpu/k_rmg) stats at 300/600/1000 K for covered reactions. 3. No-fallback proof: the resolver NEVER falls back (instrumented: count library hits vs ML hits vs coverage errors; the report shows the split). 4. Checkpoint round-trip: BOTH vendored checkpoints (models/chemeleon_thermo_122e91.ckpt, models/chemprop_kinetics_122e91.ckpt) load via rmgpu.ml.base and reproduce the reference predictions recorded in the step-01 inventory (real checkpoints are present in the tree); the synthetic-chemprop models (step 1) still round-trip through predict() with exact values for the plumbing tests (clearly labeled: plumbing, not accuracy). A RED gate (errors above what makes a mechanism sensible, or coverage below what the test sets need) is a VALID PoC OUTCOME - reported as the thesis- test result with full numbers, recorded in STATUS, user decides. Do not paper over it.
 
 ## Context (invariant every step)
 
@@ -20,11 +20,14 @@ gates/gate_04.py - THE PoC THESIS TEST (PLAN.md 1, 10-Phase 1). Rigorous and hon
   GPU task at a time on this machine; never kill processes you did not start.
 - No Cython, no numba, no QM, no Arkane, no fallback estimators, no second
   reactor backend. SI units internally (J, K, Pa, mol) via pint.
-- The existing Chemprop-based estimators in RMG-Py (rmgpy/ml/estimator.py)
-  are being REPLACED by rmgpu's new ones - they are reference-only (layout,
-  cutoffs, DSL wiring). rmgpu's estimators are re-implemented per
-  /home/jackson/rmgpu/chemprop_example/predicting.ipynb. See README.md,
-  "The ML estimators are NEW".
+- The two ML checkpoints are VENDORED in this repo's models/ directory
+  (PLAN.md 3b; the models/ dir also holds the model team's inference code,
+  models/predict.py, which is the authoritative inference reference).
+  RMG-Py's old Chemprop wrapper (rmgpy/ml/estimator.py) is reference-only
+  (uncertainty-cutoff concepts, ml_estimator DSL wiring). The checkpoints
+  require a module importable as top-level 'models' (models/models.py) to
+  load - do not rename/move it. See README.md,
+  "The ML estimators are NEW and the checkpoints are REAL".
 
 ## Where you are
 
@@ -63,16 +66,21 @@ Read ONLY what is listed plus the direct dependencies you hit (note any extra re
     histograms; HPL k(T): log10(k_rmgpu/k_rmg) at 300/600/1000 K;
     (3) no-fallback proof: the resolvers' counts (library/ML/coverage-error
     split) - assert the fallback count is 0;
-    (4) synthetic-model plumbing (if the real kinetics checkpoint is
-    absent): exact round-trip, labeled plumbing.
+    (4) checkpoint round-trip: BOTH vendored checkpoints load via
+    rmgpu.ml.base and reproduce the step-01 reference predictions (the real
+    checkpoints are in the tree - this is a plumbing assertion, not
+    accuracy); the synthetic-chemprop models (step 1) still round-trip
+    through predict() with exact values for the plumbing unit tests
+    (clearly labeled: plumbing, not accuracy).
 - The RMG-Py reference: a script (scripts/reference_props.py) that, in env
   rmg_env, loads the example mechanisms + libraries and dumps
   Hf298/S298/Cp(T) per species + k(T) per reaction to
   gates/baselines/thesis_test/ (commit the baselines).
-- reports/job-04.md: checkpoint inventory (from step 1), coverage policy
+- reports/job-04.md: checkpoint verification (from step 1 - both vendored
+  checkpoints in models/ load + reference predictions), coverage policy
   text, the full thesis-test numbers (both estimators), the no-fallback
-  split, and the BLOCKED-until-checkpoint list (any estimator waiting on a
-  real checkpoint).
+  split, and any coverage-gap findings (e.g. the positive-H298 training
+  range vs rmgdb species with negative Hf298 - PLAN.md 3b).
 - If RED (coverage/accuracy below what a mechanism needs): the report says
   so plainly with the numbers; STATUS gets a decisions-log entry; the user
   decides next steps. Do NOT paper over it.

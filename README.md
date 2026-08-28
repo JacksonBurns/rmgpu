@@ -12,6 +12,11 @@ implementation across sessions, and (from job 00 on) the code itself.
                        job (see "Session vs step" below), never per step.
     STATUS.md          Work tracker: NEXT pointer, job/step tables, decisions
                        log, append-only session log.
+    models/            The two deployed ML checkpoints (chemeleon_thermo,
+                       chemprop_kinetics) + inference-only code (predict.py,
+                       config.py, models.py). Copied from the ml-fitting repo;
+                       fitting/training code is deliberately NOT here (out of
+                       scope). PLAN.md 3b has the full contract.
     prompts/           One file per JOB (a job is a milestone with one gate):
                        job-NN-<name>.md -- short brief + step list only.
     prompts/steps/     One file per STEP (a step is one human-started session):
@@ -27,35 +32,53 @@ Reference material (read-only, NOT part of this repo, at /home/jackson/rmgpu):
                      transport), access via RMG-Py and its rmg_env
   - rmgdb/           SQL wrapper over RMG-database (our database layer),
                      installed in the rmgdb conda environment
-  - chemprop_example/  THE reference for Chemprop inference. predicting.ipynb
-                     shows exactly how to load a trained Chemprop v2 checkpoint
-                     (models.MPNN.load_from_checkpoint) and predict (featurize
-                     with featurizers, build a MoleculeDataset,
-                     data.build_dataloader, pl.Trainer(...).predict). Use the
-                     chemprop-dev environment if needed. See below: "The ML
-                     estimators are NEW".
+  - chemprop_example/  Secondary reference for Chemprop inference.
+                     predicting.ipynb shows the general chemprop v2 load/predict
+                     pattern. The AUTHORITATIVE inference reference for our
+                     checkpoints is this repo's own models/predict.py (the model
+                     team's code, copied verbatim). See below: "The ML estimators
+                     are NEW and the checkpoints are REAL".
 
-## The ML estimators are NEW (read this)
+## The ML estimators are NEW and the checkpoints are REAL (read this)
 
 RMG-Py ships a Chemprop-based thermo estimator (`rmgpy/ml/estimator.py`, an
 `MLEstimator` wrapping Chemprop species models; disabled on py3.11, upstream
 issue #2559). In rmgpu it is REPLACED, not reused:
 
   - rmgpu's estimators (`rmgpu/ml/thermo_estimator.py`,
-    `rmgpu/ml/kinetics_estimator.py`) are written fresh, modeled on
-    chemprop_example/predicting.ipynb. RMG's `ml/estimator.py` is read ONLY to
-    learn its checkpoint layout (Hf298 model + S298+Cp model), its uncertainty
-    cutoffs, and how the `ml_estimator:` input DSL wires them - as design
-    reference. Nothing is imported, copied, or wrapped from it.
-  - Same for checkpoints: the existing checkpoints (CheMeleon thermo models,
-    any reaction-model checkpoints) are CONSUMED via the new estimators'
-    own load path - which mirrors the chemprop_example load path
-    (MPNN.load_from_checkpoint + the model's featurizer). Do not try to make
-    RMG's MLEstimator work.
+    `rmgpu/ml/kinetics_estimator.py`) are written fresh, wrapping the two
+    VENDORED checkpoints in this repo's top-level `models/` directory (PLAN.md
+    3b) with the inference pattern of `models/predict.py` (the model team's
+    own inference code, copied verbatim): load the checkpoint, featurize,
+    `data.build_dataloader`, `pl.Trainer(...).predict`. RMG's `ml/estimator.py`
+    is read ONLY for its uncertainty-cutoff concepts and the `ml_estimator:`
+    DSL wiring - as design reference. Nothing is imported, copied, or wrapped
+    from it. (Its two-checkpoint Hf298/S298+Cp layout does NOT match our
+    checkpoints: the vendored thermo model is ONE model with 9 outputs.)
+  - The checkpoints (copied inference-only from the separate `ml-fitting` repo,
+    where model training happens - training stays OUT of scope for rmgpu):
+    - `models/chemeleon_thermo_122e91.ckpt` - CheMeleon MPNN; 9 log10-space
+      targets: log_H298_J_mol, log_S298_J_mol_K, log_Cp_1..7_J_mol_K (Cp at
+      300/400/500/600/800/1000/1500 K); SimpleMoleculeMolGraphFeaturizer;
+      trained on 1662 rmgdb thermo-library species.
+    - `models/chemprop_kinetics_122e91.ckpt` - Chemprop RIGR reaction model;
+      targets log10_A, n, Ea_J_mol (A = per-site pre-exponential,
+      cm^3/(mol*s)); input = atom-mapped reaction SMILES; trained on rmgdb
+      kinetics-library high-pressure-limit params.
+    - `models/predict.py`, `models/config.py`, `models/models.py` (inference
+      only; the fitting code was deliberately NOT copied).
+  - LOAD-PATH CONSTRAINT: the checkpoints pickle-reference
+    `models.BoundedOutputTransform` and `models.HuberMetric`; a module
+    importable as top-level `models` (i.e. `models/models.py`) is required to
+    load them. Do not rename/move the file or alter those classes.
+  - Boundary conversions (raw -> SI; PLAN.md 3b): thermo = 10^pred
+    (H298 J/mol, S298 J/mol/K, Cp grid J/mol/K); kinetics = A*degeneracy
+    (CGS), n as-is, Ea as-is (J/mol).
   - If a new/better checkpoint arrives later, only the `ml_estimator:` block of
-    the input YAML changes (checkpoint name + hash). No code change. (PLAN.md
-    8a.3: the checkpoint interface is the only seam between model improvement
-    and mechanism generation; model improvement happens OUTSIDE this package.)
+    the input YAML changes (checkpoint name + hash -> file in `models/`). No
+    code change. (PLAN.md 8a.3: the checkpoint interface is the only seam
+    between model improvement and mechanism generation; model improvement
+    happens OUTSIDE this package - the ml-fitting repo.)
 
 ## How work gets done (read this before starting)
 
@@ -127,8 +150,8 @@ Rules that make this work (why the structure is this way):
     01  units + molecule layer (RDKit wrapper, adjlist, atom types, resonance)
     02  database layer via rmgdb + round-trip hash gate
     03  YAML input schema + CLI + legacy .py importer
-    04  ML estimators (CheMeleon thermo, Chemprop kinetics) + rate registry
-        (THE thesis test; estimators built fresh per chemprop_example)
+    04  ML estimators (wrap the vendored models/ checkpoints: CheMeleon thermo,
+        Chemprop kinetics) + rate registry (THE thesis test)
     05  reaction recipe DSL + product enumeration (port from family.py)
     06  core/edge loop + torchdae reactor (first integration; superminimal/c3h4)
     07  statmech + master equation (CSE) + pdep gate (propane_branching)
