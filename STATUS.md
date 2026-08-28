@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-03-step-05-gate.md (job-03 step-04 done: legacy importer + CLI, 50/50 files import OK)
+NEXT: prompts/steps/job-04-step-01-ml-infra.md (job-03 CLOSED: gate GREEN, 50/50 legacy files import losslessly)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -17,7 +17,7 @@ at a time.)
 | 00 | Env + package skeleton + test scaffolding | smoke test (gate_00.py) | done |
 | 01 | Units + molecule layer | adjlist/atomtype/resonance parity (gate_01.py) | done |
 | 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | done |
-| 03 | YAML input schema + CLI + legacy importer | 47 example input.py -> yaml, lossless (gate_03.py) | pending |
+| 03 | YAML input schema + CLI + legacy importer | 50 example input.py -> yaml, lossless (gate_03.py) | done |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | pending |
 | 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | pending |
 | 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | pending |
@@ -57,7 +57,7 @@ documented finding) and the session log has the evidence.
 | 03/02 | Input schema: reactors + remaining blocks + extends | test_schemas_blocks.py | done |
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | done |
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | done |
-| 03/05 | Job-03 gate (lossless import of 47 examples) | gate_03.py (target 47/47) | pending |
+| 03/05 | Job-03 gate (lossless import) | gate_03.py GREEN (50/50 lossless, 50/50 schema-valid, 50/50 CLI validate, run minimal OK, JSON schema OK) + pytest 472 | done |
 | 04/01 | ML infra: vendored-checkpoint verification + synthetic test model | test_ml_base.py + synthetic ckpts + real-ckpt round-trip | pending |
 | 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | pending |
 | 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | pending |
@@ -384,6 +384,39 @@ built: rmgpu/schemas/input.py (Quantity, StructureValue, DatabaseBlock, Species,
 checks: GREEN - pytest tests/test_schemas_core.py -q: 20 passed
 commits: 4ae76c8
 next: job-03/step-02-blocks
+
+### 2026-08-28 - job-03/step-05 (completed - job-03 gate GREEN, job CLOSED)
+built: gates/gate_03.py (5-check gate: inventory, import, validate, lossless diff,
+  JSON schema + hand example); gates/legacy_canonical.py (independent AST
+  canonicalizer = ground truth for the lossless diff, non-circular); gates/
+  legacy_ground_truth.py (corpus locator + DSL set); tests/test_importer.py
+  (per-file: import + schema re-parse + canonical diff + note counts + inventory,
+  parametrized over the full corpus); examples/handwritten_minimal.yaml (PLAN
+  12.2 canonical doc). Modified: rmgpu/schemas/input.py (lenient extra=allow
+  blocks; added GeneratedSpeciesConstraints/CatalystProperties/QuantumMechanics
+  blocks + LiquidSurfaceReactor; StructureValue + inchi/group/fragment/smarts;
+  ForbiddenEntry label + bare-SMILES/dict coercion; tuple quantities); rmgpu/
+  units.py; rmgpu/importer/legacy.py (lossless snake_case rewrite: safe arithmetic
+  eval, loud import_notes, _legacy.<func> pass-through for unmapped fns, RMG
+  last-wins for repeated single-block calls); tests/test_importer_basic.py
+  (rewritten to snake_case); tests/test_cli.py (import now implemented ->
+  round-trip test); tests/test_schemas_core.py (3 stale strict-schema tests
+  updated to lenient semantics + nested-extends/cycle tests).
+checks: GREEN - python gates/gate_03.py: exit 0, files 50, schema-valid 50/50,
+  lossless vs canonical 50/50, rmgpu validate (CLI) 50/50, rmgpu run minimal.yaml
+  OK, JSON schema + hand example OK, 2 files with IMPORT-NOTES (minimal_staged +
+  oxidation: repeated simulator()/model() calls, RMG last-wins, documented).
+  Full pytest tests/ -q: 472 passed.
+deviations: corpus is 50 files not the "47" in the step file (38 examples/rmg +
+  12 test/regression in RMG-Py v4.0.0; "47" is stale) - target met as N==50.
+  Lossless diff uses the independent canonicalizer, not legacy_dump.py's JSON
+  (which would be circular). Details in reports/job-03-step-05-gate.md.
+commits: <hashes below>
+next: job-04/step-01: prompts/steps/job-04-step-01-ml-infra.md (job brief
+  prompts/job-04-*.md). Key context: schema is lenient (extra=allow) by design -
+  consume typed blocks, not extra keys; Species/ForbiddenEntry structure coerce
+  str/dict to StructureValue (JSON schema accepts both forms); rmgpu import
+  <input.py> --to <out.yaml> writes IMPORT-NOTES as YAML comments.
 
 ### 2026-08-27 - job-03/step-02
 built: rmgpu/schemas/input.py extended (Reactors polymorphic Union, StagedReactor, LiquidStagedReactor, ConstantVStagedReactor, PressureStagedReactor, SimulatorBlock, ModelBlock, PressureDependenceBlock, MLEstimatorBlock, SolvationBlock, UncertaintyBlock, OptionsBlock); rmgpu/units.py fixed (_coerce_quantity regex for exponential notation); tests/test_schemas_blocks.py (25 tests)
