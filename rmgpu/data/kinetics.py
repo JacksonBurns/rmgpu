@@ -2,8 +2,11 @@
 
 Two layers:
 
-1. ``lookup_kinetics`` - thin interface to look up a reaction's kinetics from
-   the libraries (job-04 will attach the ML-estimator fallback path).
+1. ``lookup_kinetics`` - the retrieval entry point: library lookup, with the
+   ML-estimator fallback path wired through ``estimate_kinetics`` (job-04).
+   It is a thin adapter over the resolver (PLAN.md 3: the retrieval logic
+   "is this reaction in a library? if not, estimate" stays; the "estimate"
+   branch is one call into the ML model, not a cascade).
 
 2. Rate-model assembly from rmgdb storage (``assemble_rate_model``). rmgdb
    stores the *raw* kinetic parameters in the units given by the library
@@ -168,23 +171,49 @@ class KineticsLookupResult:
     source: str = ""  # "library" or "ml"
     reaction: Optional[dict] = None
     rate_model: Optional[KineticsModel] = None
+    degeneracy: float = 1.0  # degeneracy applied to the ML A (library: 1.0)
 
 
-def lookup_kinetics(reaction: dict, kinetics_db: KineticsDB) -> KineticsLookupResult:
-    """Look up kinetics for a reaction.
+def lookup_kinetics(
+    reaction: dict,
+    kinetics_db: KineticsDB,
+    ml=None,
+    counts=None,
+    libraries: Optional[list[str]] = None,
+    degeneracy: float = 1.0,
+) -> KineticsLookupResult:
+    """Look up kinetics for a reaction: library first, else the ML estimator.
 
-    Strategy:
-    1. Check if reaction exists in kinetics libraries (substructure match).
-    2. If not found, use ML estimator (TODO: job-04).
+    Thin adapter over ``rmgpu.data.estimation.estimate_kinetics`` (the ONLY
+    estimation code, job-04). ``ml`` may be None (libraries only - a miss
+    then reports ``found=False`` instead of raising); ``counts`` threads the
+    instrumentation through so a caller can see the split.
     """
-    match = kinetics_db.get_reaction_by_reaction(reaction)
-    if match is not None:
-        rate = kinetics_db.get_rate_model(match["id"])
-        return KineticsLookupResult(
-            found=True, source="library", reaction=match, rate_model=rate
+    from rmgpu.data.estimation import estimate_kinetics, MLCoverageError
+
+    try:
+        rate_model, deg = estimate_kinetics(
+            reaction,
+            kinetics_db,
+            ml,
+            counts=counts,
+            libraries=libraries,
+            degeneracy=degeneracy,
         )
-    # TODO(job-04): ML estimator fallback
-    return KineticsLookupResult(found=False, source="")
+    except MLCoverageError:
+        return KineticsLookupResult(found=False, source="")
+    # Label the branch that won (the counts object carries the split when
+    # the caller instruments; this tag just names the source).
+    match = kinetics_db.get_reaction_by_reaction(reaction)
+    source = (
+        "library"
+        if match is not None and kinetics_db.get_rate_model(match["id"]) is not None
+        else "ml"
+    )
+    return KineticsLookupResult(
+        found=True, source=source, reaction=match, rate_model=rate_model,
+        degeneracy=deg,
+    )
 
 
 # ---------------------------------------------------------------------------
