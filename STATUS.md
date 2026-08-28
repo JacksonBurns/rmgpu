@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-04-step-01-ml-infra.md (job-03 CLOSED: gate GREEN, 50/50 legacy files import losslessly)
+NEXT: prompts/steps/job-04-step-02-thermo-ml.md (job-04/step-01 done: both real ckpts load via rmgpu.ml.base, baseline recorded non-circular)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -58,7 +58,7 @@ documented finding) and the session log has the evidence.
 | 03/03 | CLI: run/validate/schema/version | test_cli.py | done |
 | 03/04 | Legacy importer: inventory + ast visitor | legacy_dump on 47 + visitor tests | done |
 | 03/05 | Job-03 gate (lossless import) | gate_03.py GREEN (50/50 lossless, 50/50 schema-valid, 50/50 CLI validate, run minimal OK, JSON schema OK) + pytest 472 | done |
-| 04/01 | ML infra: vendored-checkpoint verification + load path | test_ml_base.py (both real ckpts: load, reference predictions, determinism) | pending |
+| 04/01 | ML infra: vendored-checkpoint verification + load path | test_ml_base.py (both real ckpts: load, reference predictions, determinism) | done |
 | 04/02 | ThermoML estimator (replacement of RMG's) | test_thermo_ml.py | pending |
 | 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | pending |
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | pending |
@@ -433,3 +433,28 @@ built: rmgpu/schemas/input.py extended (Reactors polymorphic Union, StagedReacto
 checks: GREEN - pytest tests/test_schemas_blocks.py -q: 25 passed
 commits: 7cec009
 next: job-03/step-03-cli
+
+### 2026-08-28 - job-04/step-01
+built: scripts/record_reference_predictions.py (non-circular baseline: models/predict.py's OWN
+  predictor classes on the fixed set; reaction SMILES extracted from predict.py's __main__ via
+  AST so inputs cannot drift); gates/baselines/job04/reference_predictions.json (3 molecules
+  CC/CCC/C[CH]CC + 2 reactions, raw log10-space, full precision); rmgpu/ml/base.py (load_chemprop_model
+  + ChempropCheckpoint.predict_raw + get_device; sys.path[0]=<repo>/models mechanics for the
+  top-level `models` load-path constraint, with namespace-shadow purge); tests/test_ml_base.py
+  (10 tests, both REAL checkpoints).
+checks: GREEN - record_reference_predictions.py: baseline written, re-run "baseline unchanged"
+  (deterministic); pytest tests/test_ml_base.py -q: 10 passed (both ckpts load via rmgpu.ml.base,
+  featurizer/target contracts correct, 3x9 + 2x3 values match baseline tol 1e-4, determinism
+  atol 1e-6, unknown-ckpt rejection, single-item no-drop); full pytest tests/ -q: 482 passed.
+  Deviations (documented in report): explicit drop_last=False (chemprop auto-drops a last batch
+  of size 1 -> would silently lose a single input; values otherwise identical); determinism
+  asserted allclose(atol=1e-6) not bitwise (CUDA reduction order; measured spread thermo 4.8e-7
+  abs, kinetics 0.0).
+commits: <this commit>
+next: job-04/step-02-thermo-ml (read prompts/steps/job-04-step-02-thermo-ml.md). Key context:
+  build on rmgpu.ml.base.load_thermo_checkpoint(); predict_raw takes chemprop
+  MoleculeDatapoint.from_smi(smi, keep_h=True, add_h=True); raw outputs are log10-space
+  (10^col0 = H298 J/mol, 10^col1 = S298, 10^cols2..8 = Cp grid at 300/400/500/600/800/1000/1500 K);
+  H298 bounded > 0 by construction (log10 of positive training values) - Hf<0 species are a
+  finding, not an error. RMG's ml/estimator.py has no numeric uncertainty cutoff - only the
+  mlEstimator(thermo=True, minHeavyAtoms=4) DSL gate; carry that concept, nothing else.
