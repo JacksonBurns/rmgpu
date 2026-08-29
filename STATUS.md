@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-04-step-06-gate.md (job-04/step-05 done: estimation resolvers library->ML->coverage-error GREEN; 20 tests + 5-species real-DB/real-checkpoint smoke; finding: test_ml_base kinetics tests flaky in-process, pre-existing)
+NEXT: prompts/steps/job-05-step-01-engine.md (job-04/step-06 done: thesis-test gate run to completion - RED FINDING: coverage 100%/100% (46 species, 287 reactions), no-fallback proof holds, checkpoint round-trip exact, but accuracy below the floors: dHf298 p95 517 kJ/mol (H298 target behaves like absolute H(298) - positive-only domain; in-domain p95 349) and Ea bias -31 kJ/mol driving |log10 k| p95 16.2/8.7/5.4 at 300/600/1000 K. Full numbers: reports/job-04.md. RED is a documented PoC finding; USER DECIDES next (checkpoint retrain request / fix-acceptance step / proceed to job-05).)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -63,7 +63,7 @@ documented finding) and the session log has the evidence.
 | 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | done |
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | done |
 | 04/05 | estimation.py: library -> ML -> coverage error | test_estimation.py (20 passed) + 5-species real DB/ckpt smoke (split 3/2/0) | done |
-| 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py (numbers reported) | pending |
+| 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py RED (coverage 100%/100%, no-fallback ok, round-trip exact; dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4 - finding in reports/job-04.md) | done (RED finding recorded) |
 | 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | pending |
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py | pending |
 | 05/03 | Template matching + group matcher | test_template_match.py | pending |
@@ -149,6 +149,23 @@ documented finding) and the session log has the evidence.
   prompts/job-04-ml-estimators.md, prompts/steps/job-04-step-01..06,
   STATUS.md step table (04/01 row). PLAN.md needed no change (it never
   mentioned synthetic models).
+- [finding 2026-08-28] Job-04 gate (thesis test) = RED, a valid PoC outcome
+  (step-06 brief). Coverage 100%/100% (46/46 species, 287/287 reactions);
+  no-fallback proof holds (0 coverage errors; thermo 44 library/2 ML, kinetics
+  0/287, zero third-branch resolutions); checkpoint round-trip exact (max raw
+  diff 9.5e-07 vs the step-01 baseline). Accuracy below the sanity floors:
+  dHf298 p95 517.0 kJ/mol (mean 175.3) - the H298 target behaves like absolute
+  H(298), not Hf298 (positive-only training domain per PLAN 3b; near-zero
+  elements off by +293 kJ/mol; even in-domain ref>=0 species: mean 85.9,
+  p95 349.0); dS298 p95 33.3; dCp p95 17.1 (within floor);
+  |log10(k_ml/k_rmg)| p95 16.2/8.65/5.43 at 300/600/1000 K, driven by a
+  systematic Ea bias -31.4 kJ/mol (mean) while d_logA mean -0.04 and d_n mean
+  +0.03 (A and n are right). Evidence: reports/job-04.md,
+  reports/gate_04_results.json, reports/thesis_decomposition.json. A RED gate
+  is a FINDING, not a bug (PLAN 1, risk 1); the user decides the next step
+  (checkpoint retrain request to the model team - model improvement is out of
+  package scope per PLAN 8a.3 - / a fix-acceptance step / proceed to job-05).
+  Job 04 stays pending until that decision.
 
 ## Session log (append newest at bottom)
 
@@ -514,3 +531,38 @@ next: job-04/step-02-thermo-ml (read prompts/steps/job-04-step-02-thermo-ml.md).
   H298 bounded > 0 by construction (log10 of positive training values) - Hf<0 species are a
   finding, not an error. RMG's ml/estimator.py has no numeric uncertainty cutoff - only the
   mlEstimator(thermo=True, minHeavyAtoms=4) DSL gate; carry that concept, nothing else.
+
+### 2026-08-28 - job-04/step-06
+built: gates/gate_04.py (the thesis-test gate: coverage 46 species + 287
+  reactions, accuracy vs committed baselines w/ p95 floors, no-fallback proof
+  via EstimationCounts, checkpoint round-trip vs step-01 baseline, CGS->SI k
+  conversion; writes reports/gate_04_results.json, exit 2 = RED);
+  scripts/thesis_decompose.py + reports/thesis_decomposition.json (per-parameter
+  decomposition of the RED); throwaway probes scripts/_gate04_smoke.py,
+  _probe_units.py, _thermo_char.py (evidence trail).
+checks: RED (a valid PoC finding, per step brief) -
+  /home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_04.py: exit 2,
+  744 s; coverage thermo 46/46 (100%), kinetics 287/287 (100%); no-fallback
+  split thermo {library 44, ml 2, coverage_errors 0}, kinetics {library 0,
+  ml 287, coverage_errors 0}; round-trip max raw diff thermo 0.0 / kinetics
+  9.5e-07 (both real checkpoints). Accuracy: dHf298 p95 517.0 kJ/mol (mean
+  175.3; by-sign: ref<0 N=12 mean +314.8 all positive - domain gap; in-domain
+  N=31 mean abs 85.9, p95 349.0), dS298 p95 33.3 J/mol/K, dCp p95 17.1 (ok),
+  |log10(k_ml/k_rmg)| p95 16.20/8.65/5.43 at 300/600/1000 K. Decomposition
+  (287 rxn): d_logA mean -0.04 / d_n mean +0.03 / d_Ea mean -31.4 kJ/mol
+  (median -29.1, p95 100.6) - the k gap is a systematic Ea underestimate; the
+  H298 output behaves like absolute H(298), not Hf298 (near-zero elements
+  off by +293 kJ/mol). pytest tests/ -q: 519 passed, 1 failed =
+  test_ml_base.py::test_single_item_prediction_not_dropped, PRE-EXISTING
+  same-process Ea flake (verified failing identically on the clean tree via
+  git stash -u; isolated test_ml_base.py runs pass 10/10).
+commits: 7ca9eb8 (code + results + analysis), this commit (STATUS + reports)
+next: job-05/step-01-engine (read prompts/steps/job-05-step-01-engine.md) -
+  BUT the job-04 gate is RED: the finding is recorded (this entry +
+  reports/job-04.md + decisions log); the USER DECIDES whether to proceed to
+  job-05, request a checkpoint retrain (model improvement is out of package
+  scope, PLAN 8a.3), or write a job-04 fix/acceptance step. Key context for
+  whoever picks this up: the plumbing is exact (round-trip 9.5e-07), coverage
+  and no-fallback are green; the two model findings are (a) H298 target
+  domain/scale (positive-only, absolute-H-like) and (b) kinetics Ea bias
+  -29..-31 kJ/mol (A and n fine).
