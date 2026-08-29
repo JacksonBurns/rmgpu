@@ -412,8 +412,16 @@ class Molecule:
 
     def is_cyclic(self):
         """Return True if the molecule contains any rings."""
-        ri = self._rdkit.GetRingInfo()
-        return ri.NumRings() > 0
+        # The stored Mol may not have its ring info initialized (e.g.
+        # structures built by the recipe engine without sanitization);
+        # sanitize a throwaway copy, mirroring get_formula's approach.
+        m = self._rdkit
+        try:
+            return m.GetRingInfo().NumRings() > 0
+        except RuntimeError:
+            m = Chem.Mol(m)
+            Chem.SanitizeMol(m)
+            return m.GetRingInfo().NumRings() > 0
 
     def get_atoms_info(self):
         """
@@ -476,6 +484,11 @@ class Molecule:
                 rdkit_atom.SetProp('site', atom['site'])
             if atom['morphology']:
                 rdkit_atom.SetProp('morphology', atom['morphology'])
+            # Store the RMG p-column (lone pairs) verbatim: the recipe
+            # engine's GAIN_PAIR/LOSE_PAIR bookkeeping and RMG's
+            # update_charge recompute start from RMG's stored value, and
+            # for charged atoms the neutral-formula default is wrong.
+            rdkit_atom.SetProp('lp', str(int(atom['lone_pairs'])))
             
             idx = rwmol.AddAtom(rdkit_atom)
             atom_index_map[aid] = idx

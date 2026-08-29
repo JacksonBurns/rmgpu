@@ -90,7 +90,10 @@ def get_atoms_info(rdmol):
             'label': atom.GetProp('label') if atom.HasProp('label') else '',
             'symbol': symbol,
             'unpaired': unpaired,
-            'lone_pairs': get_lone_pairs(symbol, unpaired, charge, bond_order),
+            # The stored p-column (RMG stored lone pairs) is authoritative
+            # when present; otherwise derive it from the neutral RMG formula.
+            'lone_pairs': (int(atom.GetProp('lp')) if atom.HasProp('lp')
+                           else get_lone_pairs(symbol, unpaired, charge, bond_order)),
             'charge': charge,
             'site': atom.GetProp('site') if atom.HasProp('site') else '',
             'morphology': atom.GetProp('morphology') if atom.HasProp('morphology') else '',
