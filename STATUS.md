@@ -631,7 +631,7 @@ deviations: (1) kekulization via RDKit's kekulizer instead of RMG's DOF
   product_num is caller-resolved (the engine has no template) - the reference
   records RMG's effective counts; (3) surface families (X sites) out of scope
   (job-12), their 2 reference cases raise in the engine.
-commits: 6878c04 (code + tests + reference), this commit (STATUS + report)
+commits: 6878c04 (code + tests + reference), 18f5c07 (STATUS + report)
 next: job-05/step-02-products (read prompts/steps/job-05-step-02-products.md).
   Key context: apply_recipe returns products in RMG order, already relabeled
   for self-reverse families; the caller supplies product_num/own_reverse/
