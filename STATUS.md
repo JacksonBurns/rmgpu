@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-05-step-01-engine.md (job-04/step-06 done: thesis-test gate run to completion - RED FINDING: coverage 100%/100% (46 species, 287 reactions), no-fallback proof holds, checkpoint round-trip exact, but accuracy below the floors: dHf298 p95 517 kJ/mol (H298 target behaves like absolute H(298) - positive-only domain; in-domain p95 349) and Ea bias -31 kJ/mol driving |log10 k| p95 16.2/8.7/5.4 at 300/600/1000 K. Full numbers: reports/job-04.md. RED is a documented PoC finding; USER DECIDES next (checkpoint retrain request / fix-acceptance step / proceed to job-05).)
+NEXT: prompts/steps/job-05-step-01-engine.md (job-04/step-06 done: thesis-test gate GREEN. First run RED on accuracy (dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4); USER DECISION 2026-08-28: accept measured model inaccuracy as a recorded finding, deal with it later, lower acceptance floors (Hf298 p95 600 kJ/mol, S298 p95 40, Cp p95 20, |log10 k| p95 20; coverage floors unchanged) - gate re-run GREEN (exit 0, 772 s, all 11 checks ok; round-trip maxdiff 2.4e-07/0.0). Coverage 100%/100%, no-fallback proof ok. Full numbers: reports/job-04.md. Follow-up tracked: checkpoint retrain request + restore accuracy floors.)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -18,7 +18,7 @@ at a time.)
 | 01 | Units + molecule layer | adjlist/atomtype/resonance parity (gate_01.py) | done |
 | 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | done |
 | 03 | YAML input schema + CLI + legacy importer | 50 example input.py -> yaml, lossless (gate_03.py) | done |
-| 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | pending |
+| 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | done (GREEN 2026-08-28, floors lowered per user decision; finding in reports/job-04.md) |
 | 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | pending |
 | 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | pending |
 | 07 | Statmech + master equation (CSE) + pdep | k(T,P) falloff vs RMG-Py (propane_branching) (gate_07.py) | pending |
@@ -63,7 +63,7 @@ documented finding) and the session log has the evidence.
 | 04/03 | KineticsML estimator (Chemprop reactions) | test_kinetics_ml.py | done |
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | done |
 | 04/05 | estimation.py: library -> ML -> coverage error | test_estimation.py (20 passed) + 5-species real DB/ckpt smoke (split 3/2/0) | done |
-| 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py RED (coverage 100%/100%, no-fallback ok, round-trip exact; dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4 - finding in reports/job-04.md) | done (RED finding recorded) |
+| 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py GREEN (coverage 100%/100%, no-fallback ok, round-trip maxdiff 2.4e-07/0.0; accuracy within lowered floors: dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4 - full finding in reports/job-04.md) | done (GREEN, floors lowered per user decision) |
 | 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | pending |
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py | pending |
 | 05/03 | Template matching + group matcher | test_template_match.py | pending |
@@ -166,6 +166,17 @@ documented finding) and the session log has the evidence.
   (checkpoint retrain request to the model team - model improvement is out of
   package scope per PLAN 8a.3 - / a fix-acceptance step / proceed to job-05).
   Job 04 stays pending until that decision.
+- [user 2026-08-28] Job-04 gate decision: LOWER THE ACCEPTANCE CRITERIA AND
+  SET THE GATE GREEN - the measured model inaccuracy is accepted as a
+  recorded finding and dealt with later. gates/gate_04.py accuracy floors
+  lowered to regression-sanity levels (Hf298 p95: 20 -> 600 kJ/mol; S298 p95:
+  10 -> 40; Cp p95: 20 unchanged; |log10 k| p95: 1.0 -> 20; coverage floors
+  0.95/0.90 unchanged), documented in the file + a notes field in
+  reports/gate_04_results.json. Gate re-run GREEN (exit 0, 772 s, all 11
+  checks ok; measured accuracy unchanged - the floors, not the model, moved).
+  Job 04 = done. Follow-up (tracked, NOT started): checkpoint retrain
+  request to the model team (H298 target -> Hf298 incl. negative values, Ea
+  bias -29..-31 kJ/mol) per PLAN 8a.3, then restore the accuracy floors.
 
 ## Session log (append newest at bottom)
 
@@ -556,7 +567,7 @@ checks: RED (a valid PoC finding, per step brief) -
   test_ml_base.py::test_single_item_prediction_not_dropped, PRE-EXISTING
   same-process Ea flake (verified failing identically on the clean tree via
   git stash -u; isolated test_ml_base.py runs pass 10/10).
-commits: 7ca9eb8 (code + results + analysis), this commit (STATUS + reports)
+commits: 7ca9eb8 (code + results + analysis), 7e0aad7 (STATUS + reports)
 next: job-05/step-01-engine (read prompts/steps/job-05-step-01-engine.md) -
   BUT the job-04 gate is RED: the finding is recorded (this entry +
   reports/job-04.md + decisions log); the USER DECIDES whether to proceed to
@@ -566,3 +577,25 @@ next: job-05/step-01-engine (read prompts/steps/job-05-step-01-engine.md) -
   and no-fallback are green; the two model findings are (a) H298 target
   domain/scale (positive-only, absolute-H-like) and (b) kinetics Ea bias
   -29..-31 kJ/mol (A and n fine).
+
+### 2026-08-28 - job-04/step-06 (gate re-run GREEN per user decision)
+built: gates/gate_04.py accuracy floors lowered (user decision 2026-08-28:
+  accept the measured model inaccuracy as a recorded finding, deal with it
+  later, set the gate green): Hf298 p95 20 -> 600 kJ/mol, S298 p95 10 -> 40,
+  Cp p95 20 unchanged, |log10 k| p95 1.0 -> 20; coverage floors 0.95/0.90
+  unchanged. Change documented in the file's threshold block + a `notes`
+  field in reports/gate_04_results.json. No model code touched.
+checks: GREEN - /home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_04.py:
+  exit 0, 772.0 s, all 11 checks ok (round-trip maxdiff thermo 2.38e-07 /
+  kinetics 0.0; coverage 46/46 + 287/287; no-fallback 44/2/0 and 0/287/0;
+  dHf298 p95 517.0 kJ/mol, dS298 p95 33.3, dCp p95 17.1, |log10 k| p95
+  16.20/8.65/5.43 at 300/600/1000 K - measured accuracy UNCHANGED from the
+  RED run 7ca9eb8; the floors moved, not the model). Full suite: 519 passed,
+  1 failed (pre-existing test_ml_base same-process flake, unchanged).
+commits: 7ca9eb8 (first gate, RED), 7e0aad7 (STATUS + reports), a6db5f4
+  (lowered floors + GREEN results), this commit (report/STATUS updates)
+next: job-05/step-01-engine (read prompts/steps/job-05-step-01-engine.md).
+  Job 04 is CLOSED (gate GREEN). Open follow-up for a future session (NOT a
+  step in the current pointer chain): checkpoint retrain request to the
+  model team (H298 target -> Hf298 incl. negative values; Ea bias
+  -29..-31 kJ/mol) + restore the accuracy floors once new checkpoints land.

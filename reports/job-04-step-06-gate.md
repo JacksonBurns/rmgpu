@@ -1,10 +1,21 @@
 # Job-04 Step-06: Job-04 gate (the thesis test)
 
-GATE STATUS: **RED** (exit 2) - `/home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_04.py`
+GATE STATUS: **GREEN (PASS)** after the user decision of 2026-08-28 -
+`/home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_04.py`
 
-A RED thesis test is a VALID PoC outcome (step file, Pitfalls): the error
-distribution IS the deliverable. The gate was run to completion on the real
-checkpoints; the numbers below are the PoC finding.
+History of this gate (both runs real, real checkpoints):
+1. **First run (commit 7ca9eb8): RED on accuracy** - coverage 100%/100%,
+   no-fallback proof ok, round-trip exact, but dHf298 p95 517.0 kJ/mol and
+   |log10 k| p95 16.20/8.65/5.43 at 300/600/1000 K exceeded the original
+   accuracy floors. A RED thesis test is a VALID PoC outcome (step file,
+   Pitfalls): the error distribution IS the deliverable - it is fully
+   recorded below and in reports/job-04.md.
+2. **User decision (2026-08-28):** accept the measured model inaccuracy as a
+   recorded finding and deal with model improvement later (PLAN 8a.3). The
+   accuracy floors in gates/gate_04.py were lowered to regression-sanity
+   levels (documented in the file: Hf298 p95 600 kJ/mol, S298 p95 40, Cp p95
+   20 unchanged, |log10 k| p95 20; coverage floors unchanged) and the gate
+   was re-run: **GREEN** (numbers in the Checks section below).
 
 ## What was built
 
@@ -45,7 +56,7 @@ checkpoints; the numbers below are the PoC finding.
 
 ## Checks
 
-1. **Gate run (real checkpoints, GPU):**
+1. **Gate run, first pass (commit 7ca9eb8; real checkpoints, GPU):**
    `/home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_04.py` -> exit 2,
    **RED**, elapsed 744.3 s. Per-check:
    - `checkpoint_roundtrip` ok - thermo max_abs_diff 0.0, kinetics max_abs_diff
@@ -55,14 +66,29 @@ checkpoints; the numbers below are the PoC finding.
    - `kinetics_coverage` ok - 287/287 (100%).
    - `no_fallback_thermo` ok - split {library: 44, ml: 2, coverage_errors: 0}.
    - `no_fallback_kinetics` ok - split {library: 0, ml: 287, coverage_errors: 0}.
-   - `accuracy_hf298` XX - p95 abs 517.0 kJ/mol (threshold 20).
-   - `accuracy_s298` XX - p95 abs 33.3 J/(mol*K) (threshold 10).
-   - `accuracy_cp` ok - p95 abs 17.1 J/(mol*K) (threshold 20).
-   - `accuracy_kT_300` XX - p95 |log10(k ratio)| 16.20 (threshold 1.0).
+   - `accuracy_hf298` XX - p95 abs 517.0 kJ/mol (original floor 20).
+   - `accuracy_s298` XX - p95 abs 33.3 J/(mol*K) (original floor 10).
+   - `accuracy_cp` ok - p95 abs 17.1 J/(mol*K) (floor 20).
+   - `accuracy_kT_300` XX - p95 |log10(k ratio)| 16.20 (original floor 1.0).
    - `accuracy_kT_600` XX - p95 8.65.
    - `accuracy_kT_1000` XX - p95 5.43.
 
-2. **Full suite:**
+2. **Gate run, after the user decision (lowered floors):**
+   `/home/jackson/miniforge3/envs/rmgpu/bin/python gates/gate_04.py` -> exit 0,
+   **GREEN**, elapsed 772.0 s. Same measured accuracy (real checkpoints):
+   - `checkpoint_roundtrip` ok (max_abs_diff thermo 2.38e-07, kinetics
+     0.00e+00 - within the atol 1e-4 floor; the sub-run of which side is
+     exactly 0.0 varies with the documented in-process non-determinism).
+   - `thermo_coverage` ok - 46/46; `kinetics_coverage` ok - 287/287.
+   - `no_fallback_thermo` ok - {library: 44, ml: 2, coverage_errors: 0};
+     `no_fallback_kinetics` ok - {library: 0, ml: 287, coverage_errors: 0}.
+   - `accuracy_hf298` ok - p95 517.0 kJ/mol <= 600.0 (lowered floor).
+   - `accuracy_s298` ok - p95 33.3 <= 40.0 (lowered floor).
+   - `accuracy_cp` ok - p95 17.1 <= 20.0 (floor unchanged).
+   - `accuracy_kT_300/600/1000` ok - p95 16.20/8.65/5.43 <= 20.0 (lowered).
+   Machine record: reports/gate_04_results.json (`overall: PASS`).
+
+3. **Full suite:**
    `/home/jackson/miniforge3/envs/rmgpu/bin/python -m pytest tests/ -q`
    -> `1 failed, 519 passed` in 14.92 s. The single failure,
    `tests/test_ml_base.py::test_single_item_prediction_not_dropped`, is a
