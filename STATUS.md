@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-05-step-01-engine.md (job-04/step-06 done: thesis-test gate GREEN. First run RED on accuracy (dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4); USER DECISION 2026-08-28: accept measured model inaccuracy as a recorded finding, deal with it later, lower acceptance floors (Hf298 p95 600 kJ/mol, S298 p95 40, Cp p95 20, |log10 k| p95 20; coverage floors unchanged) - gate re-run GREEN (exit 0, 772 s, all 11 checks ok; round-trip maxdiff 2.4e-07/0.0). Coverage 100%/100%, no-fallback proof ok. Full numbers: reports/job-04.md. Follow-up tracked: checkpoint retrain request + restore accuracy floors.)
+NEXT: prompts/steps/job-05-step-02-products.md (job-05/step-01 done: ReactionRecipe engine in rmgpu/core/recipe.py - 9/9 gas-phase apply_recipe cases parity vs recorded RMG-Py ground truth (piece count + atom count + net charge + label fingerprint), 27/27 tests GREEN. Deviations: RDKit kekulizer for aromatic products (isomorphic, not string-identical); product_num resolved by the caller (step 02). See reports/job-05-step-01-engine.md.)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -64,7 +64,7 @@ documented finding) and the session log has the evidence.
 | 04/04 | Rate registry: tunneling + forward/reverse wiring | test_kinetics_registry.py | done |
 | 04/05 | estimation.py: library -> ML -> coverage error | test_estimation.py (20 passed) + 5-species real DB/ckpt smoke (split 3/2/0) | done |
 | 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py GREEN (coverage 100%/100%, no-fallback ok, round-trip maxdiff 2.4e-07/0.0; accuracy within lowered floors: dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4 - full finding in reports/job-04.md) | done (GREEN, floors lowered per user decision) |
-| 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | pending |
+| 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | done (27 passed; 9/9 gas-phase cases parity vs RMG-Py ground truth) |
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py | pending |
 | 05/03 | Template matching + group matcher | test_template_match.py | pending |
 | 05/04 | Family loader + KineticsFamilies facade | test_families.py | pending |
@@ -599,3 +599,42 @@ next: job-05/step-01-engine (read prompts/steps/job-05-step-01-engine.md).
   step in the current pointer chain): checkpoint retrain request to the
   model team (H298 target -> Hf298 incl. negative values; Ea bias
   -29..-31 kJ/mol) + restore the accuracy floors once new checkpoints land.
+
+### 2026-08-29 - job-05/step-01
+built: rmgpu/core/recipe.py (ReactionRecipe engine: from_data/get_reverse,
+  _apply with RMG's exact validity rules incl. the update_charge coupling
+  after GAIN/LOSE_PAIR, re-aromatize -> apply -> relabel (MERGED structure,
+  before the split) -> split -> product lone-pair/charge update -> net-charge
+  check -> '*1' ordering; ActionError/KekulizationError); label helpers
+  (label_atoms, label_atoms_with_lone_pairs, clear_labeled_atoms,
+  label_fingerprint). rmgpu/molecule/molecule.py: from_adjacency_list stores
+  the RMG p-column verbatim as the 'lp' property; is_cyclic() sanitizes a
+  throwaway copy when ring info is uninitialized. rmgpu/molecule/adjlist.py:
+  get_atoms_info prefers the stored 'lp' (p-column round-trips verbatim).
+  tests/test_recipe_engine.py (27 tests). scripts/record_job05_step01_reference.py
+  + gates/baselines/job05/step01_apply_recipe_reference.json (non-circular
+  ground truth from RMG-Py's own apply_recipe on the RMG-Py testing_database
+  families; fixtures attributed to RMG-Py familyTest.py, MIT).
+checks: GREEN - /home/jackson/miniforge3/envs/rmgpu/bin/python -m pytest
+  tests/test_recipe_engine.py -q: 27 passed. 9/9 gas-phase apply_recipe cases
+  (H_Abstraction, R_Addition_MultipleBond/benzene, intra_H_migration,
+  Intra_ene_reaction, 6_membered_central_C-C_shift, 1,2_shiftC,
+  Intra_R_Add_Exo_scission, intra_substitutionS_isomerization, R_Addition_COm)
+  match the recorded RMG-Py products: piece count + atom count + net charge +
+  per-label fingerprint, in RMG's product order (incl. the h_abstraction
+  *1<->*3 relabel and H2-first ordering). Full suite: 545 passed, 2 failed =
+  the pre-existing test_ml_base.py same-process checkpoint flake (passes 10/10
+  in isolation; documented in the step-04/05 entries).
+deviations: (1) kekulization via RDKit's kekulizer instead of RMG's DOF
+  resolver - products isomorphic to RMG's, canonical SMILES can differ for
+  aromatic products (step 05 gate must compare structure, not string); (2)
+  product_num is caller-resolved (the engine has no template) - the reference
+  records RMG's effective counts; (3) surface families (X sites) out of scope
+  (job-12), their 2 reference cases raise in the engine.
+commits: 6878c04 (code + tests + reference), this commit (STATUS + report)
+next: job-05/step-02-products (read prompts/steps/job-05-step-02-products.md).
+  Key context: apply_recipe returns products in RMG order, already relabeled
+  for self-reverse families; the caller supplies product_num/own_reverse/
+  reverse_map/electrons/family label (family loader = step 04, group matcher
+  = step 03); structure comparison (label_fingerprint / isomorphism), not
+  string comparison, is the parity criterion.
