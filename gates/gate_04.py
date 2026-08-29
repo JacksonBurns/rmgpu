@@ -96,14 +96,30 @@ CP_GRID_IDX = {300: 0, 600: 3, 1000: 5}
 THERMO_LIBRARIES = ["primaryThermoLibrary"]
 REACTION_LIBRARIES = ["primaryH2O2"]  # a real library scope for the resolver
 
-# --- PASS/RED thresholds (see module docstring + reports/job-04.md) --------
+# --- PASS/RED thresholds ---------------------------------------------------
+# ACCURACY FLOORS (user decision, 2026-08-28): the first thesis-test run
+# (commit 7ca9eb8) was RED on accuracy - dHf298 p95 517.0 kJ/mol and
+# |log10(k_ml/k_rmg)| p95 16.20/8.65/5.43 at 300/600/1000 K - while coverage
+# (100%/100%), the no-fallback proof and the checkpoint round-trip all
+# passed. The user accepted the measured model inaccuracy as a RECORDED
+# FINDING (reports/job-04.md), deferred model improvement (PLAN 8a.3), and
+# set the gate GREEN at lowered acceptance floors. The floors below are
+# therefore SANITY / REGRESSION levels - they guard against catastrophic
+# degradation, not accuracy targets. Coverage floors are unchanged. Restoring
+# them to accuracy targets is a tracked follow-up (checkpoint retrain).
 TH_COV_MIN = 0.95
 KIN_COV_MIN = 0.90
-HERR_P95_MAX = 20.0e3    # J/mol
-SERR_P95_MAX = 10.0      # J/(mol*K)
-CPERR_P95_MAX = 20.0     # J/(mol*K)
-KLOG_P95_MAX = 1.0       # orders of magnitude
+HERR_P95_MAX = 600.0e3   # J/mol (measured p95 517.0e3; sanity floor)
+SERR_P95_MAX = 40.0      # J/(mol*K) (measured p95 33.3)
+CPERR_P95_MAX = 20.0     # J/(mol*K) (measured p95 17.1; original floor kept)
+KLOG_P95_MAX = 20.0      # orders of magnitude (measured p95 16.20 at 300 K)
 CAP_SPECIES = 500  # stratified cap (the set is smaller; all are used)
+
+FLOOR_NOTE = (
+    "accuracy floors lowered 2026-08-28 (user decision): the measured model "
+    "inaccuracy was accepted as a recorded finding (reports/job-04.md) and "
+    "model improvement deferred; the floors are regression sanity levels, "
+    "not accuracy targets")
 
 
 def stats(arr) -> dict:
@@ -535,6 +551,7 @@ def main() -> int:
             "cp_p95_max_J_molK": CPERR_P95_MAX,
             "k_log10_p95_max": KLOG_P95_MAX,
         },
+        "notes": FLOOR_NOTE,
         "checkpoint_roundtrip": rt,
         "thermo": th,
         "kinetics": ki,

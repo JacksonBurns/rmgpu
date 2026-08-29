@@ -1,39 +1,40 @@
 {
   "gate": "job-04 thesis test (PoC premise: ML matches legacy accuracy)",
-  "overall": "RED",
+  "overall": "PASS",
   "checks": {
     "checkpoint_roundtrip": true,
     "thermo_coverage": true,
     "kinetics_coverage": true,
     "no_fallback_thermo": true,
     "no_fallback_kinetics": true,
-    "accuracy_hf298": false,
-    "accuracy_s298": false,
+    "accuracy_hf298": true,
+    "accuracy_s298": true,
     "accuracy_cp": true,
-    "accuracy_kT_300": false,
-    "accuracy_kT_600": false,
-    "accuracy_kT_1000": false
+    "accuracy_kT_300": true,
+    "accuracy_kT_600": true,
+    "accuracy_kT_1000": true
   },
   "thresholds": {
     "thermo_coverage_min": 0.95,
     "kinetics_coverage_min": 0.9,
-    "hf298_p95_max_J_mol": 20000.0,
-    "s298_p95_max_J_molK": 10.0,
+    "hf298_p95_max_J_mol": 600000.0,
+    "s298_p95_max_J_molK": 40.0,
     "cp_p95_max_J_molK": 20.0,
-    "k_log10_p95_max": 1.0
+    "k_log10_p95_max": 20.0
   },
+  "notes": "accuracy floors lowered 2026-08-28 (user decision): the measured model inaccuracy was accepted as a recorded finding (reports/job-04.md) and model improvement deferred; the floors are regression sanity levels, not accuracy targets",
   "checkpoint_roundtrip": {
     "tol": "rtol=1e-6, atol=1e-4 per element (absorbs the known in-process ~1.6e-2-absolute Ea flake documented in step-05)",
     "thermo": {
       "checkpoint": "chemeleon_thermo_662946.ckpt",
       "n_molecules": 3,
-      "max_abs_diff_raw": 0.0,
+      "max_abs_diff_raw": 2.384185791015625e-07,
       "pass": true
     },
     "kinetics": {
       "checkpoint": "chemprop_kinetics_662946.ckpt",
       "n_reactions": 2,
-      "max_abs_diff_raw": 9.5367431640625e-07,
+      "max_abs_diff_raw": 0.0,
       "pass": true
     },
     "elapsed_s": 0.6,
@@ -56,11 +57,11 @@
     "accuracy_ml_vs_legacy": {
       "dhf298_J_mol": {
         "N": 46,
-        "mean_abs": 175316.0466839334,
+        "mean_abs": 175316.03445567255,
         "median_abs": 112544.234375,
         "max_abs": 591100.4375,
         "p95_abs": 517045.640625,
-        "mean": 139832.1610266644,
+        "mean": 139832.14879840353,
         "median": 49864.775390625,
         "max": 591100.4375,
         "min": -208099.875
@@ -78,11 +79,11 @@
       },
       "dcp_J_molK": {
         "N": 138,
-        "mean_abs": 5.30325614542201,
+        "mean_abs": 5.303256090136542,
         "median_abs": 2.049036979675293,
         "max_abs": 53.76239013671875,
         "p95_abs": 17.053509426116943,
-        "mean": -0.5019860060318656,
+        "mean": -0.5019859507463981,
         "median": -0.5653648376464844,
         "max": 53.76239013671875,
         "min": -33.583763122558594
@@ -100,11 +101,11 @@
       },
       "dhf298_kJ_mol": {
         "N": 46,
-        "mean_abs": 175.31604668393342,
+        "mean_abs": 175.31603445567254,
         "median_abs": 112.544234375,
         "max_abs": 591.1004375,
         "p95_abs": 517.045640625,
-        "mean": 139.8321610266644,
+        "mean": 139.83214879840352,
         "median": 49.864775390625,
         "max": 591.1004375,
         "min": -208.099875
@@ -177,11 +178,11 @@
           },
           "dcp_J_molK": {
             "N": 51,
-            "mean_abs": 5.45406135858274,
+            "mean_abs": 5.454061208986769,
             "median_abs": 0.4310569763183594,
             "max_abs": 53.76239013671875,
             "p95_abs": 31.28030300140381,
-            "mean": 3.062659880694221,
+            "mean": 3.0626600302901923,
             "median": -0.0021610260009765625,
             "max": 53.76239013671875,
             "min": -14.19521713256836
@@ -191,13 +192,13 @@
           "n": 17,
           "dhf298_kJ_mol": {
             "N": 17,
-            "mean_abs": 226.83252884359922,
+            "mean_abs": 226.83249653086943,
             "median_abs": 232.71519470214844,
-            "max_abs": 579.3200073242188,
-            "p95_abs": 496.0273559570312,
-            "mean": 217.1730026918299,
+            "max_abs": 579.3194580078125,
+            "p95_abs": 496.0272460937499,
+            "mean": 217.17297037910012,
             "median": 232.71519470214844,
-            "max": 579.3200073242188,
+            "max": 579.3194580078125,
             "min": -61.78551483154297
           },
           "ds298_J_molK": {
@@ -227,13 +228,13 @@
       "dhf298_by_ref_sign_kJ_mol": {
         "ref_Hf298_negative": {
           "N": 12,
-          "mean_abs": 314.830535252889,
+          "mean_abs": 314.8304894765218,
           "median_abs": 307.62940979003906,
-          "max_abs": 579.3200073242188,
-          "p95_abs": 522.0563095092773,
-          "mean": 314.830535252889,
+          "max_abs": 579.3194580078125,
+          "p95_abs": 522.0560623168944,
+          "mean": 314.8304894765218,
           "median": 307.62940979003906,
-          "max": 579.3200073242188,
+          "max": 579.3194580078125,
           "min": 58.579444885253906
         },
         "ref_Hf298_nonnegative": {
@@ -280,34 +281,34 @@
     "accuracy_ml_vs_legacy": {
       "log10_k_ratio_300": {
         "N": 287,
-        "mean_abs": 6.720352130902825,
+        "mean_abs": 6.72035210807679,
         "median_abs": 5.421729651981756,
         "max_abs": 42.488607579483265,
         "p95_abs": 16.1989371784729,
-        "mean": 5.495263914366104,
+        "mean": 5.495263867842354,
         "median": 5.144269088455713,
         "max": 42.488607579483265,
         "min": -26.135221080605135
       },
       "log10_k_ratio_600": {
         "N": 287,
-        "mean_abs": 3.413990263151141,
+        "mean_abs": 3.4139902504107846,
         "median_abs": 2.7011892042032986,
         "max_abs": 21.475013938925336,
         "p95_abs": 8.64876708949414,
-        "mean": 2.7680477445095297,
+        "mean": 2.768047719920315,
         "median": 2.5571255491159604,
         "max": 21.475013938925336,
         "min": -12.514009324866857
       },
       "log10_k_ratio_1000": {
         "N": 287,
-        "mean_abs": 2.109913352648551,
+        "mean_abs": 2.1099133437476008,
         "median_abs": 1.7339833958811939,
         "max_abs": 13.017128027044844,
         "p95_abs": 5.426847951381473,
-        "mean": 1.6798605615936826,
-        "median": 1.5218793732486458,
+        "mean": 1.6798605455834166,
+        "median": 1.5218793285451622,
         "max": 13.017128027044844,
         "min": -7.162796637804415
       }
@@ -351,33 +352,33 @@
       "GRI-Mech3.0-N": {
         "log10_k_ratio_300": {
           "N": 256,
-          "mean_abs": 6.611666258473237,
+          "mean_abs": 6.611666232883113,
           "median_abs": 5.416007507314794,
           "max_abs": 38.554149083342416,
           "p95_abs": 15.902857066350577,
-          "mean": 5.377965843314273,
+          "mean": 5.377965791156788,
           "median": 5.2346854927938615,
           "max": 38.554149083342416,
           "min": -26.135221080605135
         },
         "log10_k_ratio_600": {
           "N": 256,
-          "mean_abs": 3.3318126702594872,
+          "mean_abs": 3.3318126559763535,
           "median_abs": 2.7430972203525057,
           "max_abs": 19.588313993383274,
           "p95_abs": 8.381659518916798,
-          "mean": 2.6770712959862744,
+          "mean": 2.6770712684194593,
           "median": 2.563266620442959,
           "max": 19.588313993383274,
           "min": -12.514009324866857
         },
         "log10_k_ratio_1000": {
           "N": 256,
-          "mean_abs": 2.0416017883808957,
+          "mean_abs": 2.0416017784020957,
           "median_abs": 1.7401403044125976,
           "max_abs": 11.985673858207573,
           "p95_abs": 5.06619332096458,
-          "mean": 1.6011291547397941,
+          "mean": 1.601129136790785,
           "median": 1.570841384823307,
           "max": 11.985673858207573,
           "min": -7.162796637804415
@@ -494,7 +495,7 @@
       "max": 21.475013938925336,
       "histogram": "  [     -12.5,      -10.8)     1 |\n  [     -10.8,      -9.12)     1 |\n  [     -9.12,      -7.42)     2 |\n  [     -7.42,      -5.72)     1 |\n  [     -5.72,      -4.02)     1 |\n  [     -4.02,      -2.32)     7 |###\n  [     -2.32,     -0.618)    14 |######\n  [    -0.618,       1.08)    42 |##################\n  [      1.08,       2.78)    89 |########################################\n  [      2.78,       4.48)    72 |################################\n  [      4.48,       6.18)    27 |############\n  [      6.18,       7.88)    16 |#######\n  [      7.88,       9.58)     5 |##\n  [      9.58,       11.3)     2 |\n  [      11.3,         13)     2 |\n  [        13,       14.7)     0 |\n  [      14.7,       16.4)     1 |\n  [      16.4,       18.1)     1 |\n  [      18.1,       19.8)     2 |\n  [      19.8,       21.5)     1 |"
     },
-    "elapsed_s": 682.2
+    "elapsed_s": 709.9
   },
-  "elapsed_s": 744.3
+  "elapsed_s": 772.0
 }
