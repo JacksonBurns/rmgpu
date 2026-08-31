@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-05-step-02-products.md (job-05/step-01 done: ReactionRecipe engine in rmgpu/core/recipe.py - 9/9 gas-phase apply_recipe cases parity vs recorded RMG-Py ground truth (piece count + atom count + net charge + label fingerprint), 27/27 tests GREEN. Deviations: RDKit kekulizer for aromatic products (isomorphic, not string-identical); product_num resolved by the caller (step 02). See reports/job-05-step-01-engine.md.)
+NEXT: prompts/steps/job-05-step-03-templates.md (job-05/step-02 done: product enumeration in rmgpu/core/enumeration.py - 30/30 case parity vs recorded RMG-Py ground truth (product SMILES-sets + exact degeneracies), calc_degeneracy 46/46, 35/35 tests GREEN. Deviations: DOF/valence kekulizer ported (RMG fractional 0.5/2.5 benzene bonds kept; ring perception connectivity-based) so the benzene+H cyclohexadienyl radical matches RMG exactly; group matcher is step-03 (RecordedMatcher replays). See reports/job-05-step-02-products.md.)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -65,7 +65,7 @@ documented finding) and the session log has the evidence.
 | 04/05 | estimation.py: library -> ML -> coverage error | test_estimation.py (20 passed) + 5-species real DB/ckpt smoke (split 3/2/0) | done |
 | 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py GREEN (coverage 100%/100%, no-fallback ok, round-trip maxdiff 2.4e-07/0.0; accuracy within lowered floors: dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4 - full finding in reports/job-04.md) | done (GREEN, floors lowered per user decision) |
 | 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | done (27 passed; 9/9 gas-phase cases parity vs RMG-Py ground truth) |
-| 05/02 | Product enumeration (generate_reactions) | test_product_enum.py | pending |
+| 05/02 | Product enumeration (generate_reactions) | test_product_enum.py (30-case product-set + degeneracy parity vs RMG-Py reference) | done (35 passed; 30/30 cases + calc_degeneracy 46/46 parity vs recorded RMG-Py) |
 | 05/03 | Template matching + group matcher | test_template_match.py | pending |
 | 05/04 | Family loader + KineticsFamilies facade | test_families.py | pending |
 | 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity) | pending |
@@ -638,3 +638,32 @@ next: job-05/step-02-products (read prompts/steps/job-05-step-02-products.md).
   reverse_map/electrons/family label (family loader = step 04, group matcher
   = step 03); structure comparison (label_fingerprint / isomorphism), not
   string comparison, is the parity criterion.
+
+### 2026-08-30 - job-05/step-02
+built: rmgpu/core/enumeration.py (Family holder + TemplateReaction +
+RecordedMatcher + generate_reactions + find_degenerate_reactions ported
+line-for-line from RMG common.py + reduce_same_reactant_degeneracy
+(Bishop-Laidler) + calculate_degeneracy), rmgpu/core/recipe.py extensions
+(CHANGE_BOND keeps RMG fractional 0.5/2.5 benzene-bond orders; DOF/valence
+kekulizer ported from rmgpy/molecule/kekulize.pyx with connectivity-based
+ring perception; _kekulize_piece falls back to DOF on partial resolution),
+gates/baselines/job05/step02_products_reference.json (recorded RMG-Py ground
+truth: labeled applications + per-atom IDs + raw templates + products +
+degeneracies + calc_degeneracy, 30 cases), scripts record_job05_step02_
+reference.py / capture_step02_app_products.py / _verify_step02.py,
+tests/test_product_enum.py (35 tests).
+checks: GREEN - pytest tests/test_product_enum.py -q -> 35 passed in 1.6s;
+_verify_step02.py -> 30 pass, 0 fail (of 30); calc_degeneracy parity 46/46
+vs the recorded RMG values; full suite pytest tests/ -q -> 581 passed, 1
+failed = pre-existing test_ml_base.py::test_single_item_prediction_not_
+dropped (verified failing on the clean tree via git stash).
+commits: f9b0a09 (code + tests + reference + scripts)
+next: job-05/step-03-templates (read prompts/steps/job-05-step-03-templates.md).
+Key context: the step-03 group matcher must implement the match_molecule(
+form, slot, branch) interface (RecordedMatcher returns [] for it); the
+generate_reactions replay path copies matcher structures (they are mutated
+in place); per-raw-reaction templates come from the reference's raw_
+templates (RMG raw order) and are what keeps isomorphic-but-different-
+template products as separate duplicate reactions; DOF kekulizer reads
+bond orders via the bond 'order' property (fractional orders RDKit cannot
+represent natively).
