@@ -1,0 +1,2363 @@
+{
+ "families": [
+  "1,2_shiftC",
+  "H_Abstraction",
+  "Intra_ene_reaction",
+  "R_Addition_MultipleBond",
+  "R_Recombination",
+  "Singlet_Val6_to_triplet",
+  "intra_H_migration"
+ ],
+ "reactions": [
+  {
+   "ci": 0,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C",
+    "[H]"
+   ],
+   "template": [
+    "C_methane",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 1,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CC",
+    "[OH]"
+   ],
+   "template": [
+    "C/H3/Cs\\H3",
+    "O_pri_rad"
+   ]
+  },
+  {
+   "ci": 2,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CC(=O)C",
+    "[H]"
+   ],
+   "template": [
+    "C/H3/CO",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 3,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C[CH]C",
+    "[H]"
+   ],
+   "template": [
+    "C_rad_H",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 4,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C1=CC=CC=C1",
+    "[H]"
+   ],
+   "template": [
+    "Cb_H",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 5,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C=C",
+    "[CH3]"
+   ],
+   "template": [
+    "Cd/H2/NonDeC",
+    "C_methyl"
+   ]
+  },
+  {
+   "ci": 6,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C(C)(C)C",
+    "[CH3]"
+   ],
+   "template": [
+    "C/H/Cs3",
+    "C_methyl"
+   ]
+  },
+  {
+   "ci": 6,
+   "ri": 1,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C(C)(C)C",
+    "[CH3]"
+   ],
+   "template": [
+    "C/H3/Cs\\TwoNonDe",
+    "C_methyl"
+   ]
+  },
+  {
+   "ci": 7,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CC(=O)[O]",
+    "[H]"
+   ],
+   "template": [
+    "C/H3/CO",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 8,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C1CCC1",
+    "[OH]"
+   ],
+   "template": [
+    "C/H2/NonDeC",
+    "O_pri_rad"
+   ]
+  },
+  {
+   "ci": 9,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C1CC1",
+    "[CH3]"
+   ],
+   "template": [
+    "C/H2/NonDeC",
+    "C_methyl"
+   ]
+  },
+  {
+   "ci": 10,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CCO",
+    "[OH]"
+   ],
+   "template": [
+    "O/H/NonDeC",
+    "O_pri_rad"
+   ]
+  },
+  {
+   "ci": 10,
+   "ri": 1,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CCO",
+    "[OH]"
+   ],
+   "template": [
+    "C/H2/CsO",
+    "O_pri_rad"
+   ]
+  },
+  {
+   "ci": 10,
+   "ri": 2,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CCO",
+    "[OH]"
+   ],
+   "template": [
+    "C/H3/Cs\\H2\\O",
+    "O_pri_rad"
+   ]
+  },
+  {
+   "ci": 11,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "C#C",
+    "[H]"
+   ],
+   "template": [
+    "Ct/H/NonDeC",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 12,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CCN",
+    "[H]"
+   ],
+   "template": [
+    "N3s/H2/NonDeC",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 12,
+   "ri": 1,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CCN",
+    "[H]"
+   ],
+   "template": [
+    "C/H2/NonDeN",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 12,
+   "ri": 2,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CCN",
+    "[H]"
+   ],
+   "template": [
+    "C/H3/Cs",
+    "H_rad"
+   ]
+  },
+  {
+   "ci": 13,
+   "ri": 0,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CC#C",
+    "[CH3]"
+   ],
+   "template": [
+    "C/H3/Ct",
+    "C_methyl"
+   ]
+  },
+  {
+   "ci": 13,
+   "ri": 1,
+   "family": "H_Abstraction",
+   "reactants": [
+    "CC#C",
+    "[CH3]"
+   ],
+   "template": [
+    "Ct/H/NonDeC",
+    "C_methyl"
+   ]
+  },
+  {
+   "ci": 14,
+   "ri": 0,
+   "family": "R_Recombination",
+   "reactants": [
+    "[OH]",
+    "[OH]"
+   ],
+   "template": [
+    "Y_rad"
+   ]
+  },
+  {
+   "ci": 15,
+   "ri": 0,
+   "family": "R_Recombination",
+   "reactants": [
+    "[CH3]",
+    "[OH]"
+   ],
+   "template": [
+    "Y_rad"
+   ]
+  },
+  {
+   "ci": 16,
+   "ri": 0,
+   "family": "R_Recombination",
+   "reactants": [
+    "[CH3]",
+    "[CH3]"
+   ],
+   "template": [
+    "Y_rad"
+   ]
+  },
+  {
+   "ci": 17,
+   "ri": 0,
+   "family": "R_Addition_MultipleBond",
+   "reactants": [
+    "C=C",
+    "[CH3]"
+   ],
+   "template": [
+    "Cds-HH_Cds-HH",
+    "CsJ-HHH"
+   ]
+  },
+  {
+   "ci": 18,
+   "ri": 0,
+   "family": "R_Addition_MultipleBond",
+   "reactants": [
+    "C=C",
+    "[OH]"
+   ],
+   "template": [
+    "Cds-HH_Cds-HH",
+    "OJ_pri"
+   ]
+  },
+  {
+   "ci": 19,
+   "ri": 0,
+   "family": "R_Addition_MultipleBond",
+   "reactants": [
+    "C1=CC=CC=C1",
+    "[H]"
+   ],
+   "template": [
+    "Cb-H_Cb-H",
+    "HJ"
+   ]
+  },
+  {
+   "ci": 20,
+   "ri": 0,
+   "family": "R_Addition_MultipleBond",
+   "reactants": [
+    "C=O",
+    "[CH3]"
+   ],
+   "template": [
+    "Od_CO-HH",
+    "CsJ-HHH"
+   ]
+  },
+  {
+   "ci": 20,
+   "ri": 1,
+   "family": "R_Addition_MultipleBond",
+   "reactants": [
+    "C=O",
+    "[CH3]"
+   ],
+   "template": [
+    "CO-HH_O",
+    "CsJ-HHH"
+   ]
+  },
+  {
+   "ci": 21,
+   "ri": 0,
+   "family": "R_Addition_MultipleBond",
+   "reactants": [
+    "C#C",
+    "[H]"
+   ],
+   "template": [
+    "Ct-H_Ct-H",
+    "HJ"
+   ]
+  },
+  {
+   "ci": 22,
+   "ri": 0,
+   "family": "R_Addition_MultipleBond",
+   "reactants": [
+    "C#C",
+    "[CH3]"
+   ],
+   "template": [
+    "Ct-H_Ct-H",
+    "CsJ-HHH"
+   ]
+  },
+  {
+   "ci": 23,
+   "ri": 0,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]CCC"
+   ],
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ]
+  },
+  {
+   "ci": 23,
+   "ri": 1,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]CCC"
+   ],
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ]
+  },
+  {
+   "ci": 23,
+   "ri": 2,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]CCC"
+   ],
+   "template": [
+    "R4H_SSS",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ]
+  },
+  {
+   "ci": 24,
+   "ri": 0,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]C1CCCCC1"
+   ],
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_Cs2"
+   ]
+  },
+  {
+   "ci": 24,
+   "ri": 1,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]C1CCCCC1"
+   ],
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ]
+  },
+  {
+   "ci": 24,
+   "ri": 2,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]C1CCCCC1"
+   ],
+   "template": [
+    "R3H_SS_Cs",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ]
+  },
+  {
+   "ci": 24,
+   "ri": 3,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]C1CCCCC1"
+   ],
+   "template": [
+    "R4H_SSS",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ]
+  },
+  {
+   "ci": 24,
+   "ri": 4,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C[CH]C1CCCCC1"
+   ],
+   "template": [
+    "R5H_CCC",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ]
+  },
+  {
+   "ci": 25,
+   "ri": 0,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C(C)(C)[CH]C(C)(C)C"
+   ],
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_Cs2"
+   ]
+  },
+  {
+   "ci": 25,
+   "ri": 1,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C(C)(C)[CH]C(C)(C)C"
+   ],
+   "template": [
+    "R3H_SS_Cs",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ]
+  },
+  {
+   "ci": 25,
+   "ri": 2,
+   "family": "intra_H_migration",
+   "reactants": [
+    "C(C)(C)[CH]C(C)(C)C"
+   ],
+   "template": [
+    "R3H_SS_Cs",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ]
+  },
+  {
+   "ci": 26,
+   "ri": 0,
+   "family": "Intra_ene_reaction",
+   "reactants": [
+    "C[CH]C1=CC=CC=C1"
+   ],
+   "template": [
+    "1_3_unsaturated_pentane_backbone",
+    "CH3_1",
+    "CdHC_2"
+   ]
+  },
+  {
+   "ci": 26,
+   "ri": 1,
+   "family": "Intra_ene_reaction",
+   "reactants": [
+    "C[CH]C1=CC=CC=C1"
+   ],
+   "template": [
+    "1_3_pentadiene",
+    "CH3_1",
+    "CdCJ_2"
+   ]
+  },
+  {
+   "ci": 27,
+   "ri": 0,
+   "family": "1,2_shiftC",
+   "reactants": [
+    "CC[CH]C"
+   ],
+   "template": [
+    "CH3Cs(-HH)CJ",
+    "CsJ-CsH"
+   ]
+  },
+  {
+   "ci": 28,
+   "ri": 0,
+   "family": "1,2_shiftC",
+   "reactants": [
+    "CCC[CH]C(C)C"
+   ],
+   "template": [
+    "CH3Cs(-HR!H)CJ",
+    "CsJ-CsH"
+   ]
+  },
+  {
+   "ci": 29,
+   "ri": 0,
+   "family": "Singlet_Val6_to_triplet",
+   "reactants": [
+    "O=O"
+   ],
+   "template": [
+    "O2"
+   ]
+  }
+ ],
+ "verdicts": {
+  "1,2_shiftC|0|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|0|0": {
+   "matched": true,
+   "template": [
+    "C_methane",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|0|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|0|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|0|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|0|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|0|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|1|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|1|0": {
+   "matched": true,
+   "template": [
+    "C/H3/Cs\\H3",
+    "O_pri_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|1|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|1|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|1|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|1|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|1|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|2|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|2|0": {
+   "matched": true,
+   "template": [
+    "C/H3/CO",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|2|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|2|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "R_Recombination|2|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|2|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|2|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|3|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|3|0": {
+   "matched": true,
+   "template": [
+    "C_rad_H",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|3|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|3|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|3|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Singlet_Val6_to_triplet|3|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|3|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|4|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|4|0": {
+   "matched": true,
+   "template": [
+    "Cb_H",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|4|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|4|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "R_Recombination|4|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|4|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|4|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|5|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|5|0": {
+   "matched": true,
+   "template": [
+    "Cd/H2/NonDeC",
+    "C_methyl"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|5|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|5|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "R_Recombination|5|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|5|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|5|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|6|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|6|0": {
+   "matched": true,
+   "template": [
+    "C/H/Cs3",
+    "C_methyl"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|6|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|6|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|6|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|6|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|6|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|6|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|6|1": {
+   "matched": true,
+   "template": [
+    "C/H3/Cs\\TwoNonDe",
+    "C_methyl"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|6|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|6|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|6|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|6|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|6|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|7|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|7|0": {
+   "matched": true,
+   "template": [
+    "C/H3/CO",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|7|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|7|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "R_Recombination|7|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Singlet_Val6_to_triplet|7|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|7|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|8|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|8|0": {
+   "matched": true,
+   "template": [
+    "C/H2/NonDeC",
+    "O_pri_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|8|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|8|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|8|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|8|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|8|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|9|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|9|0": {
+   "matched": true,
+   "template": [
+    "C/H2/NonDeC",
+    "C_methyl"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|9|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|9|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|9|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|9|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|9|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|10|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|10|0": {
+   "matched": true,
+   "template": [
+    "O/H/NonDeC",
+    "O_pri_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|10|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|10|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|10|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|10|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|10|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|10|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|10|1": {
+   "matched": true,
+   "template": [
+    "C/H2/CsO",
+    "O_pri_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|10|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|10|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|10|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|10|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|10|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|10|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|10|2": {
+   "matched": true,
+   "template": [
+    "C/H3/Cs\\H2\\O",
+    "O_pri_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|10|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|10|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|10|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|10|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|10|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|11|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|11|0": {
+   "matched": true,
+   "template": [
+    "Ct/H/NonDeC",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|11|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|11|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "R_Recombination|11|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|11|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|11|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|12|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|12|0": {
+   "matched": true,
+   "template": [
+    "N3s/H2/NonDeC",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|12|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|12|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|12|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|12|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|12|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|12|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|12|1": {
+   "matched": true,
+   "template": [
+    "C/H2/NonDeN",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|12|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|12|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|12|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|12|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|12|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|12|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|12|2": {
+   "matched": true,
+   "template": [
+    "C/H3/Cs",
+    "H_rad"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|12|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|12|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|12|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|12|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|12|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|13|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|13|0": {
+   "matched": true,
+   "template": [
+    "C/H3/Ct",
+    "C_methyl"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|13|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|13|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "R_Recombination|13|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|13|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|13|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|13|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|13|1": {
+   "matched": true,
+   "template": [
+    "Ct/H/NonDeC",
+    "C_methyl"
+   ],
+   "error": null
+  },
+  "Intra_ene_reaction|13|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|13|1": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "R_Recombination|13|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|13|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|13|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|14|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|14|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|14|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|14|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|14|0": {
+   "matched": true,
+   "template": [
+    "Y_rad"
+   ],
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|14|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|14|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|15|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|15|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|15|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|15|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|15|0": {
+   "matched": true,
+   "template": [
+    "Y_rad"
+   ],
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|15|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|15|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|16|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|16|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|16|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|16|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Recombination|16|0": {
+   "matched": true,
+   "template": [
+    "Y_rad"
+   ],
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|16|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|16|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|17|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|17|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|17|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|17|0": {
+   "matched": true,
+   "template": [
+    "Cds-HH_Cds-HH",
+    "CsJ-HHH"
+   ],
+   "error": null
+  },
+  "R_Recombination|17|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|17|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|17|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|18|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|18|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|18|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|18|0": {
+   "matched": true,
+   "template": [
+    "Cds-HH_Cds-HH",
+    "OJ_pri"
+   ],
+   "error": null
+  },
+  "R_Recombination|18|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|18|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|18|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|19|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|19|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|19|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|19|0": {
+   "matched": true,
+   "template": [
+    "Cb-H_Cb-H",
+    "HJ"
+   ],
+   "error": null
+  },
+  "R_Recombination|19|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|19|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|19|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|20|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|20|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|20|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|20|0": {
+   "matched": true,
+   "template": [
+    "Od_CO-HH",
+    "CsJ-HHH"
+   ],
+   "error": null
+  },
+  "R_Recombination|20|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|20|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|20|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|20|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|20|1": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|20|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|20|1": {
+   "matched": true,
+   "template": [
+    "CO-HH_O",
+    "CsJ-HHH"
+   ],
+   "error": null
+  },
+  "R_Recombination|20|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|20|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|20|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|21|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|21|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|21|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|21|0": {
+   "matched": true,
+   "template": [
+    "Ct-H_Ct-H",
+    "HJ"
+   ],
+   "error": null
+  },
+  "R_Recombination|21|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|21|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|21|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|22|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "H_Abstraction|22|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "Intra_ene_reaction|22|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "R_Addition_MultipleBond|22|0": {
+   "matched": true,
+   "template": [
+    "Ct-H_Ct-H",
+    "CsJ-HHH"
+   ],
+   "error": null
+  },
+  "R_Recombination|22|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|22|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "intra_H_migration|22|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 2 reactants but template has 1 reactants."
+  },
+  "1,2_shiftC|23|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|23|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|23|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|23|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|23|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|23|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|23|0": {
+   "matched": true,
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|23|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|23|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|23|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|23|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|23|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|23|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|23|1": {
+   "matched": true,
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|23|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|23|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|23|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|23|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|23|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|23|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|23|2": {
+   "matched": true,
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|24|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|24|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|24|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|24|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|24|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|24|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|24|0": {
+   "matched": true,
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_Cs2"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|24|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|24|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|24|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|24|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|24|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|24|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|24|1": {
+   "matched": true,
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|24|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|24|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|24|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|24|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|24|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|24|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|24|2": {
+   "matched": true,
+   "template": [
+    "R3H_SS_Cs",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|24|3": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|24|3": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|24|3": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|24|3": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|24|3": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|24|3": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|24|3": {
+   "matched": true,
+   "template": [
+    "R4H_SSS",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|24|4": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|24|4": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|24|4": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|24|4": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|24|4": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|24|4": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|24|4": {
+   "matched": true,
+   "template": [
+    "R5H_CCC",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_H/(NonDeC/Cs)"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|25|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "H_Abstraction|25|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|25|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|25|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|25|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|25|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|25|0": {
+   "matched": true,
+   "template": [
+    "R2H_S",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_Cs2"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|25|1": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "H_Abstraction|25|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|25|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|25|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|25|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|25|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|25|1": {
+   "matched": true,
+   "template": [
+    "R3H_SS_Cs",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|25|2": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "H_Abstraction|25|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|25|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|25|2": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|25|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|25|2": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|25|2": {
+   "matched": true,
+   "template": [
+    "R3H_SS_Cs",
+    "C_rad_out_H/NonDeC",
+    "Cs_H_out_2H"
+   ],
+   "error": null
+  },
+  "1,2_shiftC|26|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|26|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|26|0": {
+   "matched": true,
+   "template": [
+    "1_3_unsaturated_pentane_backbone",
+    "CH3_1",
+    "CdHC_2"
+   ],
+   "error": null
+  },
+  "R_Addition_MultipleBond|26|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|26|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|26|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|26|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "1,2_shiftC|26|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|26|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|26|1": {
+   "matched": true,
+   "template": [
+    "1_3_pentadiene",
+    "CH3_1",
+    "CdCJ_2"
+   ],
+   "error": null
+  },
+  "R_Addition_MultipleBond|26|1": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|26|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|26|1": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|26|1": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "1,2_shiftC|27|0": {
+   "matched": true,
+   "template": [
+    "CH3Cs(-HH)CJ",
+    "CsJ-CsH"
+   ],
+   "error": null
+  },
+  "H_Abstraction|27|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|27|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|27|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|27|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|27|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|27|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "1,2_shiftC|28|0": {
+   "matched": true,
+   "template": [
+    "CH3Cs(-HR!H)CJ",
+    "CsJ-CsH"
+   ],
+   "error": null
+  },
+  "H_Abstraction|28|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|28|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|28|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|28|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|28|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "intra_H_migration|28|0": {
+   "matched": false,
+   "template": null,
+   "error": "ActionError: Something wrong with products that RMG cannot find a match!"
+  },
+  "1,2_shiftC|29|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "H_Abstraction|29|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "Intra_ene_reaction|29|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "R_Addition_MultipleBond|29|0": {
+   "matched": false,
+   "template": null,
+   "error": "ValueError: Reaction has 1 reactants but template has 2 reactants."
+  },
+  "R_Recombination|29|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  },
+  "Singlet_Val6_to_triplet|29|0": {
+   "matched": true,
+   "template": [
+    "O2"
+   ],
+   "error": null
+  },
+  "intra_H_migration|29|0": {
+   "matched": false,
+   "template": null,
+   "error": null
+  }
+ }
+}
