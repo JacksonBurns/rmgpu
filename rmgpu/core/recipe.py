@@ -111,12 +111,51 @@ _ORDER_TO_BONDTYPE = {
     2: rdchem.BondType.DOUBLE,
     3: rdchem.BondType.TRIPLE,
     1.5: rdchem.BondType.AROMATIC,
+    # fractional orders RDKit has no native type for (a benzene bond
+    # decremented/incremented by a CHANGE_BOND); AROMATIC is the placeholder
+    # and the true order is carried in the bond's 'order' property.
+    0.5: rdchem.BondType.AROMATIC,
+    2.5: rdchem.BondType.AROMATIC,
 }
 
 
 def _is_benzene(order):
     """RMG Bond.is_benzene(): a bond of order 1.5 (aromatic)."""
     return order == 1.5
+
+
+def _is_fractional(order):
+    """True for a bond order that is not a whole number (1.5, 0.5, 2.5)."""
+    return abs(round(order) - order) > 1e-6
+
+
+def _bond_order(bond):
+    """
+    The true numeric order of an RDKit bond. Whole orders (1, 2, 3) and
+    benzene (1.5) come straight from the RDKit bond type; fractional orders
+    RDKit cannot represent natively (0.5, 2.5 - a benzene bond touched by a
+    CHANGE_BOND) are carried in the bond's 'order' property (RMG keeps the
+    bond order as a float and its DOF kekulizer resolves 0.5 -> 1 and
+    2.5 -> 2, so the engine must preserve the fractional value).
+    """
+    if bond.HasProp('order'):
+        return float(bond.GetProp('order'))
+    return bond.GetBondTypeAsDouble()
+
+
+def _set_bond_order(bond, order):
+    """
+    Set an RDKit bond to a (possibly fractional) order: the RDKit bond type
+    is the nearest representable type (AROMATIC as the fractional
+    placeholder), and a non-native fractional order is also stored in the
+    bond's 'order' property so `_bond_order` reads it back exactly.
+    """
+    order = float(order)
+    bond.SetBondType(_bondtype_for(order))
+    if _is_fractional(order) and order != 1.5:
+        bond.SetProp('order', repr(order))
+    elif bond.HasProp('order'):
+        bond.ClearProp('order')
 
 
 def _bondtype_for(order):
@@ -134,10 +173,11 @@ def _total_bond_order(atom):
     benzene = 0
     order = 0.0
     for bond in atom.GetBonds():
-        if _is_benzene(bond.GetBondTypeAsDouble()):
+        border = _bond_order(bond)
+        if _is_benzene(border):
             benzene += 1
         else:
-            order += bond.GetBondTypeAsDouble()
+            order += border
     if benzene == 3:
         order += benzene * 4 / 3.0
     else:
@@ -258,21 +298,349 @@ def _merge_molecules(structures):
     return merged
 
 
+def _all_six_rings(mol):
+    """
+    All 6-membered rings of `mol` as lists of atom indices in cycle order,
+    the connectivity-only port of RMG mol.get_all_cycles_of_size(6) (Fan,
+    Panaye, Doucet, Barbu, J. Chem. Inf. Comput. Sci. 33, 657 (1993)).
+
+    Unlike RDKit's GetRingInfo().AtomRings(), this enumerates cycles on the
+    raw connection table and is therefore independent of RDKit's ring
+    perception, which requires a valid (kekulized) molecule. That matters
+    here: the DOF kekulizer runs on the SEMI-kekulized product (benzene
+    bonds left as AROMATIC placeholders, plus an sp3 CH2 / radical carbon
+    from the recipe), which RDKit cannot ring-perceive. Each undirected
+    6-cycle is returned exactly once: the root is its smallest atom index,
+    and of the two traversal directions only the one whose second atom
+    precedes its last atom is kept.
+    """
+    n = mol.GetNumAtoms()
+    adj = [set() for _ in range(n)]
+    for b in mol.GetBonds():
+        a, c = b.GetBeginAtomIdx(), b.GetEndAtomIdx()
+        adj[a].add(c)
+        adj[c].add(a)
+    found = set()
+    rings = []
+    for start in range(n):
+        # DFS from `start`; `start` is the smallest atom in the cycle, so a
+        # cycle is discovered exactly once (no atom smaller than start may
+        # appear).
+        def dfs(v, path):
+            for w in adj[v]:
+                if w == start:
+                    if len(path) == 6:
+                        # close the 6-cycle; keep one of the two directions
+                        if path[1] < path[-1]:
+                            key = frozenset(path)
+                            if key not in found:
+                                found.add(key)
+                                rings.append(list(path))
+                    continue
+                if w in path or w < start or len(path) == 6:
+                    continue
+                dfs(w, path + [w])
+        dfs(start, [start])
+    return rings
+
+
+class _AromaticBond:
+    """
+    RMG kekulize.pyx AromaticBond: one endocyclic bond of an aromatic ring,
+    with its DOF bookkeeping and the double_possible / double_required flags
+    derived from the valence (available-electron) analysis of its two atoms.
+    `order` is a property over the RDKit bond (1.5 == AROMATIC bond type).
+    """
+
+    def __init__(self, mol, key, ring_bonds):
+        self.mol = mol
+        self.key = key  # frozenset of the two atom indices
+        self.ring_bonds = ring_bonds
+        self.endo_dof = -1
+        self.exo_dof = -1
+        self.double_possible = True
+        self.double_required = False
+
+    @property
+    def order(self):
+        a, b = tuple(self.key)
+        return _bond_order(self.mol.GetBondBetweenAtoms(a, b))
+
+    @order.setter
+    def order(self, value):
+        a, b = tuple(self.key)
+        bond = self.mol.GetBondBetweenAtoms(a, b)
+        _set_bond_order(bond, value)
+
+    def update(self):
+        """
+        RMG AromaticBond.update: recompute the local DOF counts and the
+        double_possible / double_required flags. Valence counts (RMG
+        PeriodicSystem.valences): fixed bonds count their whole order, a
+        benzene bond counts 1 occupied + 1 uncertain electron, radicals and
+        lone pairs count their electrons. available == 0 -> the bond cannot
+        be a double; available == 1 with exactly one other uncertain bond ->
+        this bond must be a double.
+        """
+        endo_dof = 0
+        exo_dof = 0
+        for a in tuple(self.key):
+            atom = self.mol.GetAtomWithIdx(a)
+            occupied = 0
+            uncertain = 0
+            for bond in atom.GetBonds():
+                other_idx = bond.GetOtherAtom(atom).GetIdx()
+                key = frozenset((a, other_idx))
+                order = _bond_order(bond)
+                if abs(round(order) - order) < 1e-9:
+                    occupied += int(round(order))
+                elif _is_benzene(order):
+                    occupied += 1
+                    uncertain += 1
+                    if key != self.key:
+                        if key in self.ring_bonds:
+                            endo_dof += 1
+                        else:
+                            exo_dof += 1
+                else:
+                    raise KekulizationError(
+                        'Unexpected bond order %r.' % order)
+            occupied += atom.GetNumRadicalElectrons()
+            occupied += 2 * _lone_pairs(atom)
+            available = VALENCES.get(atom.GetSymbol(), 4) - occupied
+            if available < 0:
+                raise KekulizationError(
+                    'Atom %s cannot have negative available valence.'
+                    % atom.GetSymbol())
+            elif available == 0:
+                self.double_possible = False
+            elif available == 1 and uncertain == 1:
+                self.double_required = True
+        self.endo_dof = endo_dof
+        self.exo_dof = exo_dof
+
+
+class _AromaticRing:
+    """
+    RMG kekulize.pyx AromaticRing: one potentially-aromatic 6-ring, with its
+    endocyclic / exocyclic bond sets and the DOF-driven bond resolution
+    (the 0.5/2.5 -> S/D mapping of process_bonds, then the
+    double_required / double_possible resolution loop with RMG's exact
+    heuristic for bonds that are possible-but-not-required).
+    """
+
+    def __init__(self, mol, ring, endo_bonds, exo_bonds):
+        self.mol = mol
+        self.ring = list(ring)  # atom indices in cycle order
+        self.endo_bonds = set(endo_bonds)
+        self.exo_bonds = set(exo_bonds)
+        self.endo_dof = -1
+        self.exo_dof = -1
+        self.resolved = []
+        self.unresolved = []
+
+    def _bond_order(self, key):
+        a, b = tuple(key)
+        return _bond_order(self.mol.GetBondBetweenAtoms(a, b))
+
+    def update(self):
+        self.endo_dof = sum(
+            1 for b in self.endo_bonds if _is_benzene(self._bond_order(b)))
+        self.exo_dof = sum(
+            1 for b in self.exo_bonds if _is_benzene(self._bond_order(b)))
+        self.process_bonds()
+
+    def process_bonds(self):
+        """
+        RMG AromaticRing.process_bonds: build the AromaticBond objects once,
+        then resolve any bond whose order is already a whole number, or a
+        2.5 (was incremented -> must be double) / 0.5 (was decremented ->
+        must be single) benzene-bond remnant.
+        """
+        if not self.unresolved and not self.resolved:
+            for b in self.endo_bonds:
+                self.unresolved.append(_AromaticBond(self.mol, b,
+                                                     self.endo_bonds))
+        i = 0
+        while i < len(self.unresolved):
+            bond = self.unresolved[i]
+            order = bond.order
+            if abs(order - round(order)) < 1e-4:
+                self.resolved.append(self.unresolved.pop(i))
+            elif abs(order - 2.5) <= 1e-4:
+                bond.order = 2
+                self.resolved.append(self.unresolved.pop(i))
+            elif abs(order - 0.5) <= 1e-4:
+                bond.order = 1
+                self.resolved.append(self.unresolved.pop(i))
+            else:
+                i += 1
+
+    def kekulize(self):
+        """
+        RMG AromaticRing.kekulize: resolve every unresolved endocyclic bond
+        by DOF analysis. A double-required bond becomes a double, a
+        not-possible bond a single, and a possible-but-not-required bond a
+        double only when RMG's heuristic conditions hold (otherwise it is
+        revisited). Returns False when the iteration limit is reached with
+        bonds still unresolved.
+        """
+        if not self.unresolved:
+            return True
+        itercount = 0
+        maxiter = 2 * len(self.unresolved)
+        while self.unresolved and itercount < maxiter:
+            for b in self.unresolved:
+                b.update()
+            self.unresolved.sort(
+                key=lambda b: (b.double_possible, not b.double_required,
+                               b.endo_dof, b.exo_dof), reverse=True)
+            bond = self.unresolved.pop()
+            if bond.double_possible and bond.double_required:
+                bond.order = 2
+                self.resolved.append(bond)
+                self.endo_dof -= 1
+            elif bond.double_possible and not bond.double_required:
+                if ((self.endo_dof == 6 and self.exo_dof == 0)
+                        or (self.endo_dof == 6 and bond.exo_dof == 0)
+                        or (bond.endo_dof == 1
+                            and (bond.exo_dof == 1 or bond.exo_dof == 2))
+                        or self.endo_dof == 1):
+                    bond.order = 2
+                    self.resolved.append(bond)
+                    self.endo_dof -= 1
+                else:
+                    self.unresolved.append(bond)
+            else:
+                bond.order = 1
+                self.resolved.append(bond)
+                self.endo_dof -= 1
+            itercount += 1
+        if self.unresolved:
+            return False
+        for a in self.ring:
+            self.mol.GetAtomWithIdx(a).SetIsAromatic(False)
+        return True
+
+
+def _dof_kekulize(mol):
+    """
+    Port of RMG's DOF/valence kekulizer (rmgpy/molecule/kekulize.pyx):
+    resolves the 1.5-order benzene bonds of every 6-membered ring to S/D
+    from the atoms' valences (no aromaticity model - works on the
+    non-aromatic rings RDKit's kekulizer cannot handle, e.g. an H-addition
+    product with an sp3 CH2 and a radical carbon). Modifies `mol` in place;
+    returns True on success, False when a ring cannot be resolved (the
+    caller raises KekulizationError).
+    """
+    aromatic_rings = []
+    for ring in _all_six_rings(mol):
+        ring_set = set(ring)
+        endo_bonds = set()
+        exo_bonds = set()
+        aromatic = True
+        for i in range(6):
+            a1 = ring[i]
+            atom1 = mol.GetAtomWithIdx(a1)
+            neighbors_in_ring = [n.GetIdx() for n in atom1.GetNeighbors()
+                                 if n.GetIdx() in ring_set]
+            bridged = len(neighbors_in_ring) > 2
+            for nbr in atom1.GetNeighbors():
+                a2 = nbr.GetIdx()
+                bond = mol.GetBondBetweenAtoms(a1, a2)
+                if bridged and len([n.GetIdx() for n in nbr.GetNeighbors()
+                                    if n.GetIdx() in ring_set]) > 2:
+                    exo_bonds.add(frozenset((a1, a2)))
+                    continue
+                elif a2 in ring_set:
+                    border = _bond_order(bond)
+                    if (abs(round(border) - border) < 1e-9):
+                        aromatic = False
+                        break
+                    endo_bonds.add(frozenset((a1, a2)))
+                else:
+                    exo_bonds.add(frozenset((a1, a2)))
+            if not aromatic:
+                break
+        if aromatic:
+            aromatic_rings.append(_AromaticRing(mol, ring, endo_bonds,
+                                                exo_bonds))
+
+    resolved_rings = []
+    itercount = 0
+    maxiter = 2 * len(aromatic_rings)
+    while aromatic_rings and itercount < maxiter:
+        for r in aromatic_rings:
+            r.update()
+        aromatic_rings.sort(key=lambda r: (r.endo_dof, r.exo_dof),
+                            reverse=True)
+        ring = aromatic_rings.pop()
+        if ring.kekulize():
+            resolved_rings.append(ring)
+        else:
+            aromatic_rings.append(ring)
+        itercount += 1
+    if aromatic_rings:
+        return False
+
+    # RMG's final update_atomtypes check, ported: no fractional bond may
+    # remain and every atom's occupied valence must not exceed its valence.
+    for bond in mol.GetBonds():
+        order = _bond_order(bond)
+        if _is_benzene(order) or abs(order - round(order)) > 1e-4:
+            return False
+    for atom in mol.GetAtoms():
+        occupied = (sum(_bond_order(b) for b in atom.GetBonds())
+                    + atom.GetNumRadicalElectrons()
+                    + 2 * _lone_pairs(atom))
+        if occupied > VALENCES.get(atom.GetSymbol(), 4) + 1e-6:
+            return False
+    return True
+
+
 def _kekulize_piece(mol):
     """
     Kekulize one product piece (an RDKit RWMol), the port of RMG
     Molecule.kekulize (rmgpy/molecule/kekulize.pyx): resolves the 1.5-order
-    benzene bonds of the aromatic rings to explicit S/D. Raises
-    KekulizationError if no Kekule form exists (RMG: the final
-    update_atomtypes failure).
+    benzene bonds to explicit S/D. Tries RDKit's aromaticity-based
+    kekulizer first (on a throwaway copy, so a failed attempt cannot
+    corrupt `mol`). RDKit's kekulizer either fails outright or - worse -
+    reports success while leaving a non-aromatic ring partially resolved
+    (e.g. the cyclohexadienyl radical of benzene + H, with an sp3 CH2 and
+    a radical carbon), so a residue check (any fractional bond left)
+    routes to the DOF/valence kekulizer (the faithful RMG algorithm) in
+    both cases. Raises KekulizationError if neither can resolve the
+    product.
     """
-    if not any(_is_benzene(b.GetBondTypeAsDouble()) for b in mol.GetBonds()):
+    if not any(_is_fractional(_bond_order(b)) for b in mol.GetBonds()):
         return mol  # nothing aromatic to resolve
+    m = Chem.RWMol(mol)
+    ok = False
     try:
-        Chem.Kekulize(mol, clearAromaticFlags=True)
+        ok = bool(Chem.Kekulize(m, clearAromaticFlags=True))
     except Exception:
-        raise KekulizationError(
-            'Unable to kekulize product structure:\n' + Chem.MolToSmiles(mol))
+        ok = False
+    if not ok or any(_is_fractional(_bond_order(b)) for b in m.GetBonds()):
+        # RDKit could not fully resolve the ring (it may have mutated m
+        # while trying): start over from the unmutated piece and use the
+        # DOF/valence kekulizer, which works on bond orders and has no
+        # aromaticity prerequisite.
+        m = Chem.RWMol(mol)
+        if not _dof_kekulize(m):
+            try:
+                detail = Chem.MolToSmiles(mol)
+            except Exception:
+                detail = '(unparseable structure)'
+            raise KekulizationError(
+                'Unable to kekulize product structure:\n' + detail)
+    # copy the resolved bond types and aromatic flags back onto `mol`
+    # (the caller keeps the original RWMol; it ignores the return value)
+    for a1, a2 in ((b.GetBeginAtomIdx(), b.GetEndAtomIdx())
+                   for b in m.GetBonds()):
+        mol.GetBondBetweenAtoms(a1, a2).SetBondType(
+            m.GetBondBetweenAtoms(a1, a2).GetBondType())
+    for atom_m, atom_orig in zip(m.GetAtoms(), mol.GetAtoms()):
+        atom_orig.SetIsAromatic(atom_m.GetIsAromatic())
     return mol
 
 
@@ -499,21 +867,29 @@ class ReactionRecipe:
                         # which this gas-phase port does not model.
                         raise ActionError(
                             'Attempted to change a nonexistent bond.')
-                    if _is_benzene(bond.GetBondTypeAsDouble()):
+                    current_order = _bond_order(bond)
+                    if _is_benzene(current_order):
                         valid_aromatic = False
                     # RMG Bond._change_bond: order += dir*info, then bounds
-                    # check ([-0.0001, 4.0001]); the kekulize DOF analysis
-                    # resolves 2.5 -> 2 and 0.5 -> 1 for benzene bonds.
+                    # check ([-0.0001, 4.0001]). RMG keeps the resulting order
+                    # as a FLOAT, so a benzene bond (1.5) touched by the recipe
+                    # becomes 0.5 (decremented) or 2.5 (incremented); the DOF
+                    # kekulizer (process_bonds) later resolves 0.5 -> 1 and
+                    # 2.5 -> 2. Snapping here would make the ring non-aromatic
+                    # and skip kekulization, so the fractional order is kept
+                    # (carried in the bond's 'order' property; RDKit has no
+                    # native 0.5/2.5 bond type).
                     delta = info if forward else -info
-                    new_order = bond.GetBondTypeAsDouble() + delta
+                    new_order = current_order + delta
                     if new_order < -0.0001 or new_order > 4.0001:
                         raise ActionError(
                             'Unable to change bond: invalid resulting order '
                             '{:r}.'.format(new_order))
-                    if _is_benzene(bond.GetBondTypeAsDouble()):
-                        new_order = 2 if info > 0 else 1
                     rwmol.RemoveBond(i1, i2)
                     rwmol.AddBond(i1, i2, _bondtype_for(new_order))
+                    if _is_fractional(new_order) and new_order != 1.5:
+                        rwmol.GetBondBetweenAtoms(i1, i2).SetProp(
+                            'order', repr(new_order))
                 elif ((name == 'FORM_BOND' and forward)
                       or (name == 'BREAK_BOND' and not forward)):
                     # Form a bond between atom1 and atom2
