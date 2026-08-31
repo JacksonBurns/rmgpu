@@ -692,6 +692,6 @@ checks: GREEN - pytest tests/test_ml_base.py -q: 10 passed (x3 runs,
   passed, 0 failed (x3 consecutive runs; previously 581 passed / 1 failed).
   gate_04.py round-trip already used rtol=1e-6/atol=1e-4 (no change needed;
   consistent with the fix).
-commits: <this commit>
+commits: 63aec78
 next: unchanged - still job-05/step-03-templates (this was a fix for a
   pre-existing flaky test, not a gate red, so NEXT did not move).
