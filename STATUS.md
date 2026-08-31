@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-05-step-03-templates.md (job-05/step-02 done: product enumeration in rmgpu/core/enumeration.py - 30/30 case parity vs recorded RMG-Py ground truth (product SMILES-sets + exact degeneracies), calc_degeneracy 46/46, 35/35 tests GREEN. Deviations: DOF/valence kekulizer ported (RMG fractional 0.5/2.5 benzene bonds kept; ring perception connectivity-based) so the benzene+H cyclohexadienyl radical matches RMG exactly; group matcher is step-03 (RecordedMatcher replays). See reports/job-05-step-02-products.md.)
+NEXT: prompts/steps/job-05-step-04-families.md (job-05/step-03 done: template matching in rmgpu/core/template.py (match(family, reaction) -> template_labels) + group matcher in rmgpu/molecule/group.py (explicit graph + subgraph isomorphism, 99/99 parity vs RMG-Py on the group-matcher test set). Round-trip: 46/46 generated reactions match their family's template and the verdict agrees with recorded RMG-Py ground truth for all 322 (family, reaction) pairs; 44/46 most-specific template labels agree (2 benzene descent-label mismatches, documented: RMG aromatic Cb vs rmgpu kekulized Cd). 6/6 tests GREEN. See reports/job-05-step-03-templates.md.)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -66,7 +66,7 @@ documented finding) and the session log has the evidence.
 | 04/06 | Thesis test: coverage + accuracy + no-fallback proof | gate_04.py GREEN (coverage 100%/100%, no-fallback ok, round-trip maxdiff 2.4e-07/0.0; accuracy within lowered floors: dHf298 p95 517 kJ/mol, |log10 k| p95 16.2/8.7/5.4 - full finding in reports/job-04.md) | done (GREEN, floors lowered per user decision) |
 | 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | done (27 passed; 9/9 gas-phase cases parity vs RMG-Py ground truth) |
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py (30-case product-set + degeneracy parity vs RMG-Py reference) | done (35 passed; 30/30 cases + calc_degeneracy 46/46 parity vs recorded RMG-Py) |
-| 05/03 | Template matching + group matcher | test_template_match.py | pending |
+| 05/03 | Template matching + group matcher | test_template_match.py | done (6 passed; 322/322 (family,reaction) verdict parity + 46/46 round-trip vs recorded RMG-Py; 44/46 descent labels, 2 benzene Cb/Cd mismatches documented; group matcher 99/99 subgraph parity) |
 | 05/04 | Family loader + KineticsFamilies facade | test_families.py | pending |
 | 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity) | pending |
 | 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | pending |
@@ -695,3 +695,47 @@ checks: GREEN - pytest tests/test_ml_base.py -q: 10 passed (x3 runs,
 commits: 63aec78
 next: unchanged - still job-05/step-03-templates (this was a fix for a
   pre-existing flaky test, not a gate red, so NEXT did not move).
+
+### 2026-08-31 - job-05/step-03
+built: rmgpu/core/template.py (match(family, reaction) -> template_labels,
+  the family-template-matching entry point for the core loop: builds a
+  TemplateFamily from the step-03 + step-02 reference records, matches the
+  reaction against the family's forward template - reactant subgraph matching
+  (group matcher) + recipe validity check via rmgpu/core/recipe.py + the
+  most-specific-node descent (descend_tree) that yields the template labels);
+  rmgpu/molecule/group.py (the group matcher: RMG group-adjlist parsing - the
+  RMG-specific constructs inventory'd in the report - -> explicit-H graph +
+  subgraph-isomorphism matcher delegating pure graph ops to RDKit, ported
+  semantics documented per construct); tests/test_template_match.py (6 tests:
+  round-trip 46/46 own-family matches, full 322/322 verdict agreement vs the
+  recorded RMG-Py ground truth, 10+ negative wrong-family non-matches, 44/46
+  template-label agreement, group-matcher 99/99 subgraph parity);
+  gates/baselines/job05/step03_templates_reference.json + step03_match_verdicts.json
+  (recorded RMG-Py reference: atom-type tree, family group trees, 322-pair
+  (family, reaction) verdict matrix, most-specific template labels);
+  scripts/record_job05_step03_reference.py + record_job05_step03_verdicts.py;
+  reports/job-05-step-03-templates.md.
+checks: GREEN - /home/jackson/miniforge3/envs/rmgpu/bin/python -m pytest
+  tests/test_template_match.py -q: 6 passed. Round-trip: 46/46 generated
+  reactions match their family's template and the verdict agrees with the
+  recorded RMG-Py ground truth for ALL 322 (family, reaction) pairs (46 own +
+  276 cross-family non-matches, 0 spurious). Template labels: 44/46 agree;
+  the 2 mismatches are benzene-descent labels (RMG aromatic Cb vs rmgpu
+  kekulized Cd representation - documented finding, not a matcher defect; the
+  match verdict + reactant->template labeling still agree). Group matcher:
+  99/99 subgraph-isomorphism parity vs RMG-Py on the group-matcher test set.
+  Full suite pytest tests/ -q: 588 passed.
+deviations: (1) most-specific-node descent labels for benzene-bearing
+  substrates differ from RMG-Py (Cb vs Cd) because rmgpu stores the kekulized
+  form (step-02 DOF kekulizer) while RMG-Py keeps aromatic - see report;
+  (2) TemplateFamily is built from the reference JSON (atom-type tree + family
+  group trees) rather than re-parsing RMG-Py's family files, keeping step-03
+  independent of step-04's loader (job-05/step-04 will wire the real loader).
+commits: c685668 (code + tests + references + report), this commit (STATUS)
+next: job-05/step-04-families (read prompts/steps/job-05-step-04-families.md).
+  Key context: template.match(family, reaction) -> (template_labels | None) is
+  the core-loop family-attribution hook; a real Family object (step-04 loader)
+  should expose the same TemplateFamily shape (top nodes, forward template,
+  recipe, reversible flags) built from rmgdb, replacing from_references; the
+  group matcher's match_group(mol, group) is the primitive the family loader
+  should reuse for template matching.
