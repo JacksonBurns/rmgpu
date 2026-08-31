@@ -667,3 +667,31 @@ templates (RMG raw order) and are what keeps isomorphic-but-different-
 template products as separate duplicate reactions; DOF kekulizer reads
 bond orders via the bond 'order' property (fractional orders RDKit cannot
 represent natively).
+
+### 2026-08-31 - fix: test_ml_base same-process kinetics flake (RESOLVED)
+built: tests/test_ml_base.py only (no code/estimator/gate changes).
+  Root cause (measured, not the vague "~1.6e-2 flake" from step-05): the
+  kinetics Ea_J_mol target is LINEAR space (~2.2e5 J/mol) in float32, where
+  the ULP is 2**-6 = 0.015625 - 156x the tests' absolute TOL=1e-4. CUDA
+  matmul reductions are not bit-deterministic: batch=1 pins Ea to one value,
+  batch=2 (the baseline recorder's and test_kinetics_matches_reference's
+  path) wanders up to 3 ULP (0.047 J/mol) run-to-run; batch=1 vs batch=2
+  also differ by 1 ULP (baseline recorded at batch=2, single-item test
+  predicts at batch=1). Whichever reduction draws the worst value that run
+  makes the test fail - hence "which test fails varies per run." The log10
+  targets (log10_A, n, all thermo) are stable to ~5e-7 and were never the
+  problem. base.py has no bug (shape/drop_last assertions all pass); it is a
+  test-tolerance defect.
+  Fix: Ea_J_mol comparisons now use rtol=1e-6 + atol=1e-4 (identical pair to
+  gate_04.py's round-trip, which was already GREEN); the log10 targets keep
+  the tight absolute TOL=1e-4. Applies to test_kinetics_matches_reference,
+  test_single_item_prediction_not_dropped, and test_kinetics_deterministic
+  (the latter via a per-column _assert_same).
+checks: GREEN - pytest tests/test_ml_base.py -q: 10 passed (x3 runs,
+  previously 1 failed in isolation). Full suite pytest tests/ -q: 582
+  passed, 0 failed (x3 consecutive runs; previously 581 passed / 1 failed).
+  gate_04.py round-trip already used rtol=1e-6/atol=1e-4 (no change needed;
+  consistent with the fix).
+commits: <this commit>
+next: unchanged - still job-05/step-03-templates (this was a fix for a
+  pre-existing flaky test, not a gate red, so NEXT did not move).

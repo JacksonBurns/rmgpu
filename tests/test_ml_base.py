@@ -29,6 +29,25 @@ from rmgpu.ml.base import (  # noqa: E402
 
 TOL = 1e-4
 
+# Tolerances for the linear-space Ea_J_mol column (gate_04.py uses the same
+# pair for its round-trip check). Ea is a LINEAR target (~1e4..1e6 J/mol) in
+# float32: at ~2.2e5 the float32 ULP is 2**-6 = 0.015625, and CUDA matmul
+# reductions are not bit-deterministic - measured run-to-run and
+# batch-size-dependent drift is up to 3 ULP (0.047 J/mol, rel 2.1e-7). A
+# fixed ABSOLUTE tolerance cannot span that (this is the "test_ml_base
+# flake" tracked since job-04/step-05). rtol=1e-6 covers ~8 ULP, 4.8x the
+# measured worst case. The log10-space targets (thermo cols, log10_A, n)
+# are stable to ~5e-7 and keep the tight absolute TOL.
+EA_RTOL = 1e-6
+EA_ATOL = 1e-4
+
+
+def _close(actual: float, expected: float, target: str) -> bool:
+    """Target-aware comparison vs the reference baseline (see EA_RTOL)."""
+    if target == "Ea_J_mol":
+        return abs(actual - expected) <= EA_RTOL * abs(expected) + EA_ATOL
+    return abs(actual - expected) <= TOL
+
 # The fixed set, exactly as recorded in the baseline (which holds the same
 # strings the baseline script fed to the model - so test inputs == baseline
 # inputs by construction).
@@ -124,7 +143,7 @@ def test_kinetics_matches_reference(kinetics):
         for j, target in enumerate(kinetics.targets):
             expected = ref["rows"][smi][target]
             actual = float(preds[i, j])
-            assert abs(actual - expected) <= TOL, (
+            assert _close(actual, expected, target), (
                 f"{smi[:40]}... {target}: rmgpu {actual!r} vs reference {expected!r}"
             )
 
@@ -147,28 +166,36 @@ def test_thermo_reference_sanity():
 
 
 # --- determinism ------------------------------------------------------------
-# CUDA kernels are not bit-deterministic (reduction order); measured spread
-# across two runs of the same inputs: thermo max abs diff 4.8e-7 (rel
-# ~1.1e-7), kinetics 0.0. Tolerance atol=1e-6 (well below the 1e-4 baseline
-# tol); on CPU the runs are bit-identical and the same assertion holds.
+# CUDA kernels are not bit-deterministic (reduction order). The log10 columns
+# are stable to ~5e-7; the linear Ea column drifts a few float32 ULP between
+# consecutive runs (see EA_RTOL / _assert_same). On CPU the runs are
+# bit-identical and the same assertions hold.
 
-def _assert_same(p1, p2, what):
-    d = (p1 - p2).abs()
-    assert d.max().item() <= 1e-6, f"{what}: two runs differ by {d.max().item()}"
-    assert torch.allclose(p1, p2, atol=1e-6, rtol=0.0)
+def _assert_same(p1, p2, what, targets):
+    # Per-column tolerances: the linear Ea column is not bit-stable on CUDA
+    # (a few float32 ULP between consecutive runs, see EA_RTOL); the log10
+    # columns are stable to ~5e-7.
+    for j, target in enumerate(targets):
+        d = float((p1[:, j] - p2[:, j]).abs().max())
+        if target == "Ea_J_mol":
+            assert d <= EA_RTOL * float(p1[:, j].abs().max()) + EA_ATOL, (
+                f"{what} {target}: two runs differ by {d}"
+            )
+        else:
+            assert d <= 1e-6, f"{what} {target}: two runs differ by {d}"
 
 
 def test_thermo_deterministic(thermo):
     p1 = thermo.predict_raw(_mol_datapoints(THERMO_SMILES))
     p2 = thermo.predict_raw(_mol_datapoints(THERMO_SMILES))
-    _assert_same(p1, p2, "thermo")
+    _assert_same(p1, p2, "thermo", thermo.targets)
 
 
 def test_kinetics_deterministic(kinetics):
     smiles = _reaction_smiles()
     p1 = kinetics.predict_raw(_rxn_datapoints(smiles))
     p2 = kinetics.predict_raw(_rxn_datapoints(smiles))
-    _assert_same(p1, p2, "kinetics")
+    _assert_same(p1, p2, "kinetics", kinetics.targets)
 
 
 # --- plumbing ---------------------------------------------------------------
@@ -192,5 +219,6 @@ def test_single_item_prediction_not_dropped(thermo, kinetics):
     smiles = _reaction_smiles()
     q = kinetics.predict_raw(_rxn_datapoints(smiles[:1]))
     assert q.shape == (1, 3)
+    ref0 = _baseline()["reactions"]["rows"][smiles[0]]
     for j, target in enumerate(kinetics.targets):
-        assert abs(float(q[0, j]) - _baseline()["reactions"]["rows"][smiles[0]][target]) <= TOL
+        assert _close(float(q[0, j]), ref0[target], target)
