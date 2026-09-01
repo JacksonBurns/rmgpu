@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-05-step-05-gate.md (job-05/step-04 done: family loader + KineticsFamilies facade in rmgpu/core/family.py - controlled groups.py parse + rmgdb cross-check; 51/51 'default' families load (0 blocked), counts/recipes/templates/reverse-bookkeeping parity vs recorded RMG-Py reference (0 field mismatches), match_reaction 20/20 family agreement + 18/20 label agreement (2 documented aromatic Cd/Cb descent exceptions, same as step-03); rules stored as DATA 51/51 (rate-rule estimator deleted); rmgdb tree table incomplete for 21/51 families (file parse primary, cross-check on flat data). 7/7 test_families GREEN, full suite 595 passed. See reports/job-05-step-04-families.md.)
+NEXT: prompts/steps/job-05-step-06-fix-intraene.md (job-05/step-05 done: job-05 gate BUILT + RUN - gate_05.py over the 32-case set (default-set families in c3h4/superminimal + RMG-Py fixtures): RED 31/32 (product sets + per-product degeneracy EXACT on 31; the 1 mismatch = Intra_ene_reaction C[CH]C1=CC=CC=C1, root-caused to the job-01 resonance/matcher handling of benzylic radicals - missing para + 2nd-ortho resonance forms, no `reactive` flag on the kekulized form, aromatic bond-order handling in the matcher; all three documented in reports/job-05-step-05-gate.md with the fix plan in 05/06); reverse recovery 37/37, timing max 0.38s (<5s), 0 blocked families, full suite 595 passed. The gate is re-runnable in ~80s; 05/06 fixes the 3 gaps then re-runs (expect 32/32 GREEN). See reports/job-05-step-05-gate.md.)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -68,7 +68,8 @@ documented finding) and the session log has the evidence.
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py (30-case product-set + degeneracy parity vs RMG-Py reference) | done (35 passed; 30/30 cases + calc_degeneracy 46/46 parity vs recorded RMG-Py) |
 | 05/03 | Template matching + group matcher | test_template_match.py | done (6 passed; 322/322 (family,reaction) verdict parity + 46/46 round-trip vs recorded RMG-Py; 44/46 descent labels, 2 benzene Cb/Cd mismatches documented; group matcher 99/99 subgraph parity) |
 | 05/04 | Family loader + KineticsFamilies facade | test_families.py (7 tests) | done (51/51 default families load, 0 blocked; counts/recipes/templates/reverse-bookkeeping parity vs recorded RMG-Py 0 mismatches; match_reaction 20/20 family + 18/20 label, 2 documented aromatic Cd/Cb exceptions; rules as DATA 51/51; full suite 595) |
-| 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity) | pending |
+| 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity vs recorded RMG-Py reference) | done (RED 31/32: 1 Intra_ene benzylic-radical mismatch, root-caused to the job-01 resonance/matcher form set; reverse 37/37, timing 0.38s; follow-up 05/06) |
+| 05/06 | Fix the Intra_ene resonance-form gap (gate RED) | gate_05.py GREEN (32/32) + pytest | pending |
 | 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | pending |
 | 06/02 | CoreEdgeReactionModel (enlarge/prune/screen) | test_core_model.py | pending |
 | 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | pending |
@@ -786,3 +787,51 @@ next: job-05/step-05-gate (read prompts/steps/job-05-step-05-gate.md):
   gate_05.py product-enumeration parity over the fixed (family, reactants)
   case set - it joins this facade's match_reaction with step-02's
   generate_reactions.
+
+### 2026-09-01 - job-05/step-05 (completed - job-05 gate BUILT + RUN, RED 31/32)
+built:
+  gates/gate_05.py (the job-05 gate: 32-case product-set + per-product
+  degeneracy parity vs the recorded RMG-Py reference, EXACT; reverse
+  recovery for own-reverse reversible families; timing floor 5s; blocked
+  families; exit 0 GREEN / 1 RED; writes reports/gate_05_results.json);
+  gates/gate05_cases.py (the fixed case set: default-set families in the
+  c3h4/superminimal mechanisms + the step-02/03 test fixtures);
+  scripts/record_job05_step05_reference.py (RMG-Py ground-truth recorder,
+  rmg_env, non-circular) + gates/baselines/job05/step05_gate_reference.json
+  (the recorded reference, 32 cases);
+  rmgpu/core/enumeration.py (fresh-path wiring the gate drives: `forbidden`
+  on the Family + RMG is_molecule_forbidden port (label-aligned subgraph,
+  reactants BEFORE recipe + products AFTER - drops the diradical-forming
+  H_Abstraction applications) + per-reaction template labels in
+  _enumerate_fresh);
+  rmgpu/molecule/resonance.py (two root-cause fixes surfaced by the gate:
+  _get_lone_pairs now uses RMG-Py's exact formula on the explicit-H bond
+  order; allyl delocalization now covers radicals exocyclic to aromatic
+  rings (benzylic), aryl radicals guarded, invalid shifts dropped);
+  ~80 scripts/_chk_*,_dbg_*,_probe_* scratch scripts (root-cause work).
+checks:
+  gates/gate_05.py: RED (31/32 exact; reverse 37/37; timing max 0.377s OK;
+  0 blocked) - the 1 mismatch is Intra_ene_reaction C[CH]C1=CC=CC=C1
+  (got 3 allene products deg 1.0 + A@3.0; want A@6.0 + B@3.0).
+  pytest tests/: 595 passed.
+root cause (all job-01 resonance/matcher, verified in rmg_env): (1) the
+benzylic radical's resonance set is incomplete - RMG-Py has 5 forms
+(aromatic, ortho x2, para, kekulized-benzylic), rmgpu has 3 (missing the
+para form, the sole source of product B, and the 2nd ortho form, so A is
+3.0 not 6.0); (2) no `reactive` flag - RMG's filter_resonance_structures
+drops the kekulized SDSDSD-ring form + mark_unreactive_structures sets
+reactive=False on the filtered original + _generate_reactions skips it,
+which is what suppresses the 3 allene products; (3) the matcher's aromatic
+bond-order handling (RMG compares aromatic bonds as 1.5; a naive 1.5 fix
+broke a step-03 test and was reverted). All three documented with a
+3-item fix plan in reports/job-05-step-05-gate.md; the fix step
+prompts/steps/job-05-step-06-fix-intraene.md is written (05/06 row added).
+Deviations: the recorded reference's reverse_checks section is unusable
+(recorder bug - AttributeError on a list; all 35 entries error), so the
+gate implements the reverse check in-rmgpu (37/37 ok). See the report.
+commits: 47a97d4 (code + gate + reference + recorder + scratch), this
+commit (STATUS + report + fix-step file)
+next: job-05/step-06-fix-intraene (read
+  prompts/steps/job-05-step-06-fix-intraene.md): fix the 3 gaps (para +
+  2nd-ortho resonance forms, the `reactive` flag, the matcher aromatic
+  1.5 handling) then re-run gate_05.py (expect 32/32 GREEN) + pytest.

@@ -1,0 +1,1188 @@
+{
+ "cases_total": 32,
+ "cases_ok": 31,
+ "cases_mismatch": 1,
+ "cases_error": 0,
+ "reverse_in_scope": 37,
+ "reverse_ok": 37,
+ "reverse_fail": 0,
+ "blocked_families": {},
+ "timing_seconds": {
+  "H_Abstraction|C,[H]": 0.0257,
+  "H_Abstraction|CC,[OH]": 0.0541,
+  "H_Abstraction|CC(=O)C,[H]": 0.0545,
+  "H_Abstraction|C[CH]C,[H]": 0.0151,
+  "H_Abstraction|C1=CC=CC=C1,[H]": 0.1191,
+  "H_Abstraction|C=C,[CH3]": 0.0323,
+  "H_Abstraction|C(C)(C)C,[CH3]": 0.1406,
+  "H_Abstraction|CC(=O)[O],[H]": 0.024,
+  "H_Abstraction|C1CCC1,[OH]": 0.0878,
+  "H_Abstraction|C1CC1,[CH3]": 0.0637,
+  "H_Abstraction|CCO,[OH]": 0.0521,
+  "H_Abstraction|C#C,[H]": 0.0112,
+  "H_Abstraction|CCN,[H]": 0.0864,
+  "H_Abstraction|CC#C,[CH3]": 0.036,
+  "Disproportionation|CC[CH],[OH]": 0.0185,
+  "Disproportionation|CC[CH],[CH3]": 0.0324,
+  "R_Recombination|[OH],[OH]": 0.0037,
+  "R_Recombination|[CH3],[OH]": 0.0056,
+  "R_Recombination|[CH3],[CH3]": 0.0041,
+  "R_Addition_MultipleBond|C=C,[CH3]": 0.0181,
+  "R_Addition_MultipleBond|C=C,[OH]": 0.0151,
+  "R_Addition_MultipleBond|C1=CC=CC=C1,[H]": 0.1492,
+  "R_Addition_MultipleBond|C=O,[CH3]": 0.0136,
+  "R_Addition_MultipleBond|C#C,[H]": 0.0097,
+  "R_Addition_MultipleBond|C#C,[CH3]": 0.0137,
+  "intra_H_migration|C[CH]CCC": 0.0858,
+  "intra_H_migration|C[CH]C1CCCCC1": 0.3772,
+  "intra_H_migration|C(C)(C)[CH]C(C)(C)C": 0.2077,
+  "Intra_ene_reaction|C[CH]C1=CC=CC=C1": 0.0595,
+  "1,2_shiftC|CC[CH]C": 0.0177,
+  "1,2_shiftC|CCC[CH]C(C)C": 0.0519,
+  "Singlet_Val6_to_triplet|O=O": 0.0028
+ },
+ "max_timing_seconds": 0.3772,
+ "timing_ok": true,
+ "mismatches": [
+  {
+   "family": "Intra_ene_reaction",
+   "reactants": [
+    "C[CH]C1=CC=CC=C1"
+   ],
+   "got": {
+    "('[H][C](C1=C=C([H])C([H])=C([H])C1([H])[H])C([H])([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C](C1=C([H])C([H])([H])C([H])=C=C1[H])C([H])([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C](C([H])([H])[H])C1([H])C([H])=C=C([H])C([H])=C1[H]',)": [
+     1.0
+    ],
+    "('[H][C]1C([H])=C([H])C([H])([H])C([H])=C1C([H])=C([H])[H]',)": [
+     3.0
+    ]
+   },
+   "want": {
+    "('[H][C]1C([H])=C([H])C([H])([H])C([H])=C1C([H])=C([H])[H]',)": [
+     6.0
+    ],
+    "('[H][C]1C([H])=C([H])C(C([H])=C([H])[H])=C([H])C1([H])[H]',)": [
+     3.0
+    ]
+   }
+  }
+ ],
+ "errors": [],
+ "per_case": [
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0257,
+   "got": {
+    "('[H][C]([H])[H]', '[H][H]')": [
+     4.0
+    ]
+   },
+   "want": {
+    "('[H][C]([H])[H]', '[H][H]')": [
+     4.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "CC",
+    "[OH]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0541,
+   "got": {
+    "('[H]O[H]', '[H][C]([H])C([H])([H])[H]')": [
+     6.0
+    ]
+   },
+   "want": {
+    "('[H]O[H]', '[H][C]([H])C([H])([H])[H]')": [
+     6.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "CC(=O)C",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0545,
+   "got": {
+    "('[H][C]([H])C(=O)C([H])([H])[H]', '[H][H]')": [
+     6.0
+    ]
+   },
+   "want": {
+    "('[H][C]([H])C(=O)C([H])([H])[H]', '[H][H]')": [
+     6.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C[CH]C",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0151,
+   "got": {
+    "('[H]C([H])([H])[C]C([H])([H])[H]', '[H][H]')": [
+     1.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])[C]C([H])([H])[H]', '[H][H]')": [
+     1.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C1=CC=CC=C1",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.1191,
+   "got": {
+    "('[H][H]', '[H]c1[c]c([H])c([H])c([H])c1[H]')": [
+     6.0
+    ]
+   },
+   "want": {
+    "('[H][H]', '[H]c1[c]c([H])c([H])c([H])c1[H]')": [
+     6.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C=C",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0323,
+   "got": {
+    "('[H]C([H])([H])[H]', '[H][C]=C([H])[H]')": [
+     4.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])[H]', '[H][C]=C([H])[H]')": [
+     4.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      4.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C(C)(C)C",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 2,
+   "n_ref_reactions": 2,
+   "parity_ok": true,
+   "timing_seconds": 0.1406,
+   "got": {
+    "('[H]C([H])([H])[C](C([H])([H])[H])C([H])([H])[H]', '[H]C([H])([H])[H]')": [
+     1.0
+    ],
+    "('[H]C([H])([H])[H]', '[H][C]([H])C([H])(C([H])([H])[H])C([H])([H])[H]')": [
+     9.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])[C](C([H])([H])[H])C([H])([H])[H]', '[H]C([H])([H])[H]')": [
+     1.0
+    ],
+    "('[H]C([H])([H])[H]', '[H][C]([H])C([H])(C([H])([H])[H])C([H])([H])[H]')": [
+     9.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      4.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      4.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "CC(=O)[O]",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.024,
+   "got": {
+    "('[H][C]([H])C([O])=O', '[H][H]')": [
+     3.0
+    ]
+   },
+   "want": {
+    "('[H][C]([H])C([O])=O', '[H][H]')": [
+     3.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C1CCC1",
+    "[OH]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0878,
+   "got": {
+    "('[H]O[H]', '[H][C]1C([H])([H])C([H])([H])C1([H])[H]')": [
+     8.0
+    ]
+   },
+   "want": {
+    "('[H]O[H]', '[H][C]1C([H])([H])C([H])([H])C1([H])[H]')": [
+     8.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C1CC1",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0637,
+   "got": {
+    "('[H]C([H])([H])[H]', '[H][C]1C([H])([H])C1([H])[H]')": [
+     6.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])[H]', '[H][C]1C([H])([H])C1([H])[H]')": [
+     6.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      4.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "CCO",
+    "[OH]"
+   ],
+   "n_fwd_reactions": 3,
+   "n_ref_reactions": 3,
+   "parity_ok": true,
+   "timing_seconds": 0.0521,
+   "got": {
+    "('[H]OC([H])([H])[C]([H])[H]', '[H]O[H]')": [
+     3.0
+    ],
+    "('[H]O[C]([H])C([H])([H])[H]', '[H]O[H]')": [
+     2.0
+    ],
+    "('[H]C([H])([H])C([H])([H])[O]', '[H]O[H]')": [
+     1.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])C([H])([H])[O]', '[H]O[H]')": [
+     1.0
+    ],
+    "('[H]O[C]([H])C([H])([H])[H]', '[H]O[H]')": [
+     2.0
+    ],
+    "('[H]OC([H])([H])[C]([H])[H]', '[H]O[H]')": [
+     3.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "C#C",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0112,
+   "got": {
+    "('[H]C#[C]', '[H][H]')": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H]C#[C]', '[H][H]')": [
+     2.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "CCN",
+    "[H]"
+   ],
+   "n_fwd_reactions": 3,
+   "n_ref_reactions": 3,
+   "parity_ok": true,
+   "timing_seconds": 0.0864,
+   "got": {
+    "('[H][C]([H])C([H])([H])N([H])[H]', '[H][H]')": [
+     3.0
+    ],
+    "('[H][C](N([H])[H])C([H])([H])[H]', '[H][H]')": [
+     2.0
+    ],
+    "('[H][H]', '[H][N]C([H])([H])C([H])([H])[H]')": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H][H]', '[H][N]C([H])([H])C([H])([H])[H]')": [
+     2.0
+    ],
+    "('[H][C](N([H])[H])C([H])([H])[H]', '[H][H]')": [
+     2.0
+    ],
+    "('[H][C]([H])C([H])([H])N([H])[H]', '[H][H]')": [
+     3.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "H_Abstraction",
+   "source": "default",
+   "reactants": [
+    "CC#C",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 2,
+   "n_ref_reactions": 2,
+   "parity_ok": true,
+   "timing_seconds": 0.036,
+   "got": {
+    "('[H]C#C[C]([H])[H]', '[H]C([H])([H])[H]')": [
+     3.0
+    ],
+    "('[H]C([H])([H])C#[C]', '[H]C([H])([H])[H]')": [
+     1.0
+    ]
+   },
+   "want": {
+    "('[H]C#C[C]([H])[H]', '[H]C([H])([H])[H]')": [
+     3.0
+    ],
+    "('[H]C([H])([H])C#[C]', '[H]C([H])([H])[H]')": [
+     1.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      4.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      4.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "Disproportionation",
+   "source": "default",
+   "reactants": [
+    "CC[CH]",
+    "[OH]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0185,
+   "got": {
+    "('[H]O[H]', '[H][C]=C([H])C([H])([H])[H]')": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H]O[H]', '[H][C]=C([H])C([H])([H])[H]')": [
+     2.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "Disproportionation",
+   "source": "default",
+   "reactants": [
+    "CC[CH]",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0324,
+   "got": {
+    "('[H]C([H])([H])[H]', '[H][C]=C([H])C([H])([H])[H]')": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])[H]', '[H][C]=C([H])C([H])([H])[H]')": [
+     2.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Recombination",
+   "source": "default",
+   "reactants": [
+    "[OH]",
+    "[OH]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0037,
+   "got": {
+    "('[H]OO[H]',)": [
+     0.5
+    ]
+   },
+   "want": {
+    "('[H]OO[H]',)": [
+     0.5
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Recombination",
+   "source": "default",
+   "reactants": [
+    "[CH3]",
+    "[OH]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0056,
+   "got": {
+    "('[H]OC([H])([H])[H]',)": [
+     1.0
+    ]
+   },
+   "want": {
+    "('[H]OC([H])([H])[H]',)": [
+     1.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Recombination",
+   "source": "default",
+   "reactants": [
+    "[CH3]",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0041,
+   "got": {
+    "('[H]C([H])([H])C([H])([H])[H]',)": [
+     0.5
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])C([H])([H])[H]',)": [
+     0.5
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "source": "default",
+   "reactants": [
+    "C=C",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0181,
+   "got": {
+    "('[H][C]([H])C([H])([H])C([H])([H])[H]',)": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H][C]([H])C([H])([H])C([H])([H])[H]',)": [
+     2.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "source": "default",
+   "reactants": [
+    "C=C",
+    "[OH]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0151,
+   "got": {
+    "('[H]OC([H])([H])[C]([H])[H]',)": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H]OC([H])([H])[C]([H])[H]',)": [
+     2.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "source": "default",
+   "reactants": [
+    "C1=CC=CC=C1",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.1492,
+   "got": {
+    "('[H][C]1C([H])=C([H])C([H])=C([H])C1([H])[H]',)": [
+     6.0
+    ]
+   },
+   "want": {
+    "('[H][C]1C([H])=C([H])C([H])=C([H])C1([H])[H]',)": [
+     6.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "source": "default",
+   "reactants": [
+    "C=O",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 2,
+   "n_ref_reactions": 2,
+   "parity_ok": true,
+   "timing_seconds": 0.0136,
+   "got": {
+    "('[H]C([H])([H])C([H])([H])[O]',)": [
+     1.0
+    ],
+    "('[H][C]([H])OC([H])([H])[H]',)": [
+     1.0
+    ]
+   },
+   "want": {
+    "('[H][C]([H])OC([H])([H])[H]',)": [
+     1.0
+    ],
+    "('[H]C([H])([H])C([H])([H])[O]',)": [
+     1.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "source": "default",
+   "reactants": [
+    "C#C",
+    "[H]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0097,
+   "got": {
+    "('[H][C]=C([H])[H]',)": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H][C]=C([H])[H]',)": [
+     2.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "source": "default",
+   "reactants": [
+    "C#C",
+    "[CH3]"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0137,
+   "got": {
+    "('[H][C]=C([H])C([H])([H])[H]',)": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H][C]=C([H])C([H])([H])[H]',)": [
+     2.0
+    ]
+   },
+   "reverse": []
+  },
+  {
+   "family": "intra_H_migration",
+   "source": "default",
+   "reactants": [
+    "C[CH]CCC"
+   ],
+   "n_fwd_reactions": 3,
+   "n_ref_reactions": 3,
+   "parity_ok": true,
+   "timing_seconds": 0.0858,
+   "got": {
+    "('[H][C]([H])C([H])([H])C([H])([H])C([H])([H])C([H])([H])[H]',)": [
+     3.0,
+     3.0
+    ],
+    "('[H][C](C([H])([H])C([H])([H])[H])C([H])([H])C([H])([H])[H]',)": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H][C](C([H])([H])C([H])([H])[H])C([H])([H])C([H])([H])[H]',)": [
+     2.0
+    ],
+    "('[H][C]([H])C([H])([H])C([H])([H])C([H])([H])C([H])([H])[H]',)": [
+     3.0,
+     3.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0,
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      4.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "intra_H_migration",
+   "source": "default",
+   "reactants": [
+    "C[CH]C1CCCCC1"
+   ],
+   "n_fwd_reactions": 5,
+   "n_ref_reactions": 5,
+   "parity_ok": true,
+   "timing_seconds": 0.3772,
+   "got": {
+    "('[H][C]([H])C([H])([H])C1([H])C([H])([H])C([H])([H])C([H])([H])C([H])([H])C1([H])[H]',)": [
+     3.0
+    ],
+    "('[H]C([H])([H])C([H])([H])[C]1C([H])([H])C([H])([H])C([H])([H])C([H])([H])C1([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C]1C([H])([H])C([H])([H])C([H])([H])C([H])([H])C1([H])C([H])([H])C([H])([H])[H]',)": [
+     4.0
+    ],
+    "('[H][C]1C([H])([H])C([H])([H])C([H])([H])C([H])(C([H])([H])C([H])([H])[H])C1([H])[H]',)": [
+     4.0
+    ],
+    "('[H][C]1C([H])([H])C([H])([H])C([H])(C([H])([H])C([H])([H])[H])C([H])([H])C1([H])[H]',)": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])C([H])([H])[C]1C([H])([H])C([H])([H])C([H])([H])C([H])([H])C1([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C]([H])C([H])([H])C1([H])C([H])([H])C([H])([H])C([H])([H])C([H])([H])C1([H])[H]',)": [
+     3.0
+    ],
+    "('[H][C]1C([H])([H])C([H])([H])C([H])([H])C([H])([H])C1([H])C([H])([H])C([H])([H])[H]',)": [
+     4.0
+    ],
+    "('[H][C]1C([H])([H])C([H])([H])C([H])([H])C([H])(C([H])([H])C([H])([H])[H])C1([H])[H]',)": [
+     4.0
+    ],
+    "('[H][C]1C([H])([H])C([H])([H])C([H])(C([H])([H])C([H])([H])[H])C([H])([H])C1([H])[H]',)": [
+     2.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "intra_H_migration",
+   "source": "default",
+   "reactants": [
+    "C(C)(C)[CH]C(C)(C)C"
+   ],
+   "n_fwd_reactions": 3,
+   "n_ref_reactions": 3,
+   "parity_ok": true,
+   "timing_seconds": 0.2077,
+   "got": {
+    "('[H]C([H])([H])[C](C([H])([H])[H])C([H])([H])C(C([H])([H])[H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C]([H])C([H])(C([H])([H])[H])C([H])([H])C(C([H])([H])[H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     6.0
+    ],
+    "('[H][C]([H])C(C([H])([H])[H])(C([H])([H])[H])C([H])([H])C([H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     9.0
+    ]
+   },
+   "want": {
+    "('[H]C([H])([H])[C](C([H])([H])[H])C([H])([H])C(C([H])([H])[H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C]([H])C(C([H])([H])[H])(C([H])([H])[H])C([H])([H])C([H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     9.0
+    ],
+    "('[H][C]([H])C([H])(C([H])([H])[H])C([H])([H])C(C([H])([H])[H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     6.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "Intra_ene_reaction",
+   "source": "default",
+   "reactants": [
+    "C[CH]C1=CC=CC=C1"
+   ],
+   "n_fwd_reactions": 4,
+   "n_ref_reactions": 2,
+   "parity_ok": false,
+   "timing_seconds": 0.0595,
+   "got": {
+    "('[H][C](C1=C=C([H])C([H])=C([H])C1([H])[H])C([H])([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C](C1=C([H])C([H])([H])C([H])=C=C1[H])C([H])([H])[H]',)": [
+     1.0
+    ],
+    "('[H][C](C([H])([H])[H])C1([H])C([H])=C=C([H])C([H])=C1[H]',)": [
+     1.0
+    ],
+    "('[H][C]1C([H])=C([H])C([H])([H])C([H])=C1C([H])=C([H])[H]',)": [
+     3.0
+    ]
+   },
+   "want": {
+    "('[H][C]1C([H])=C([H])C([H])([H])C([H])=C1C([H])=C([H])[H]',)": [
+     6.0
+    ],
+    "('[H][C]1C([H])=C([H])C(C([H])=C([H])[H])=C([H])C1([H])[H]',)": [
+     3.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      1.0
+     ]
+    },
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "1,2_shiftC",
+   "source": "test",
+   "reactants": [
+    "CC[CH]C"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0177,
+   "got": {
+    "('[H][C]([H])C([H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     1.0
+    ]
+   },
+   "want": {
+    "('[H][C]([H])C([H])(C([H])([H])[H])C([H])([H])[H]',)": [
+     1.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "1,2_shiftC",
+   "source": "test",
+   "reactants": [
+    "CCC[CH]C(C)C"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0519,
+   "got": {
+    "('[H][C](C([H])([H])[H])C([H])(C([H])([H])[H])C([H])([H])C([H])([H])C([H])([H])[H]',)": [
+     2.0
+    ]
+   },
+   "want": {
+    "('[H][C](C([H])([H])[H])C([H])(C([H])([H])[H])C([H])([H])C([H])([H])C([H])([H])[H]',)": [
+     2.0
+    ]
+   },
+   "reverse": [
+    {
+     "ok": true,
+     "error": null,
+     "degeneracy": [
+      1.0
+     ]
+    }
+   ]
+  },
+  {
+   "family": "Singlet_Val6_to_triplet",
+   "source": "test",
+   "reactants": [
+    "O=O"
+   ],
+   "n_fwd_reactions": 1,
+   "n_ref_reactions": 1,
+   "parity_ok": true,
+   "timing_seconds": 0.0028,
+   "got": {
+    "('[O][O]',)": [
+     1.0
+    ]
+   },
+   "want": {
+    "('[O][O]',)": [
+     1.0
+    ]
+   },
+   "reverse": []
+  }
+ ],
+ "reference_cases": 32
+}
