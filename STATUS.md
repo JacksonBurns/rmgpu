@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-05-step-04-families.md (job-05/step-03 done: template matching in rmgpu/core/template.py (match(family, reaction) -> template_labels) + group matcher in rmgpu/molecule/group.py (explicit graph + subgraph isomorphism, 99/99 parity vs RMG-Py on the group-matcher test set). Round-trip: 46/46 generated reactions match their family's template and the verdict agrees with recorded RMG-Py ground truth for all 322 (family, reaction) pairs; 44/46 most-specific template labels agree (2 benzene descent-label mismatches, documented: RMG aromatic Cb vs rmgpu kekulized Cd). 6/6 tests GREEN. See reports/job-05-step-03-templates.md.)
+NEXT: prompts/steps/job-05-step-05-gate.md (job-05/step-04 done: family loader + KineticsFamilies facade in rmgpu/core/family.py - controlled groups.py parse + rmgdb cross-check; 51/51 'default' families load (0 blocked), counts/recipes/templates/reverse-bookkeeping parity vs recorded RMG-Py reference (0 field mismatches), match_reaction 20/20 family agreement + 18/20 label agreement (2 documented aromatic Cd/Cb descent exceptions, same as step-03); rules stored as DATA 51/51 (rate-rule estimator deleted); rmgdb tree table incomplete for 21/51 families (file parse primary, cross-check on flat data). 7/7 test_families GREEN, full suite 595 passed. See reports/job-05-step-04-families.md.)
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -67,7 +67,7 @@ documented finding) and the session log has the evidence.
 | 05/01 | ReactionRecipe engine (apply_recipe + labels) | test_recipe_engine.py | done (27 passed; 9/9 gas-phase cases parity vs RMG-Py ground truth) |
 | 05/02 | Product enumeration (generate_reactions) | test_product_enum.py (30-case product-set + degeneracy parity vs RMG-Py reference) | done (35 passed; 30/30 cases + calc_degeneracy 46/46 parity vs recorded RMG-Py) |
 | 05/03 | Template matching + group matcher | test_template_match.py | done (6 passed; 322/322 (family,reaction) verdict parity + 46/46 round-trip vs recorded RMG-Py; 44/46 descent labels, 2 benzene Cb/Cd mismatches documented; group matcher 99/99 subgraph parity) |
-| 05/04 | Family loader + KineticsFamilies facade | test_families.py | pending |
+| 05/04 | Family loader + KineticsFamilies facade | test_families.py (7 tests) | done (51/51 default families load, 0 blocked; counts/recipes/templates/reverse-bookkeeping parity vs recorded RMG-Py 0 mismatches; match_reaction 20/20 family + 18/20 label, 2 documented aromatic Cd/Cb exceptions; rules as DATA 51/51; full suite 595) |
 | 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity) | pending |
 | 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | pending |
 | 06/02 | CoreEdgeReactionModel (enlarge/prune/screen) | test_core_model.py | pending |
@@ -739,3 +739,50 @@ next: job-05/step-04-families (read prompts/steps/job-05-step-04-families.md).
   recipe, reversible flags) built from rmgdb, replacing from_references; the
   group matcher's match_group(mol, group) is the primitive the family loader
   should reuse for template matching.
+
+### 2026-08-31 - job-05/step-04 (completed - family loader + KineticsFamilies facade)
+built: rmgpu/core/family.py (Family.from_files: controlled groups.py parse
+  (exec in stub namespace, same mechanism as RMG-Py Database.load / rmgdb
+  build) + rmgdb cross-check (kinetics_families_table row + every group's
+  label/adjacency list must agree; descriptions captured here so load does
+  not re-parse); _load_tree = RMG-Py Database._load_tree port, comment rule
+  = remove_comment_from_line EXACTLY ('//' only - '#' is legal in tree
+  labels); _parse_rules_file = rate rules as DATA (kinetics kind + raw args
+  incl. nested RateUncertainty, never evaluated); KineticsFamilies facade:
+  load('default'|'all'|[names]), get_family, .families, match_reaction
+  (delegates to step-3 template.match, first family in load order wins),
+  get_families_of_reaction, .blocked). Group.split() added to rmgpu/molecule/
+  group.py (single-template-reactant split, R_Recombination/Birad_recombination
+  Root -> 2). tests/test_families.py (7 tests). gates/baselines/job05/
+  step04_families_reference.json (recorded RMG-Py reference: 51 families'
+  enumeration fields + 20 match_reaction verdicts) + scripts/record_job05_
+  step04_reference.py. reports/job-05-step-04-families.md.
+checks: GREEN - pytest tests/test_families.py -q: 7 passed; job-05 tests
+  (families+template_match+recipe_engine+product_enum): 75 passed; full
+  suite: 595 passed in 19.6s. load('default'): 51 families, 0 blocked, 0.5s;
+  rules as DATA 51/51 (0 rules_error), forbidden present in 26 families;
+  match_reaction 20/20 family agreement + 18/20 label agreement (2 benzene
+  Cd/Cb descent exceptions, same as step-03); count parity vs reference:
+  0 field mismatches across all 51 families.
+findings: (1) fam.top = ALL group-tree top nodes (not just template
+  reactant slots) - the step-3 matcher descends from fam.top and indexes
+  fam.top[slot]; 16/51 families have extra top nodes (unimolecular
+  end-roots). (2) Family.reactant_num = the STORED reactantNum flag (RMG
+  fam.reactant_num), which is what the matcher's count guard AND RMG's
+  auto_generated guard read - Birad_recombination (reactantNum=1,
+  autoGenerated=1) therefore REJECTS the 2-radical recombination reactions
+  (OH+OH, CH3+OH) exactly like RMG-Py (verified in rmg_env: real
+  get_labeled_reactants_and_products returns (None,None) for the guard,
+  the products DO generate to HOOH); R_Recombination (reactantNum=2) accepts
+  them. num_template_reactants_effective (split count) is carried separately
+  for count parity only. (3) rmgdb kinetics_family_groups_tree_table is
+  INCOMPLETE for 21/51 default families (H_Abstraction 0/534,
+  R_Addition_MultipleBond 0/1211, intra_H_migration 0/310, several 0) -
+  build.py's sketchy_conversion crashes + swallows; hence file parse
+  PRIMARY, rmgdb cross-check on flat data (family row + group adjlists,
+  which match exactly).
+commits: 756486a (code + tests + reference + recorder), this commit (STATUS + report)
+next: job-05/step-05-gate (read prompts/steps/job-05-step-05-gate.md):
+  gate_05.py product-enumeration parity over the fixed (family, reactants)
+  case set - it joins this facade's match_reaction with step-02's
+  generate_reactions.
