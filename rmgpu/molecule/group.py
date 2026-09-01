@@ -229,6 +229,42 @@ class Group(object):
                 out[atom.label] = i
         return out
 
+    def split(self):
+        """RMG Group.split: convert a Group containing one or more
+        unconnected subgraphs into separate Groups (atom order preserved).
+        Used for RMG's single-template-reactant split (R_Recombination's
+        Y_rad/Root: two bonded-together-nothing radical atoms -> 2 reactants).
+        """
+        n = len(self.atoms)
+        comp_of = [-1] * n
+        comps = []
+        for start in range(n):
+            if comp_of[start] != -1:
+                continue
+            cid = len(comps)
+            comp = []
+            stack = [start]
+            comp_of[start] = cid
+            while stack:
+                i = stack.pop()
+                comp.append(i)
+                for (j, _bond) in self.neighbors(i):
+                    if comp_of[j] == -1:
+                        comp_of[j] = cid
+                        stack.append(j)
+            comps.append(comp)
+        out = []
+        for comp in comps:
+            idx = {old: new for new, old in enumerate(comp)}
+            g = Group()
+            for old in comp:
+                g.add_atom(self.atoms[old])
+            for (a, b), bond in self.edges.items():
+                if a in idx and b in idx:
+                    g.add_bond(idx[a], idx[b], bond.orders)
+            out.append(g)
+        return out
+
     def parse(self, text):
         """Parse an RMG group adjacency list and return self (RMG
         Group.from_adjacency_list(group=True))."""
