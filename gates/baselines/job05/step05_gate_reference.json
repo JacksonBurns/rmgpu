@@ -1,0 +1,4107 @@
+{
+ "cases": [
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 4,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "C"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "[CH3]"
+     ],
+     "degeneracy": 4.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C_methane",
+      "H_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    4.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "CC",
+    "[OH]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 6,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "CC"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u1 p0 c0 {1,S} {6,S} {7,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n"
+     ],
+     "product_smiles": [
+      "O",
+      "C[CH2]"
+     ],
+     "degeneracy": 6.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H3/Cs\\H3",
+      "O_pri_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    6.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "CC(=O)C",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 6,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1  O u0 p2 c0 {4,D}\n2  C u0 p0 c0 {4,S} {5,S} {6,S} {7,S}\n3  C u0 p0 c0 {4,S} {8,S} {9,S} {10,S}\n4  C u0 p0 c0 {1,D} {2,S} {3,S}\n5  H u0 p0 c0 {2,S}\n6  H u0 p0 c0 {2,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {3,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "CC(C)=O"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 O u0 p2 c0 {3,D}\n2 C u0 p0 c0 {3,S} {5,S} {6,S} {7,S}\n3 C u0 p0 c0 {1,D} {2,S} {4,S}\n4 C u1 p0 c0 {3,S} {8,S} {9,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {4,S}\n9 H u0 p0 c0 {4,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "[CH2]C(C)=O"
+     ],
+     "degeneracy": 6.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H3/CO",
+      "H_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    6.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C[CH]C",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 1,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {5,S} {6,S}\n2  C u0 p0 c0 {3,S} {7,S} {8,S} {9,S}\n3  C u1 p0 c0 {1,S} {2,S} {10,S}\n4  H u0 p0 c0 {1,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "C[CH]C"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 3\n1 C u0 p0 c0 {3,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {3,S} {7,S} {8,S} {9,S}\n3 C u2 p0 c0 {1,S} {2,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {2,S}\n9 H u0 p0 c0 {2,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "C[C]C"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C_rad_H",
+      "H_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C1=CC=CC=C1",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 6,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1  C u0 p0 c0 {2,B} {6,B} {7,S}\n2  C u0 p0 c0 {1,B} {3,B} {8,S}\n3  C u0 p0 c0 {2,B} {4,B} {9,S}\n4  C u0 p0 c0 {3,B} {5,B} {10,S}\n5  C u0 p0 c0 {4,B} {6,B} {11,S}\n6  C u0 p0 c0 {1,B} {5,B} {12,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {4,S}\n11 H u0 p0 c0 {5,S}\n12 H u0 p0 c0 {6,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "c1ccccc1"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1  C u0 p0 c0 {2,B} {3,B} {8,S}\n2  C u0 p0 c0 {1,B} {4,B} {7,S}\n3  C u0 p0 c0 {1,B} {5,B} {9,S}\n4  C u0 p0 c0 {2,B} {6,B} {10,S}\n5  C u0 p0 c0 {3,B} {6,B} {11,S}\n6  C u1 p0 c0 {4,B} {5,B}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {1,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {4,S}\n11 H u0 p0 c0 {5,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "[c]1ccccc1"
+     ],
+     "degeneracy": 6.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Cb_H",
+      "H_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    6.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C=C",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 4,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,D} {3,S} {4,S}\n2 C u0 p0 c0 {1,D} {5,S} {6,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C=C"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u0 p0 c0 {2,D} {3,S} {4,S}\n2 C u1 p0 c0 {1,D} {5,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {2,S}\n"
+     ],
+     "product_smiles": [
+      "C",
+      "[CH]=C"
+     ],
+     "degeneracy": 4.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Cd/H2/NonDeC",
+      "C_methyl"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    4.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C(C)(C)C",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 10,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1  C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2  C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3  C u0 p0 c0 {1,S} {9,S} {10,S} {11,S}\n4  C u0 p0 c0 {1,S} {12,S} {13,S} {14,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {2,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "CC(C)C"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1  C u0 p0 c0 {4,S} {5,S} {6,S} {7,S}\n2  C u0 p0 c0 {4,S} {8,S} {9,S} {10,S}\n3  C u0 p0 c0 {4,S} {11,S} {12,S} {13,S}\n4  C u1 p0 c0 {1,S} {2,S} {3,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "C",
+      "C[C](C)C"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H/Cs3",
+      "C_methyl"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1  C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2  C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3  C u0 p0 c0 {1,S} {9,S} {10,S} {11,S}\n4  C u0 p0 c0 {1,S} {12,S} {13,S} {14,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {2,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "CC(C)C"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2  C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3  C u0 p0 c0 {1,S} {9,S} {10,S} {11,S}\n4  C u1 p0 c0 {1,S} {12,S} {13,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {2,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n"
+     ],
+     "product_smiles": [
+      "C",
+      "[CH2]C(C)C"
+     ],
+     "degeneracy": 9.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H3/Cs\\TwoNonDe",
+      "C_methyl"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 2,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 2,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0,
+    9.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "CC(=O)[O]",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 6,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "multiplicity 2\n1 O u1 p2 c0 {4,S}\n2 O u0 p2 c0 {4,D}\n3 C u0 p0 c0 {4,S} {5,S} {6,S} {7,S}\n4 C u0 p0 c0 {1,S} {2,D} {3,S}\n5 H u0 p0 c0 {3,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "CC([O])=O"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 3\n1 O u1 p2 c0 {4,S}\n2 O u0 p2 c0 {4,D}\n3 C u1 p0 c0 {4,S} {5,S} {6,S}\n4 C u0 p0 c0 {1,S} {2,D} {3,S}\n5 H u0 p0 c0 {3,S}\n6 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "[CH2]C([O])=O"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H3/CO",
+      "H_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    3.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C1CCC1",
+    "[OH]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 8,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "1  C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2  C u0 p0 c0 {1,S} {3,S} {7,S} {8,S}\n3  C u0 p0 c0 {2,S} {4,S} {9,S} {10,S}\n4  C u0 p0 c0 {1,S} {3,S} {11,S} {12,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {4,S}\n12 H u0 p0 c0 {4,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "C1CCC1"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {5,S} {6,S}\n2  C u0 p0 c0 {1,S} {4,S} {7,S} {8,S}\n3  C u0 p0 c0 {1,S} {4,S} {9,S} {10,S}\n4  C u1 p0 c0 {2,S} {3,S} {11,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {4,S}\n"
+     ],
+     "product_smiles": [
+      "O",
+      "[CH]1CCC1"
+     ],
+     "degeneracy": 8.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H2/NonDeC",
+      "O_pri_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    8.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C1CC1",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 6,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {3,S} {6,S} {7,S}\n3 C u0 p0 c0 {1,S} {2,S} {8,S} {9,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {3,S}\n9 H u0 p0 c0 {3,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C1CC1"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {3,S} {6,S} {7,S}\n3 C u1 p0 c0 {1,S} {2,S} {8,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "C",
+      "[CH]1CC1"
+     ],
+     "degeneracy": 6.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H2/NonDeC",
+      "C_methyl"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    6.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "CCO",
+    "[OH]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 6,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "1 O u0 p2 c0 {2,S} {9,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {3,S}\n9 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "CCO"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "O",
+      "CC[O]"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "O/H/NonDeC",
+      "O_pri_rad"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "1 O u0 p2 c0 {2,S} {9,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {3,S}\n9 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "CCO"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 O u0 p2 c0 {3,S} {8,S}\n2 C u0 p0 c0 {3,S} {4,S} {5,S} {6,S}\n3 C u1 p0 c0 {1,S} {2,S} {7,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "O",
+      "C[CH]O"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H2/CsO",
+      "O_pri_rad"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "1 O u0 p2 c0 {2,S} {9,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {3,S}\n9 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "CCO"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 O u0 p2 c0 {2,S} {8,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u1 p0 c0 {2,S} {6,S} {7,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "O",
+      "[CH2]CO"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H3/Cs\\H2\\O",
+      "O_pri_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 3,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 3,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0,
+    2.0,
+    3.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "C#C",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1 C u0 p0 c0 {2,T} {3,S}\n2 C u0 p0 c0 {1,T} {4,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "C#C"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u0 p0 c0 {2,T} {3,S}\n2 C u1 p0 c0 {1,T}\n3 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "[C]#C"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Ct/H/NonDeC",
+      "H_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "CCN",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 7,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1  N u0 p1 c0 {2,S} {9,S} {10,S}\n2  C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3  C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4  H u0 p0 c0 {2,S}\n5  H u0 p0 c0 {2,S}\n6  H u0 p0 c0 {3,S}\n7  H u0 p0 c0 {3,S}\n8  H u0 p0 c0 {3,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "CCN"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 N u1 p1 c0 {2,S} {9,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {3,S}\n9 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "CC[NH]"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "N3s/H2/NonDeC",
+      "H_rad"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1  N u0 p1 c0 {2,S} {9,S} {10,S}\n2  C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3  C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4  H u0 p0 c0 {2,S}\n5  H u0 p0 c0 {2,S}\n6  H u0 p0 c0 {3,S}\n7  H u0 p0 c0 {3,S}\n8  H u0 p0 c0 {3,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "CCN"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 N u0 p1 c0 {3,S} {8,S} {9,S}\n2 C u0 p0 c0 {3,S} {4,S} {5,S} {6,S}\n3 C u1 p0 c0 {1,S} {2,S} {7,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {1,S}\n9 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "C[CH]N"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H2/NonDeN",
+      "H_rad"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1  N u0 p1 c0 {2,S} {9,S} {10,S}\n2  C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3  C u0 p0 c0 {2,S} {6,S} {7,S} {8,S}\n4  H u0 p0 c0 {2,S}\n5  H u0 p0 c0 {2,S}\n6  H u0 p0 c0 {3,S}\n7  H u0 p0 c0 {3,S}\n8  H u0 p0 c0 {3,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "CCN"
+     ],
+     "products": [
+      "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 N u0 p1 c0 {2,S} {6,S} {7,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u1 p0 c0 {2,S} {8,S} {9,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {1,S}\n8 H u0 p0 c0 {3,S}\n9 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "[H][H]",
+      "[CH2]CN"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H3/Cs",
+      "H_rad"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 3,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 3,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0,
+    2.0,
+    3.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "H_Abstraction",
+   "reactant_smiles": [
+    "CC#C",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 4,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,T}\n3 C u0 p0 c0 {2,T} {7,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {3,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C#CC"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {3,T}\n3 C u0 p0 c0 {2,T} {6,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "C",
+      "C#C[CH2]"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "C/H3/Ct",
+      "C_methyl"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,T}\n3 C u0 p0 c0 {2,T} {7,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {3,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C#CC"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,T}\n3 C u1 p0 c0 {2,T}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "C",
+      "[C]#CC"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Ct/H/NonDeC",
+      "C_methyl"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 2,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "AttributeError: 'list' object has no attribute 'is_isomorphic'"
+    }
+   ],
+   "n_fwd_calc": 2,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    3.0,
+    1.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "Disproportionation",
+   "reactant_smiles": [
+    "CC[CH]",
+    "[OH]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*4"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*4"
+     ],
+     [
+      "CHANGE_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "CHANGE_BOND",
+      "*2",
+      "-1",
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*4"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*4"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": 2,
+    "reactant_num": 2,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 3\n1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3 C u2 p0 c0 {1,S} {9,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {2,S}\n9 H u0 p0 c0 {3,S}\n",
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH]CC",
+      "[OH]"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {3,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,D} {7,S}\n3 C u1 p0 c0 {2,D} {8,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "O",
+      "[CH]=CC"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Root_Ext-1R!H-R_4R->O"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "Disproportionation",
+   "reactant_smiles": [
+    "CC[CH]",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*4"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*4"
+     ],
+     [
+      "CHANGE_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "CHANGE_BOND",
+      "*2",
+      "-1",
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*4"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*4"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": 2,
+    "reactant_num": 2,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 2,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 3\n1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3 C u2 p0 c0 {1,S} {9,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {2,S}\n9 H u0 p0 c0 {3,S}\n",
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH]CC",
+      "[CH3]"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,D} {7,S}\n3 C u1 p0 c0 {2,D} {8,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "C",
+      "[CH]=CC"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Root_Ext-1R!H-R_N-4R->O_N-Sp-5R!H=1R!H"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Recombination",
+   "reactant_smiles": [
+    "[OH]",
+    "[OH]"
+   ],
+   "same_reactants": 2,
+   "family_meta": {
+    "recipe": [
+     [
+      "FORM_BOND",
+      "*",
+      1,
+      "*"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*",
+      1,
+      "*"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": 1,
+    "reactant_num": 2,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "[OH]"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {3,S}\n2 O u0 p2 c0 {1,S} {4,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {2,S}\n"
+     ],
+     "product_smiles": [
+      "OO"
+     ],
+     "degeneracy": 0.5,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Root_N-1R->H_N-1CNOS->N_1COS->O_N-2R->C"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    0.5
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Recombination",
+   "reactant_smiles": [
+    "[CH3]",
+    "[OH]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "FORM_BOND",
+      "*",
+      1,
+      "*"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*",
+      1,
+      "*"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": 1,
+    "reactant_num": 2,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "[CH3]"
+     ],
+     "products": [
+      "1 O u0 p2 c0 {2,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 H u0 p0 c0 {2,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "CO"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Root_N-1R->H_N-1CNOS->N_1COS->O_2R->C"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Recombination",
+   "reactant_smiles": [
+    "[CH3]",
+    "[CH3]"
+   ],
+   "same_reactants": 2,
+   "family_meta": {
+    "recipe": [
+     [
+      "FORM_BOND",
+      "*",
+      1,
+      "*"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*",
+      1,
+      "*"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": 1,
+    "reactant_num": 2,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "[CH3]"
+     ],
+     "products": [
+      "1 C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2 C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {2,S}\n"
+     ],
+     "product_smiles": [
+      "CC"
+     ],
+     "degeneracy": 0.5,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Root_N-1R->H_N-1CNOS->N_N-1COS->O_1CS->C_N-1C-inRing"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    0.5
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "reactant_smiles": [
+    "C=C",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "CHANGE_BOND",
+      "*1",
+      -1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      "1",
+      "*2"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,D} {3,S} {4,S}\n2 C u0 p0 c0 {1,D} {5,S} {6,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C=C"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2  C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3  C u1 p0 c0 {1,S} {9,S} {10,S}\n4  H u0 p0 c0 {1,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {2,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]CC"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Cds-HH_Cds-HH",
+      "CsJ-HHH"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "reactant_smiles": [
+    "C=C",
+    "[OH]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "CHANGE_BOND",
+      "*1",
+      -1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      "1",
+      "*2"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 O u1 p2 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,D} {3,S} {4,S}\n2 C u0 p0 c0 {1,D} {5,S} {6,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[OH]",
+      "C=C"
+     ],
+     "products": [
+      "multiplicity 2\n1 O u0 p2 c0 {2,S} {8,S}\n2 C u0 p0 c0 {1,S} {3,S} {4,S} {5,S}\n3 C u1 p0 c0 {2,S} {6,S} {7,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {3,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]CO"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Cds-HH_Cds-HH",
+      "OJ_pri"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "reactant_smiles": [
+    "C1=CC=CC=C1",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "CHANGE_BOND",
+      "*1",
+      -1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      "1",
+      "*2"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 12,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1  C u0 p0 c0 {2,B} {6,B} {7,S}\n2  C u0 p0 c0 {1,B} {3,B} {8,S}\n3  C u0 p0 c0 {2,B} {4,B} {9,S}\n4  C u0 p0 c0 {3,B} {5,B} {10,S}\n5  C u0 p0 c0 {4,B} {6,B} {11,S}\n6  C u0 p0 c0 {1,B} {5,B} {12,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {4,S}\n11 H u0 p0 c0 {5,S}\n12 H u0 p0 c0 {6,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "c1ccccc1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {7,S} {8,S}\n2  C u1 p0 c0 {1,S} {4,S} {9,S}\n3  C u0 p0 c0 {1,S} {5,D} {10,S}\n4  C u0 p0 c0 {2,S} {6,D} {11,S}\n5  C u0 p0 c0 {3,D} {6,S} {13,S}\n6  C u0 p0 c0 {4,D} {5,S} {12,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {1,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {4,S}\n12 H u0 p0 c0 {6,S}\n13 H u0 p0 c0 {5,S}\n"
+     ],
+     "product_smiles": [
+      "[CH]1C=CC=CC1"
+     ],
+     "degeneracy": 6.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Cb-H_Cb-H",
+      "HJ"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    6.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "reactant_smiles": [
+    "C=O",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "CHANGE_BOND",
+      "*1",
+      -1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      "1",
+      "*2"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 O u0 p2 c0 {2,D}\n2 C u0 p0 c0 {1,D} {3,S} {4,S}\n3 H u0 p0 c0 {2,S}\n4 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C=O"
+     ],
+     "products": [
+      "multiplicity 2\n1 O u0 p2 c0 {2,S} {3,S}\n2 C u0 p0 c0 {1,S} {4,S} {5,S} {6,S}\n3 C u1 p0 c0 {1,S} {7,S} {8,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]OC"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Od_CO-HH",
+      "CsJ-HHH"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 O u0 p2 c0 {2,D}\n2 C u0 p0 c0 {1,D} {3,S} {4,S}\n3 H u0 p0 c0 {2,S}\n4 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C=O"
+     ],
+     "products": [
+      "multiplicity 2\n1 O u1 p2 c0 {3,S}\n2 C u0 p0 c0 {3,S} {4,S} {5,S} {6,S}\n3 C u0 p0 c0 {1,S} {2,S} {7,S} {8,S}\n4 H u0 p0 c0 {2,S}\n5 H u0 p0 c0 {2,S}\n6 H u0 p0 c0 {2,S}\n7 H u0 p0 c0 {3,S}\n8 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "CC[O]"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "CO-HH_O",
+      "CsJ-HHH"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 2,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    },
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 2,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0,
+    1.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "reactant_smiles": [
+    "C#C",
+    "[H]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "CHANGE_BOND",
+      "*1",
+      -1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      "1",
+      "*2"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 H u1 p0 c0\n",
+      "1 C u0 p0 c0 {2,T} {3,S}\n2 C u0 p0 c0 {1,T} {4,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[H]",
+      "C#C"
+     ],
+     "products": [
+      "multiplicity 2\n1 C u0 p0 c0 {2,D} {3,S} {4,S}\n2 C u1 p0 c0 {1,D} {5,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {2,S}\n"
+     ],
+     "product_smiles": [
+      "[CH]=C"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Ct-H_Ct-H",
+      "HJ"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "R_Addition_MultipleBond",
+   "reactant_smiles": [
+    "C#C",
+    "[CH3]"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "CHANGE_BOND",
+      "*1",
+      -1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      "1",
+      "*2"
+     ]
+    ],
+    "own_reverse": false,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 2,
+    "num_template_reactants_effective": 2,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": 2
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1 C u1 p0 c0 {2,S} {3,S} {4,S}\n2 H u0 p0 c0 {1,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {1,S}\n",
+      "1 C u0 p0 c0 {2,T} {3,S}\n2 C u0 p0 c0 {1,T} {4,S}\n3 H u0 p0 c0 {1,S}\n4 H u0 p0 c0 {2,S}\n"
+     ],
+     "reactant_smiles": [
+      "[CH3]",
+      "C#C"
+     ],
+     "products": [
+      "multiplicity 2\n1 C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2 C u0 p0 c0 {1,S} {3,D} {7,S}\n3 C u1 p0 c0 {2,D} {8,S}\n4 H u0 p0 c0 {1,S}\n5 H u0 p0 c0 {1,S}\n6 H u0 p0 c0 {1,S}\n7 H u0 p0 c0 {2,S}\n8 H u0 p0 c0 {3,S}\n"
+     ],
+     "product_smiles": [
+      "[CH]=CC"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "Ct-H_Ct-H",
+      "CsJ-HHH"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "intra_H_migration",
+   "reactant_smiles": [
+    "C[CH]CCC"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 1,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 8,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {6,S} {7,S}\n2  C u0 p0 c0 {1,S} {5,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {10,S} {11,S} {12,S}\n4  C u0 p0 c0 {5,S} {13,S} {14,S} {15,S}\n5  C u1 p0 c0 {2,S} {4,S} {16,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n15 H u0 p0 c0 {4,S}\n16 H u0 p0 c0 {5,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]CCC"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {5,S} {6,S} {7,S}\n2  C u0 p0 c0 {4,S} {5,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {10,S} {11,S} {12,S}\n4  C u0 p0 c0 {2,S} {13,S} {14,S} {15,S}\n5  C u1 p0 c0 {1,S} {2,S} {16,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n15 H u0 p0 c0 {4,S}\n16 H u0 p0 c0 {5,S}\n"
+     ],
+     "product_smiles": [
+      "CC[CH]CC"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R2H_S",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_H/(NonDeC/Cs)"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {6,S} {7,S}\n2  C u0 p0 c0 {1,S} {5,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {10,S} {11,S} {12,S}\n4  C u0 p0 c0 {5,S} {13,S} {14,S} {15,S}\n5  C u1 p0 c0 {2,S} {4,S} {16,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n15 H u0 p0 c0 {4,S}\n16 H u0 p0 c0 {5,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]CCC"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {8,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {6,S} {7,S}\n3  C u0 p0 c0 {1,S} {5,S} {10,S} {11,S}\n4  C u0 p0 c0 {2,S} {12,S} {13,S} {14,S}\n5  C u1 p0 c0 {3,S} {15,S} {16,S}\n6  H u0 p0 c0 {2,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {1,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {5,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]CCCC"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R2H_S",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_2H"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {6,S} {7,S}\n2  C u0 p0 c0 {1,S} {5,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {10,S} {11,S} {12,S}\n4  C u0 p0 c0 {5,S} {13,S} {14,S} {15,S}\n5  C u1 p0 c0 {2,S} {4,S} {16,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n15 H u0 p0 c0 {4,S}\n16 H u0 p0 c0 {5,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]CCC"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {6,S} {7,S}\n2  C u0 p0 c0 {1,S} {4,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {5,S} {10,S} {11,S}\n4  C u0 p0 c0 {2,S} {12,S} {13,S} {14,S}\n5  C u1 p0 c0 {3,S} {15,S} {16,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {1,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {4,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {5,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]CCCC"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R4H_SSS",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_2H"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 3,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    }
+   ],
+   "n_fwd_calc": 3,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0,
+    3.0,
+    3.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "intra_H_migration",
+   "reactant_smiles": [
+    "C[CH]C1CCCCC1"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 1,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 24,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {8,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {10,S} {11,S}\n3  C u0 p0 c0 {1,S} {6,S} {18,S} {19,S}\n4  C u0 p0 c0 {2,S} {5,S} {12,S} {13,S}\n5  C u0 p0 c0 {4,S} {6,S} {14,S} {15,S}\n6  C u0 p0 c0 {3,S} {5,S} {16,S} {17,S}\n7  C u0 p0 c0 {8,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {1,S} {7,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {6,S}\n17 H u0 p0 c0 {6,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {3,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]C1CCCCC1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {11,S} {12,S}\n2  C u0 p0 c0 {1,S} {4,S} {9,S} {10,S}\n3  C u0 p0 c0 {1,S} {5,S} {13,S} {14,S}\n4  C u0 p0 c0 {2,S} {8,S} {16,S} {17,S}\n5  C u0 p0 c0 {3,S} {8,S} {18,S} {19,S}\n6  C u0 p0 c0 {7,S} {8,S} {15,S} {20,S}\n7  C u0 p0 c0 {6,S} {21,S} {22,S} {23,S}\n8  C u1 p0 c0 {4,S} {5,S} {6,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {1,S}\n12 H u0 p0 c0 {1,S}\n13 H u0 p0 c0 {3,S}\n14 H u0 p0 c0 {3,S}\n15 H u0 p0 c0 {6,S}\n16 H u0 p0 c0 {4,S}\n17 H u0 p0 c0 {4,S}\n18 H u0 p0 c0 {5,S}\n19 H u0 p0 c0 {5,S}\n20 H u0 p0 c0 {6,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {7,S}\n"
+     ],
+     "product_smiles": [
+      "CC[C]1CCCCC1"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R2H_S",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_Cs2"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {8,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {10,S} {11,S}\n3  C u0 p0 c0 {1,S} {6,S} {18,S} {19,S}\n4  C u0 p0 c0 {2,S} {5,S} {12,S} {13,S}\n5  C u0 p0 c0 {4,S} {6,S} {14,S} {15,S}\n6  C u0 p0 c0 {3,S} {5,S} {16,S} {17,S}\n7  C u0 p0 c0 {8,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {1,S} {7,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {6,S}\n17 H u0 p0 c0 {6,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {3,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]C1CCCCC1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {7,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {10,S} {11,S}\n3  C u0 p0 c0 {1,S} {6,S} {18,S} {19,S}\n4  C u0 p0 c0 {2,S} {5,S} {12,S} {13,S}\n5  C u0 p0 c0 {4,S} {6,S} {14,S} {15,S}\n6  C u0 p0 c0 {3,S} {5,S} {16,S} {17,S}\n7  C u0 p0 c0 {1,S} {8,S} {20,S} {21,S}\n8  C u1 p0 c0 {7,S} {22,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {6,S}\n17 H u0 p0 c0 {6,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {3,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {8,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]CC1CCCCC1"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R2H_S",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_2H"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {8,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {10,S} {11,S}\n3  C u0 p0 c0 {1,S} {6,S} {18,S} {19,S}\n4  C u0 p0 c0 {2,S} {5,S} {12,S} {13,S}\n5  C u0 p0 c0 {4,S} {6,S} {14,S} {15,S}\n6  C u0 p0 c0 {3,S} {5,S} {16,S} {17,S}\n7  C u0 p0 c0 {8,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {1,S} {7,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {6,S}\n17 H u0 p0 c0 {6,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {3,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]C1CCCCC1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {5,S} {8,S} {9,S}\n2  C u0 p0 c0 {1,S} {3,S} {15,S} {16,S}\n3  C u0 p0 c0 {2,S} {4,S} {13,S} {14,S}\n4  C u0 p0 c0 {3,S} {6,S} {11,S} {12,S}\n5  C u0 p0 c0 {1,S} {7,S} {10,S} {17,S}\n6  C u0 p0 c0 {4,S} {8,S} {18,S} {19,S}\n7  C u0 p0 c0 {5,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {1,S} {6,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {5,S}\n11 H u0 p0 c0 {4,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {3,S}\n14 H u0 p0 c0 {3,S}\n15 H u0 p0 c0 {2,S}\n16 H u0 p0 c0 {2,S}\n17 H u0 p0 c0 {5,S}\n18 H u0 p0 c0 {6,S}\n19 H u0 p0 c0 {6,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "CCC1[CH]CCCC1"
+     ],
+     "degeneracy": 4.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R3H_SS_Cs",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_H/(NonDeC/Cs)"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {8,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {10,S} {11,S}\n3  C u0 p0 c0 {1,S} {6,S} {18,S} {19,S}\n4  C u0 p0 c0 {2,S} {5,S} {12,S} {13,S}\n5  C u0 p0 c0 {4,S} {6,S} {14,S} {15,S}\n6  C u0 p0 c0 {3,S} {5,S} {16,S} {17,S}\n7  C u0 p0 c0 {8,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {1,S} {7,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {6,S}\n17 H u0 p0 c0 {6,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {3,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]C1CCCCC1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {5,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {13,S} {14,S}\n3  C u0 p0 c0 {1,S} {7,S} {10,S} {15,S}\n4  C u0 p0 c0 {2,S} {6,S} {11,S} {12,S}\n5  C u0 p0 c0 {1,S} {8,S} {16,S} {17,S}\n6  C u0 p0 c0 {4,S} {8,S} {18,S} {19,S}\n7  C u0 p0 c0 {3,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {5,S} {6,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {4,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {2,S}\n14 H u0 p0 c0 {2,S}\n15 H u0 p0 c0 {3,S}\n16 H u0 p0 c0 {5,S}\n17 H u0 p0 c0 {5,S}\n18 H u0 p0 c0 {6,S}\n19 H u0 p0 c0 {6,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "CCC1C[CH]CCC1"
+     ],
+     "degeneracy": 4.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R4H_SSS",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_H/(NonDeC/Cs)"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {8,S} {9,S}\n2  C u0 p0 c0 {1,S} {4,S} {10,S} {11,S}\n3  C u0 p0 c0 {1,S} {6,S} {18,S} {19,S}\n4  C u0 p0 c0 {2,S} {5,S} {12,S} {13,S}\n5  C u0 p0 c0 {4,S} {6,S} {14,S} {15,S}\n6  C u0 p0 c0 {3,S} {5,S} {16,S} {17,S}\n7  C u0 p0 c0 {8,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {1,S} {7,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {6,S}\n17 H u0 p0 c0 {6,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {3,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]C1CCCCC1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {4,S} {9,S}\n2  C u0 p0 c0 {1,S} {5,S} {10,S} {11,S}\n3  C u0 p0 c0 {1,S} {6,S} {13,S} {14,S}\n4  C u0 p0 c0 {1,S} {7,S} {12,S} {15,S}\n5  C u0 p0 c0 {2,S} {8,S} {16,S} {17,S}\n6  C u0 p0 c0 {3,S} {8,S} {18,S} {19,S}\n7  C u0 p0 c0 {4,S} {20,S} {21,S} {22,S}\n8  C u1 p0 c0 {5,S} {6,S} {23,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {3,S}\n14 H u0 p0 c0 {3,S}\n15 H u0 p0 c0 {4,S}\n16 H u0 p0 c0 {5,S}\n17 H u0 p0 c0 {5,S}\n18 H u0 p0 c0 {6,S}\n19 H u0 p0 c0 {6,S}\n20 H u0 p0 c0 {7,S}\n21 H u0 p0 c0 {7,S}\n22 H u0 p0 c0 {7,S}\n23 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "CCC1CC[CH]CC1"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R5H_CCC",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_H/(NonDeC/Cs)"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 5,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    }
+   ],
+   "n_fwd_calc": 5,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0,
+    3.0,
+    4.0,
+    4.0,
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "intra_H_migration",
+   "reactant_smiles": [
+    "C(C)(C)[CH]C(C)(C)C"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*1",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*3"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 1,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 16,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {5,S} {8,S}\n2  C u0 p0 c0 {6,S} {7,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {16,S} {17,S} {18,S}\n4  C u0 p0 c0 {1,S} {19,S} {20,S} {21,S}\n5  C u0 p0 c0 {1,S} {22,S} {23,S} {24,S}\n6  C u0 p0 c0 {2,S} {10,S} {11,S} {12,S}\n7  C u0 p0 c0 {2,S} {13,S} {14,S} {15,S}\n8  C u1 p0 c0 {1,S} {2,S} {25,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {6,S}\n11 H u0 p0 c0 {6,S}\n12 H u0 p0 c0 {6,S}\n13 H u0 p0 c0 {7,S}\n14 H u0 p0 c0 {7,S}\n15 H u0 p0 c0 {7,S}\n16 H u0 p0 c0 {3,S}\n17 H u0 p0 c0 {3,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {4,S}\n20 H u0 p0 c0 {4,S}\n21 H u0 p0 c0 {4,S}\n22 H u0 p0 c0 {5,S}\n23 H u0 p0 c0 {5,S}\n24 H u0 p0 c0 {5,S}\n25 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "CC(C)[CH]C(C)(C)C"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2  C u0 p0 c0 {1,S} {8,S} {9,S} {10,S}\n3  C u0 p0 c0 {1,S} {11,S} {12,S} {13,S}\n4  C u0 p0 c0 {1,S} {14,S} {15,S} {16,S}\n5  C u0 p0 c0 {1,S} {17,S} {18,S} {19,S}\n6  C u0 p0 c0 {8,S} {20,S} {21,S} {22,S}\n7  C u0 p0 c0 {8,S} {23,S} {24,S} {25,S}\n8  C u1 p0 c0 {2,S} {6,S} {7,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {3,S}\n14 H u0 p0 c0 {4,S}\n15 H u0 p0 c0 {4,S}\n16 H u0 p0 c0 {4,S}\n17 H u0 p0 c0 {5,S}\n18 H u0 p0 c0 {5,S}\n19 H u0 p0 c0 {5,S}\n20 H u0 p0 c0 {6,S}\n21 H u0 p0 c0 {6,S}\n22 H u0 p0 c0 {6,S}\n23 H u0 p0 c0 {7,S}\n24 H u0 p0 c0 {7,S}\n25 H u0 p0 c0 {7,S}\n"
+     ],
+     "product_smiles": [
+      "C[C](C)CC(C)(C)C"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R2H_S",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_Cs2"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {5,S} {8,S}\n2  C u0 p0 c0 {6,S} {7,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {16,S} {17,S} {18,S}\n4  C u0 p0 c0 {1,S} {19,S} {20,S} {21,S}\n5  C u0 p0 c0 {1,S} {22,S} {23,S} {24,S}\n6  C u0 p0 c0 {2,S} {10,S} {11,S} {12,S}\n7  C u0 p0 c0 {2,S} {13,S} {14,S} {15,S}\n8  C u1 p0 c0 {1,S} {2,S} {25,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {6,S}\n11 H u0 p0 c0 {6,S}\n12 H u0 p0 c0 {6,S}\n13 H u0 p0 c0 {7,S}\n14 H u0 p0 c0 {7,S}\n15 H u0 p0 c0 {7,S}\n16 H u0 p0 c0 {3,S}\n17 H u0 p0 c0 {3,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {4,S}\n20 H u0 p0 c0 {4,S}\n21 H u0 p0 c0 {4,S}\n22 H u0 p0 c0 {5,S}\n23 H u0 p0 c0 {5,S}\n24 H u0 p0 c0 {5,S}\n25 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "CC(C)[CH]C(C)(C)C"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {5,S} {8,S}\n2  C u0 p0 c0 {3,S} {6,S} {7,S} {9,S}\n3  C u0 p0 c0 {1,S} {2,S} {10,S} {11,S}\n4  C u0 p0 c0 {1,S} {18,S} {19,S} {20,S}\n5  C u0 p0 c0 {1,S} {21,S} {22,S} {23,S}\n6  C u0 p0 c0 {2,S} {12,S} {13,S} {14,S}\n7  C u0 p0 c0 {2,S} {15,S} {16,S} {17,S}\n8  C u1 p0 c0 {1,S} {24,S} {25,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {6,S}\n13 H u0 p0 c0 {6,S}\n14 H u0 p0 c0 {6,S}\n15 H u0 p0 c0 {7,S}\n16 H u0 p0 c0 {7,S}\n17 H u0 p0 c0 {7,S}\n18 H u0 p0 c0 {4,S}\n19 H u0 p0 c0 {4,S}\n20 H u0 p0 c0 {4,S}\n21 H u0 p0 c0 {5,S}\n22 H u0 p0 c0 {5,S}\n23 H u0 p0 c0 {5,S}\n24 H u0 p0 c0 {8,S}\n25 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]C(C)(C)CC(C)C"
+     ],
+     "degeneracy": 9.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R3H_SS_Cs",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_2H"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {5,S} {8,S}\n2  C u0 p0 c0 {6,S} {7,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {16,S} {17,S} {18,S}\n4  C u0 p0 c0 {1,S} {19,S} {20,S} {21,S}\n5  C u0 p0 c0 {1,S} {22,S} {23,S} {24,S}\n6  C u0 p0 c0 {2,S} {10,S} {11,S} {12,S}\n7  C u0 p0 c0 {2,S} {13,S} {14,S} {15,S}\n8  C u1 p0 c0 {1,S} {2,S} {25,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {6,S}\n11 H u0 p0 c0 {6,S}\n12 H u0 p0 c0 {6,S}\n13 H u0 p0 c0 {7,S}\n14 H u0 p0 c0 {7,S}\n15 H u0 p0 c0 {7,S}\n16 H u0 p0 c0 {3,S}\n17 H u0 p0 c0 {3,S}\n18 H u0 p0 c0 {3,S}\n19 H u0 p0 c0 {4,S}\n20 H u0 p0 c0 {4,S}\n21 H u0 p0 c0 {4,S}\n22 H u0 p0 c0 {5,S}\n23 H u0 p0 c0 {5,S}\n24 H u0 p0 c0 {5,S}\n25 H u0 p0 c0 {8,S}\n"
+     ],
+     "reactant_smiles": [
+      "CC(C)[CH]C(C)(C)C"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {5,S} {6,S}\n2  C u0 p0 c0 {3,S} {7,S} {8,S} {9,S}\n3  C u0 p0 c0 {1,S} {2,S} {10,S} {11,S}\n4  C u0 p0 c0 {1,S} {15,S} {16,S} {17,S}\n5  C u0 p0 c0 {1,S} {18,S} {19,S} {20,S}\n6  C u0 p0 c0 {1,S} {21,S} {22,S} {23,S}\n7  C u0 p0 c0 {2,S} {12,S} {13,S} {14,S}\n8  C u1 p0 c0 {2,S} {24,S} {25,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {7,S}\n13 H u0 p0 c0 {7,S}\n14 H u0 p0 c0 {7,S}\n15 H u0 p0 c0 {4,S}\n16 H u0 p0 c0 {4,S}\n17 H u0 p0 c0 {4,S}\n18 H u0 p0 c0 {5,S}\n19 H u0 p0 c0 {5,S}\n20 H u0 p0 c0 {5,S}\n21 H u0 p0 c0 {6,S}\n22 H u0 p0 c0 {6,S}\n23 H u0 p0 c0 {6,S}\n24 H u0 p0 c0 {8,S}\n25 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]C(C)CC(C)(C)C"
+     ],
+     "degeneracy": 6.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "R3H_SS_Cs",
+      "C_rad_out_H/NonDeC",
+      "Cs_H_out_2H"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 3,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    }
+   ],
+   "n_fwd_calc": 3,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0,
+    9.0,
+    6.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "Intra_ene_reaction",
+   "reactant_smiles": [
+    "C[CH]C1=CC=CC=C1"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*6"
+     ],
+     [
+      "FORM_BOND",
+      "*2",
+      1,
+      "*6"
+     ],
+     [
+      "CHANGE_BOND",
+      "*2",
+      -1,
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*4",
+      -1,
+      "*5"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      1,
+      "*5"
+     ],
+     [
+      "CHANGE_BOND",
+      "*4",
+      1,
+      "*3"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "CHANGE_BOND",
+      "*4",
+      "-1",
+      "*3"
+     ],
+     [
+      "CHANGE_BOND",
+      "*1",
+      "-1",
+      "*5"
+     ],
+     [
+      "CHANGE_BOND",
+      "*4",
+      "1",
+      "*5"
+     ],
+     [
+      "CHANGE_BOND",
+      "*2",
+      "1",
+      "*3"
+     ],
+     [
+      "BREAK_BOND",
+      "*2",
+      1,
+      "*6"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*6"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 1,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 12,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {9,S} {10,S} {11,S}\n2  C u0 p0 c0 {3,D} {4,S} {5,S}\n3  C u0 p0 c0 {1,S} {2,D} {12,S}\n4  C u1 p0 c0 {2,S} {6,S} {13,S}\n5  C u0 p0 c0 {2,S} {8,D} {17,S}\n6  C u0 p0 c0 {4,S} {7,D} {14,S}\n7  C u0 p0 c0 {6,D} {8,S} {15,S}\n8  C u0 p0 c0 {5,D} {7,S} {16,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {1,S}\n11 H u0 p0 c0 {1,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {6,S}\n15 H u0 p0 c0 {7,S}\n16 H u0 p0 c0 {8,S}\n17 H u0 p0 c0 {5,S}\n"
+     ],
+     "reactant_smiles": [
+      "CC=C1[CH]C=CC=C1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {9,S} {10,S}\n2  C u0 p0 c0 {3,D} {5,S} {7,S}\n3  C u0 p0 c0 {1,S} {2,D} {12,S}\n4  C u0 p0 c0 {1,S} {6,D} {11,S}\n5  C u1 p0 c0 {2,S} {6,S} {14,S}\n6  C u0 p0 c0 {4,D} {5,S} {15,S}\n7  C u0 p0 c0 {2,S} {8,D} {13,S}\n8  C u0 p0 c0 {7,D} {16,S} {17,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {1,S}\n11 H u0 p0 c0 {4,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {7,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {6,S}\n16 H u0 p0 c0 {8,S}\n17 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "C=CC1=CCC=C[CH]1"
+     ],
+     "degeneracy": 6.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "1_3_unsaturated_pentane_backbone",
+      "CH3_1",
+      "CdHC_2"
+     ]
+    },
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {9,S} {10,S} {11,S}\n2  C u0 p0 c0 {3,D} {4,S} {5,S}\n3  C u0 p0 c0 {1,S} {2,D} {12,S}\n4  C u0 p0 c0 {2,S} {7,D} {13,S}\n5  C u0 p0 c0 {2,S} {8,D} {17,S}\n6  C u1 p0 c0 {7,S} {8,S} {15,S}\n7  C u0 p0 c0 {4,D} {6,S} {14,S}\n8  C u0 p0 c0 {5,D} {6,S} {16,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {1,S}\n11 H u0 p0 c0 {1,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {4,S}\n14 H u0 p0 c0 {7,S}\n15 H u0 p0 c0 {6,S}\n16 H u0 p0 c0 {8,S}\n17 H u0 p0 c0 {5,S}\n"
+     ],
+     "reactant_smiles": [
+      "CC=C1C=C[CH]C=C1"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {3,S} {4,S} {9,S} {10,S}\n2  C u0 p0 c0 {3,D} {5,S} {7,S}\n3  C u0 p0 c0 {1,S} {2,D} {11,S}\n4  C u1 p0 c0 {1,S} {6,S} {12,S}\n5  C u0 p0 c0 {2,S} {6,D} {15,S}\n6  C u0 p0 c0 {4,S} {5,D} {14,S}\n7  C u0 p0 c0 {2,S} {8,D} {13,S}\n8  C u0 p0 c0 {7,D} {16,S} {17,S}\n9  H u0 p0 c0 {1,S}\n10 H u0 p0 c0 {1,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {7,S}\n14 H u0 p0 c0 {6,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {8,S}\n17 H u0 p0 c0 {8,S}\n"
+     ],
+     "product_smiles": [
+      "C=CC1=CC[CH]C=C1"
+     ],
+     "degeneracy": 3.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "1_3_pentadiene",
+      "CH3_1",
+      "CdCJ_2"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 2,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    },
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    }
+   ],
+   "n_fwd_calc": 2,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    6.0,
+    6.0
+   ],
+   "calc_degeneracy_error": [
+    null,
+    null
+   ],
+   "source": "default"
+  },
+  {
+   "family": "1,2_shiftC",
+   "reactant_smiles": [
+    "CC[CH]C"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 1,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 6,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {4,S} {5,S} {6,S}\n2  C u0 p0 c0 {1,S} {7,S} {8,S} {9,S}\n3  C u0 p0 c0 {4,S} {10,S} {11,S} {12,S}\n4  C u1 p0 c0 {1,S} {3,S} {13,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {1,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {4,S}\n"
+     ],
+     "reactant_smiles": [
+      "C[CH]CC"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {3,S} {4,S} {5,S}\n2  C u0 p0 c0 {1,S} {6,S} {7,S} {8,S}\n3  C u0 p0 c0 {1,S} {9,S} {10,S} {11,S}\n4  C u1 p0 c0 {1,S} {12,S} {13,S}\n5  H u0 p0 c0 {1,S}\n6  H u0 p0 c0 {2,S}\n7  H u0 p0 c0 {2,S}\n8  H u0 p0 c0 {2,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {4,S}\n13 H u0 p0 c0 {4,S}\n"
+     ],
+     "product_smiles": [
+      "[CH2]C(C)C"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "CH3Cs(-HH)CJ",
+      "CsJ-CsH"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "test"
+  },
+  {
+   "family": "1,2_shiftC",
+   "reactant_smiles": [
+    "CCC[CH]C(C)C"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*2"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*3",
+      "1"
+     ]
+    ],
+    "reverse_recipe": [
+     [
+      "GAIN_RADICAL",
+      "*3",
+      "1"
+     ],
+     [
+      "LOSE_RADICAL",
+      "*2",
+      "1"
+     ],
+     [
+      "BREAK_BOND",
+      "*1",
+      1,
+      "*3"
+     ],
+     [
+      "FORM_BOND",
+      "*1",
+      1,
+      "*2"
+     ]
+    ],
+    "own_reverse": true,
+    "reversible": true,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 1,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 12,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "multiplicity 2\n1  C u0 p0 c0 {4,S} {5,S} {7,S} {8,S}\n2  C u0 p0 c0 {3,S} {6,S} {9,S} {10,S}\n3  C u0 p0 c0 {2,S} {7,S} {11,S} {12,S}\n4  C u0 p0 c0 {1,S} {16,S} {17,S} {18,S}\n5  C u0 p0 c0 {1,S} {19,S} {20,S} {21,S}\n6  C u0 p0 c0 {2,S} {13,S} {14,S} {15,S}\n7  C u1 p0 c0 {1,S} {3,S} {22,S}\n8  H u0 p0 c0 {1,S}\n9  H u0 p0 c0 {2,S}\n10 H u0 p0 c0 {2,S}\n11 H u0 p0 c0 {3,S}\n12 H u0 p0 c0 {3,S}\n13 H u0 p0 c0 {6,S}\n14 H u0 p0 c0 {6,S}\n15 H u0 p0 c0 {6,S}\n16 H u0 p0 c0 {4,S}\n17 H u0 p0 c0 {4,S}\n18 H u0 p0 c0 {4,S}\n19 H u0 p0 c0 {5,S}\n20 H u0 p0 c0 {5,S}\n21 H u0 p0 c0 {5,S}\n22 H u0 p0 c0 {7,S}\n"
+     ],
+     "reactant_smiles": [
+      "CCC[CH]C(C)C"
+     ],
+     "products": [
+      "multiplicity 2\n1  C u0 p0 c0 {2,S} {4,S} {7,S} {8,S}\n2  C u0 p0 c0 {1,S} {3,S} {11,S} {12,S}\n3  C u0 p0 c0 {2,S} {5,S} {9,S} {10,S}\n4  C u0 p0 c0 {1,S} {16,S} {17,S} {18,S}\n5  C u0 p0 c0 {3,S} {13,S} {14,S} {15,S}\n6  C u0 p0 c0 {7,S} {19,S} {20,S} {21,S}\n7  C u1 p0 c0 {1,S} {6,S} {22,S}\n8  H u0 p0 c0 {1,S}\n9  H u0 p0 c0 {3,S}\n10 H u0 p0 c0 {3,S}\n11 H u0 p0 c0 {2,S}\n12 H u0 p0 c0 {2,S}\n13 H u0 p0 c0 {5,S}\n14 H u0 p0 c0 {5,S}\n15 H u0 p0 c0 {5,S}\n16 H u0 p0 c0 {4,S}\n17 H u0 p0 c0 {4,S}\n18 H u0 p0 c0 {4,S}\n19 H u0 p0 c0 {6,S}\n20 H u0 p0 c0 {6,S}\n21 H u0 p0 c0 {6,S}\n22 H u0 p0 c0 {7,S}\n"
+     ],
+     "product_smiles": [
+      "C[CH]C(C)CCC"
+     ],
+     "degeneracy": 2.0,
+     "is_forward": true,
+     "reversible": true,
+     "template": [
+      "CH3Cs(-HR!H)CJ",
+      "CsJ-CsH"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": false,
+     "reverse_degeneracy": [],
+     "error": "TypeError: Only Molecule or Species objects can be handled."
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    2.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "test"
+  },
+  {
+   "family": "Singlet_Val6_to_triplet",
+   "reactant_smiles": [
+    "O=O"
+   ],
+   "same_reactants": 0,
+   "family_meta": {
+    "recipe": [
+     [
+      "CHANGE_BOND",
+      "*1",
+      -1,
+      "*2"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*1",
+      "1"
+     ],
+     [
+      "GAIN_RADICAL",
+      "*2",
+      "1"
+     ]
+    ],
+    "reverse_recipe": null,
+    "own_reverse": false,
+    "reversible": false,
+    "allow_charged_species": false,
+    "electrons": 0,
+    "product_num": null,
+    "reactant_num": null,
+    "reverse_map": null,
+    "num_template_reactants": 1,
+    "num_template_reactants_effective": 1,
+    "effective_product_num_forward": 1,
+    "effective_product_num_reverse": null
+   },
+   "n_fwd_raw": 2,
+   "n_rev_raw": 0,
+   "fwd_reactions": [
+    {
+     "reactants": [
+      "1 O u0 p2 c0 {2,D}\n2 O u0 p2 c0 {1,D}\n"
+     ],
+     "reactant_smiles": [
+      "O=O"
+     ],
+     "products": [
+      "multiplicity 3\n1 O u1 p2 c0 {2,S}\n2 O u1 p2 c0 {1,S}\n"
+     ],
+     "product_smiles": [
+      "[O][O]"
+     ],
+     "degeneracy": 1.0,
+     "is_forward": true,
+     "reversible": false,
+     "template": [
+      "O2"
+     ]
+    }
+   ],
+   "n_fwd_reactions": 1,
+   "rev_reactions": [],
+   "n_rev_reactions": 0,
+   "reverse_checks": [
+    {
+     "reverse_ok": null
+    }
+   ],
+   "n_fwd_calc": 1,
+   "n_fwd_calc_err": 0,
+   "calc_degeneracy": [
+    1.0
+   ],
+   "calc_degeneracy_error": [
+    null
+   ],
+   "source": "test"
+  }
+ ]
+}

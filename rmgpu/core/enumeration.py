@@ -121,7 +121,8 @@ class Family:
     def __init__(self, label, recipe, reverse_recipe=None, own_reverse=False,
                  reversible=False, allow_charged_species=False, electrons=0,
                  reactant_num_effective=1, product_num_forward=None,
-                 reverse_map=None, matcher=None, template_labels=None):
+                 reverse_map=None, matcher=None, template_labels=None,
+                 forbidden=None):
         self.label = label.lower()
         self.recipe = recipe
         self.reverse_recipe = reverse_recipe
@@ -134,6 +135,11 @@ class Family:
         self.reverse_map = reverse_map
         self.matcher = matcher
         self.template_labels = template_labels
+        # RMG family's forbidden structures (list of {'label','group'} dicts
+        # from the loader, or None). Checked against reactants and products
+        # in _apply_one_application (RMG _generate_product_structures).
+        self.forbidden = forbidden
+        self._forbidden_groups = None  # lazily parsed + cached
 
     @classmethod
     def from_reference(cls, case):
@@ -166,13 +172,20 @@ class Family:
 # TemplateReaction (a generated reaction)
 # ---------------------------------------------------------------------------
 
-class TemplateReaction:
+class TemplateReaction(object):
     """
     A generated reaction (RMG TemplateReaction, the subset the
     enumeration/degeneracy machinery uses). reactants/products are lists of
     rmgpu Molecule pieces; the pieces keep their atom labels/IDs (the
     degeneracy machinery needs them; clear them with clear_labeled_atoms).
     """
+
+    # The per-reaction template labels (list of str) or None (unset - the
+    # family-level fallback is applied in generate_reactions). Set per
+    # application in the fresh enumeration path (RMG
+    # get_reaction_template_labels). Declared at class level so the
+    # None->list reassignment type-checks.
+    template = None  # type: list | None
 
     def __init__(self, reactants, products, degeneracy=1, reversible=False,
                  family=None, is_forward=True, electrons=0):
@@ -442,17 +455,39 @@ def expand_resonance(structures):
 
 def assign_fresh_ids(species):
     """
-    Assign fresh, unique atom IDs to every resonance form of every species
-    (RMG assign_atom_ids over all species - fresh per call, so a second
-    enumeration of the same structures, e.g. inside calculate_degeneracy,
-    gets an independent ID space, as RMG's).
+    Assign atom IDs with RMG's resonance semantics and normalize every form to
+    the explicit-H (RMG) representation. RMG's ensure_independent_atom_ids
+    assigns fresh IDs to molecule[0] of each species (Molecule.assign_atom_ids),
+    then regenerates the resonance structures, whose copies preserve atom.id -
+    so every resonance form of a species SHARES the representative form's IDs
+    positionally. Sharing is essential: it is what makes find_degenerate_
+    reactions treat two products generated from two resonance forms of the same
+    reactant as identical (no extra degeneracy). A fresh, unique ID per form
+    would instead mark them non-identical and over-count the degeneracy.
+
+    The explicit-H normalization is equally essential: RMG-Py stores molecules
+    with explicit hydrogens (Molecule.from_smiles -> 10 atoms for C[CH]C), and
+    the group matcher's match_molecule returns labelings in that explicit-H
+    index space (via _explicit_graph / AddHs). rmgpu SMILES-built resonance
+    forms are implicit-H (4 atoms for C[CH]C), so matching them directly
+    yields out-of-range atom indices (Range Error) and the recipe engine sees
+    the wrong representation. Rebuilding each form through its adjacency list
+    (to_adjlist / from_adjacency_list) puts it in RMG's explicit-H, kekulized
+    representation - the space the matcher, the recipe engine and the degeneracy
+    bookkeeping all operate in.
     """
-    counter = [0]
-    for spc in species:
-        for form in spc:
-            for atom in form._rdkit.GetAtoms():
-                atom.SetProp('atomid', str(counter[0]))
-                counter[0] += 1
+    base = 0
+    for i, spc in enumerate(species):
+        # Normalize to explicit-H first so the ID count and the matcher/recipe
+        # index spaces agree.
+        species[i] = [Molecule.from_adjacency_list(f.to_adjlist()) for f in spc]
+        n = len(species[i][0]._rdkit.GetAtoms())
+        ids = list(range(base, base + n))
+        for form in species[i]:
+            for j, atom in enumerate(form._rdkit.GetAtoms()):
+                if j < len(ids):
+                    atom.SetProp('atomid', str(ids[j]))
+        base += n
 
 
 # ---------------------------------------------------------------------------
@@ -643,6 +678,52 @@ def reduce_same_reactant_degeneracy(reaction, same_reactants=None):
 # The enumeration
 # ---------------------------------------------------------------------------
 
+def _reaction_template(tfam, reactant_mols, per_mol_mappings):
+    """
+    Compute the per-application template labels (RMG
+    KineticsGroups.get_reaction_template: descend each deduped forward-
+    template top node to its most-specific node, given the labeled
+    reactants). This is essential for find_degenerate_reactions: two
+    reactions with the same product but DIFFERENT templates are kept as
+    separate duplicate reactions (degeneracy NOT summed), so the per-
+    reaction template is what separates e.g. intra_H_migration's two
+    [CH2]CCCC products (Cs_H_out_2H reached via R2H_S vs via R4H_SSS).
+
+    `reactant_mols` is the list of labeled reactant Molecules (RMG
+    reactant order); `per_mol_mappings` is a parallel list of
+    {molecule_atom_index: recipe_label} dicts (the labeling applied to each).
+    Returns the list of template labels, or None when the tree cannot descend
+    (RMG get_reaction_template -> None; the caller then falls back to the
+    family-level template).
+    """
+    from rmgpu.core.template import (
+        _dedup_top, get_reaction_template, merge_graph, _reactant_offsets,
+    )
+    from rmgpu.molecule.group import Group, _explicit_graph
+    deduped = _dedup_top(tfam)
+    if len(deduped) == 1 and len(reactant_mols) > 1 and \
+            isinstance(deduped[0].item, Group):
+        # single-group split: one deduped top, merged graph
+        graph = merge_graph(reactant_mols)
+        offsets = _reactant_offsets(reactant_mols)
+        merged_lab = {}
+        for i, mol in enumerate(reactant_mols):
+            for idx, lbl in per_mol_mappings[i].items():
+                merged_lab[lbl] = idx + offsets[i]
+        try:
+            return get_reaction_template(tfam, [graph], [merged_lab])
+        except Exception:
+            return None
+    # unimolecular / bimolecular: one graph per reactant
+    graphs = [_explicit_graph(m) for m in reactant_mols]
+    labeled_per = [{lbl: idx for idx, lbl in mp.items()}
+                   for mp in per_mol_mappings]
+    try:
+        return get_reaction_template(tfam, graphs, labeled_per)
+    except Exception:
+        return None
+
+
 def _apply_one_application(family, structures, relabel_atoms):
     """
     Apply the recipe to ONE atom-labeling application (a list of labeled,
@@ -653,7 +734,25 @@ def _apply_one_application(family, structures, relabel_atoms):
     _create_reaction -> None on identical/charged/unbalanced products).
     `structures` are used as-is (the engine copies them; the originals are
     untouched), so the caller may reuse them.
+
+    RMG _generate_product_structures also rejects the application when any
+    REACTANT (with its template labels set) or any PRODUCT piece matches a
+    family forbidden structure (is_molecule_forbidden, a label-aligned
+    subgraph check). That check is what drops e.g. the diradical-forming
+    H_abstraction applications (the disprop1_base_case forbidden group
+    matches a closed-shell carbon labeled *1 bonded to an H labeled *2 AND
+    a radical atom; only the terminal C-H labelings of an alkyl radical
+    carry that pattern, so only the central radical-site application
+    survives). It is run on the labeled reactants BEFORE the recipe (RMG
+    order) and on each product piece AFTER it.
     """
+    forbidden_groups = _family_forbidden_groups(family)
+    if forbidden_groups:
+        # RMG: check the labeled reactant structures (the labels are already
+        # set by the caller before this is invoked).
+        for s in structures:
+            if is_molecule_forbidden(s, forbidden_groups):
+                return None
     try:
         product_structures = apply_recipe(
             structures,
@@ -670,7 +769,122 @@ def _apply_one_application(family, structures, relabel_atoms):
         return None  # RMG: InvalidActionError / KekulizationError -> no products
     if not product_structures:
         return None  # product-count / net-charge mismatch -> not a match
+    if forbidden_groups:
+        # RMG: reject when any product piece matches a forbidden structure.
+        for p in product_structures:
+            if is_molecule_forbidden(p, forbidden_groups):
+                return None
     return create_reaction(family, structures, product_structures, True)
+
+
+# ---------------------------------------------------------------------------
+# Forbidden-structure check (RMG ForbiddenStructures.is_molecule_forbidden)
+# ---------------------------------------------------------------------------
+
+def _family_forbidden_groups(family):
+    """Lazily parse + cache the family's forbidden Groups (the loader stores
+    them as {'label', 'group'} text dicts). Returns [] when the family has
+    none (or the cached result on subsequent calls)."""
+    cached = getattr(family, '_forbidden_groups', None)
+    if cached is not None:
+        return cached
+    if not getattr(family, 'forbidden', None):
+        groups = []
+    else:
+        from rmgpu.molecule.group import Group
+        groups = []
+        for fb in family.forbidden:
+            text = fb['group'] if isinstance(fb, dict) else fb
+            text = text.strip()
+            if text.startswith(('OR{', 'AND{', 'NOT OR{', 'NOT AND{')):
+                # LogicNode forbidden group (none in the default set); the
+                # subgraph check is Groups-only. Skip (documented gap).
+                continue
+            groups.append(Group().parse(text))
+    try:
+        family._forbidden_groups = groups
+    except Exception:
+        pass  # read-only family; cache is best-effort
+    return groups
+
+
+def _clean_explicit(mol):
+    """A sanitized, explicit-H rmgpu Molecule equal to `mol`, for the
+    group matcher (which needs a kekulized explicit-H graph with computed
+    implicit valence). `mol` may already be explicit-H (post-recipe product)
+    or implicit-H (a labeled reactant form); AddHs on an unsanitized
+    semi-kekulized mol throws, so sanitize a throwaway copy first. Labels
+    are preserved (Chem.Mol copy keeps atom properties)."""
+    m = Chem.Mol(mol._rdkit)
+    try:
+        Chem.SanitizeMol(m)
+    except Exception:
+        pass
+    if not any(a.GetSymbol() == 'H' for a in m.GetAtoms()):
+        try:
+            m = Chem.AddHs(m)
+        except Exception:
+            try:
+                Chem.SanitizeMol(m)
+            except Exception:
+                pass
+            m = Chem.AddHs(m)
+    return Molecule._from_rdmol(m)
+
+
+def is_molecule_forbidden(molecule, forbidden_groups):
+    """
+    RMG ForbiddenStructures.is_molecule_forbidden: True if `molecule`
+    matches any forbidden `Group`. The check is LABEL-ALIGNED (RMG
+    "labeled atoms on the forbidden structures and the molecule are
+    honored"): every label on the group must be present on the molecule,
+    and the subgraph search is seeded with the same-labeled atoms paired
+    (RMG Molecule.is_subgraph_isomorphic(generate_initial_map=True)). A
+    molecule atom may match a group atom only via a same-label pairing;
+    unlabeled group atoms are free to match any feasible atom. Returns True
+    on the first matching group.
+
+    `forbidden_groups` is a list of parsed Group objects (the family's
+    forbidden structures).
+    """
+    import itertools
+    from rmgpu.molecule.group import match_explicit_graph, _explicit_graph
+    mlabeled = molecule.get_all_labeled_atoms()
+    graph = _explicit_graph(_clean_explicit(molecule))
+    for group in forbidden_groups:
+        glabeled = group.get_all_labeled_atoms()  # {label: group_atom_idx}
+        # Every group label must be present in the molecule.
+        if any(label not in mlabeled for label in glabeled):
+            continue
+        # Seed the subgraph search: unique molecule atoms per label are fixed
+        # pairings; non-unique labels are cross-products (RMG's atms loop).
+        fixed = {}
+        keys = []
+        choices = []
+        for label, group_idx in glabeled.items():
+            v = mlabeled[label]
+            if isinstance(v, list):
+                keys.append(group_idx)
+                choices.append(v)
+            else:
+                fixed[group_idx] = v
+        found = False
+        if choices:
+            for combo in itertools.product(*choices):
+                if len(set(combo)) != len(combo):
+                    continue  # two group atoms to the same molecule atom
+                initial_map = dict(fixed)
+                for group_idx, mol_idx in zip(keys, combo):
+                    initial_map[group_idx] = mol_idx
+                if match_explicit_graph(graph, group, initial_map=initial_map):
+                    found = True
+                    break
+        else:
+            if match_explicit_graph(graph, group, initial_map=fixed):
+                found = True
+        if found:
+            return True
+    return False
 
 
 def _set_labels(structure, mapping):
@@ -680,22 +894,100 @@ def _set_labels(structure, mapping):
             'label', str(label))
 
 
+def _match_labelings(group, form):
+    """Match a concrete Group to a resonance `form` and return the list of
+    labelings ({molecule_atom_index: recipe_label}), one per valid subgraph
+    isomorphism. Mirrors RMG _match_reactant_to_template + the labeling
+    inversion used by the single-group-split branch (where the template
+    reactant is a split component, not a forward-template slot, so the
+    matcher's match_molecule slot interface does not apply)."""
+    from rmgpu.molecule.group import match_explicit_graph, _explicit_graph
+    graph = _explicit_graph(form)
+    out = []
+    for m in match_explicit_graph(graph, group):
+        lab = {}
+        for gi, mi in m.items():
+            lbl = group.atoms[gi].label
+            if lbl:
+                lab[mi] = lbl
+        out.append(lab)
+    return out
+
+
 def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
     """
     The RMG enumeration loop over resonance forms x template matchings x
-    the bimolecular A+B / B+A branches, driven by a matcher that supplies
-    FRESH labelings via match_molecule(form, slot, branch) (step 03's group
-    matcher). This is the forward-direction subset of RMG _generate_reactions.
+    the branches (unimolecular; bimolecular A+B / B+A; single-group split),
+    driven by a matcher that supplies FRESH labelings via
+    match_molecule(form, slot, branch) (step 03's group matcher). This is the
+    forward-direction subset of RMG _generate_reactions.
+
+    expand_resonance + assign_fresh_ids normalize every resonance form to the
+    explicit-H (RMG) representation and assign RMG's shared-per-species atom
+    IDs before matching, so the matcher's labelings, the recipe application
+    and the degeneracy bookkeeping all operate in the same index space.
     """
+    from rmgpu.molecule.group import Group
     species = expand_resonance(reactants)
     assign_fresh_ids(species)
+    tfam = matcher.family
     rxn_list = []
+
+    # ---- single-group split (Disproportionation / R_Recombination) ----
+    # One forward-template reactant that splits into >1 component groups; each
+    # species matches one component (RMG _generate_reactions split branch).
+    top = tfam.top
+    if (len(top) == 1 and family.reactant_num_effective > 1
+            and isinstance(top[0].item, Group)):
+        comps = top[0].item.split()
+        if len(species) == len(comps) == 2:
+            (sa, sb), (ca, cb) = species, comps
+            # A + B branch (template order: A->ca, B->cb; RMG passes
+            # structures [molecule_b, molecule_a], maps [map_b, map_a])
+            for ma in sa:
+                for mb in sb:
+                    la = _match_labelings(ca, ma)
+                    lb = _match_labelings(cb, mb)
+                    for map_a in la:
+                        for map_b in lb:
+                            _set_labels(ma, map_a)
+                            _set_labels(mb, map_b)
+                            rxn = _apply_one_application(
+                                family, [mb, ma], relabel_atoms)
+                            if rxn is not None:
+                                rxn.template = _reaction_template(
+                                    tfam, [ma, mb], [map_a, map_b])
+                                rxn_list.append(rxn)
+                            clear_labeled_atoms([ma, mb])
+            # B + A (swapped) - only when the two reactants differ (the swap
+            # is redundant when the species are isomorphic)
+            if not _species_isomorph(sa, sb):
+                for ma in sa:
+                    for mb in sb:
+                        la = _match_labelings(cb, ma)
+                        lb = _match_labelings(ca, mb)
+                        for map_a in la:
+                            for map_b in lb:
+                                _set_labels(ma, map_a)
+                                _set_labels(mb, map_b)
+                                rxn = _apply_one_application(
+                                    family, [ma, mb], relabel_atoms)
+                                if rxn is not None:
+                                    rxn.template = _reaction_template(
+                                        tfam, [ma, mb], [map_a, map_b])
+                                    rxn_list.append(rxn)
+                                clear_labeled_atoms([ma, mb])
+        return rxn_list
+
+    # ---- unimolecular (one reactant, single template slot) ----
     if len(species) == 1:
         for form in species[0]:
             for mapping in matcher.match_molecule(form, 0, 'ab'):
                 _set_labels(form, mapping)
                 rxn = _apply_one_application(family, [form], relabel_atoms)
                 if rxn is not None:
+                    rxn.template = _reaction_template(
+                        tfam, [form], [mapping])
                     rxn_list.append(rxn)
                 clear_labeled_atoms([form])
     else:
@@ -711,10 +1003,11 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
                         rxn = _apply_one_application(
                             family, [mb, ma], relabel_atoms)
                         if rxn is not None:
+                            rxn.template = _reaction_template(
+                                tfam, [mb, ma], [map_b, map_a])
                             rxn_list.append(rxn)
                         clear_labeled_atoms([ma, mb])
-        # B + A (swapped) - only when the two reactants differ (RMG:
-        # `reactants[0] is not reactants[1]`; here: not isomorphic species)
+        # B + A (swapped) - only when the two reactants differ
         if not _species_isomorph(a, b):
             for ma in a:
                 for mb in b:
@@ -725,6 +1018,8 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
                             rxn = _apply_one_application(
                                 family, [ma, mb], relabel_atoms)
                             if rxn is not None:
+                                rxn.template = _reaction_template(
+                                    tfam, [ma, mb], [map_a, map_b])
                                 rxn_list.append(rxn)
                             clear_labeled_atoms([ma, mb])
     return rxn_list
