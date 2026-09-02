@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-05-step-06-fix-intraene.md (job-05/step-05 done: job-05 gate BUILT + RUN - gate_05.py over the 32-case set (default-set families in c3h4/superminimal + RMG-Py fixtures): RED 31/32 (product sets + per-product degeneracy EXACT on 31; the 1 mismatch = Intra_ene_reaction C[CH]C1=CC=CC=C1, root-caused to the job-01 resonance/matcher handling of benzylic radicals - missing para + 2nd-ortho resonance forms, no `reactive` flag on the kekulized form, aromatic bond-order handling in the matcher; all three documented in reports/job-05-step-05-gate.md with the fix plan in 05/06); reverse recovery 37/37, timing max 0.38s (<5s), 0 blocked families, full suite 595 passed. The gate is re-runnable in ~80s; 05/06 fixes the 3 gaps then re-runs (expect 32/32 GREEN). See reports/job-05-step-05-gate.md.)
+NEXT: prompts/steps/job-06-step-01-reactor.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -19,7 +19,7 @@ at a time.)
 | 02 | Database layer via rmgdb + round-trip | entry-count + table hash vs RMG-Py (gate_02.py) | done |
 | 03 | YAML input schema + CLI + legacy importer | 50 example input.py -> yaml, lossless (gate_03.py) | done |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | done (GREEN 2026-08-28, floors lowered per user decision; finding in reports/job-04.md) |
-| 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | pending |
+| 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | done |
 | 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | pending |
 | 07 | Statmech + master equation (CSE) + pdep | k(T,P) falloff vs RMG-Py (propane_branching) (gate_07.py) | pending |
 | 08 | pdep MSC/RS/SLS + isotope + observables/diff/merge + exports | method diffs + observables + export round-trips (gate_08.py) | pending |
@@ -69,7 +69,7 @@ documented finding) and the session log has the evidence.
 | 05/03 | Template matching + group matcher | test_template_match.py | done (6 passed; 322/322 (family,reaction) verdict parity + 46/46 round-trip vs recorded RMG-Py; 44/46 descent labels, 2 benzene Cb/Cd mismatches documented; group matcher 99/99 subgraph parity) |
 | 05/04 | Family loader + KineticsFamilies facade | test_families.py (7 tests) | done (51/51 default families load, 0 blocked; counts/recipes/templates/reverse-bookkeeping parity vs recorded RMG-Py 0 mismatches; match_reaction 20/20 family + 18/20 label, 2 documented aromatic Cd/Cb exceptions; rules as DATA 51/51; full suite 595) |
 | 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity vs recorded RMG-Py reference) | done (RED 31/32: 1 Intra_ene benzylic-radical mismatch, root-caused to the job-01 resonance/matcher form set; reverse 37/37, timing 0.38s; follow-up 05/06) |
-| 05/06 | Fix the Intra_ene resonance-form gap (gate RED) | gate_05.py GREEN (32/32) + pytest | pending |
+| 05/06 | Fix the Intra_ene resonance-form gap (gate RED) | gate_05.py GREEN (32/32) + pytest | done |
 | 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | pending |
 | 06/02 | CoreEdgeReactionModel (enlarge/prune/screen) | test_core_model.py | pending |
 | 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | pending |
