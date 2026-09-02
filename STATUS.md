@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-06-step-01-reactor.md
+NEXT: prompts/steps/job-06-step-02-model.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -70,7 +70,7 @@ documented finding) and the session log has the evidence.
 | 05/04 | Family loader + KineticsFamilies facade | test_families.py (7 tests) | done (51/51 default families load, 0 blocked; counts/recipes/templates/reverse-bookkeeping parity vs recorded RMG-Py 0 mismatches; match_reaction 20/20 family + 18/20 label, 2 documented aromatic Cd/Cb exceptions; rules as DATA 51/51; full suite 595) |
 | 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity vs recorded RMG-Py reference) | done (RED 31/32: 1 Intra_ene benzylic-radical mismatch, root-caused to the job-01 resonance/matcher form set; reverse 37/37, timing 0.38s; follow-up 05/06) |
 | 05/06 | Fix the Intra_ene resonance-form gap (gate RED) | gate_05.py GREEN (32/32) + pytest | done |
-| 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | pending |
+|| 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | done |
 | 06/02 | CoreEdgeReactionModel (enlarge/prune/screen) | test_core_model.py | pending |
 | 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | pending |
 | 06/04 | Mechanism artifact schema + the output tree writer | test_output.py | pending |
@@ -835,3 +835,9 @@ next: job-05/step-06-fix-intraene (read
   prompts/steps/job-05-step-06-fix-intraene.md): fix the 3 gaps (para +
   2nd-ortho resonance forms, the `reactive` flag, the matcher aromatic
   1.5 handling) then re-run gate_05.py (expect 32/32 GREEN) + pytest.
+
+### 2026-09-02 - job-06/step-01
+built: rmgpu/reactor/reactors.py (SimpleReactor, ConstantVReactor, ConstantTPReactor, TerminationTime/Conversion/RateRatio), rmgpu/reactor/torch.py (torchdae backend simulate + validate_stiff_ode Van der Pol), tests/test_reactor_torch.py (4 tests)
+checks: GREEN - pytest tests/test_reactor_torch.py -q: 4 passed (stiff ODE sub-gate max diff <0.5, mole balance closure, two-reaction shape, conversion termination)
+commits: 49729e1
+next: job-06/step-02-model (read prompts/steps/job-06-step-02-model.md)
