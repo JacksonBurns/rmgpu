@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-06-step-04-output.md
+NEXT: prompts/steps/job-06-step-06-gate.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -71,10 +71,10 @@ documented finding) and the session log has the evidence.
 | 05/05 | Job-05 gate (product enumeration parity) | gate_05.py (sets + degeneracy parity vs recorded RMG-Py reference) | done (RED 31/32: 1 Intra_ene benzylic-radical mismatch, root-caused to the job-01 resonance/matcher form set; reverse 37/37, timing 0.38s; follow-up 05/06) |
 | 05/06 | Fix the Intra_ene resonance-form gap (gate RED) | gate_05.py GREEN (32/32) + pytest | done |
 || 06/01 | Reactor definitions + termination + torchdae backend | test_reactor_torch.py + stiff sub-gate | done |
-| 06/02 | CoreEdgeReactionModel (enlarge/prune/screen) | test_core_model.py | done |
-| 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | done |
-| 06/04 | Mechanism artifact schema + the output tree writer | test_output.py | pending |
-| 06/05 | Chemkin writer + species dictionary | test_chemkin.py | pending |
+|| 06/02 | CoreEdgeReactionModel (enlarge/prune/screen) | test_core_model.py | done |
+|| 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | done |
+|| 06/04 | Mechanism artifact schema + the output tree writer | test_output.py | done |
+|| 06/05 | Chemkin writer + species dictionary | test_chemkin.py | done |
 | 06/06 | Job-06 gate (first real mechanism generation) | gate_06.py (superminimal + c3h4) | pending |
 | 07/01 | Statmech modes: conformer, vibration, rotation | test_statmech_modes.py | pending |
 | 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | pending |
