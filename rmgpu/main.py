@@ -167,6 +167,20 @@ def run(input_path: str) -> Dict[str, Any]:
     print(f"Core species: {mechanism_summary['core_species_count']}, Core reactions: {mechanism_summary['core_reaction_count']}")
     print(f"Edge species: {mechanism_summary['edge_species_count']}, Edge reactions: {mechanism_summary['edge_reaction_count']}")
 
+    # Write output tree per PLAN.md 12.3
+    import tempfile
+    out_root = os.path.join(os.path.dirname(input_path), "run_output")
+    from rmgpu.output import write_output_tree
+    write_output_tree(
+        root=out_root,
+        input_path=input_path,
+        core_model=core_model,
+        log_text="",
+        events=[],
+        estimation_counts=estimation_counts.as_dict(),
+    )
+    print(f"Output written to {out_root}")
+
     return mechanism_summary
 
 
