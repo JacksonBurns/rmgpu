@@ -136,6 +136,26 @@ def _is_isomorphic(a, b):
     return a.is_isomorph(b)
 
 
+def _structural_key(mol):
+    """A positional, bond-order-sensitive structural key for a resonance form.
+
+    Delegates to ``resonance._form_key`` (the single source of truth): the exact
+    bond-order signature on the STORED mol, with aromatic-flagged bonds
+    normalized to 1.5, plus per-atom (symbol, radical, charge).
+
+    This mirrors RMG's `is_identical` (positional, bond-order-sensitive) rather
+    than the canonical SMILES: it keeps isomorphic-but-not-identical forms as
+    distinct - the two ortho benzylic radicals (same canonical SMILES, different
+    radical POSITION) and the aromatic representative vs its kekulized variant
+    (same canonical SMILES, different ring bond orders). This is exactly the
+    `keep_isomorphic=True` behavior RMG's `generate_resonance_structures` uses,
+    which is what job-05's Intra_ene parity needs (the 5-form 1-phenylethyl set)
+    AND the job-01 benzene/toluene aromatic+kek pair.
+    """
+    from rmgpu.molecule.resonance import _form_key
+    return _form_key(mol)
+
+
 def octet_filtration(mol_list, octet_deviation_list):
     min_dev = min(octet_deviation_list)
     filtered = []
@@ -268,15 +288,45 @@ def filter_structures(mol_list, original):
     if not filtered:
         filtered = [original]
 
-    # Deduplicate (canonical-SMILES), keeping first occurrence, then ensure
-    # the original structure is present (RMG marks it first).
+    # Aromatic-representative preservation (RMG's `aromaticity_filtration`,
+    # which runs only for species with `features['is_aromatic']`). The octet
+    # pass above would DROP the delocalized aromatic form: `_bond_order` maps
+    # a 1.5 aromatic bond to 1 for valence purposes, so a benzene-ring carbon
+    # looks like valence 5 (octet deviation 3 per atom). RMG compensates with
+    # a dedicated aromaticity pass that re-admits the aromatic representative;
+    # here we capture the aromatic form(s) from the input set before filtration
+    # and re-attach them if the octet/charge passes dropped them. This is what
+    # keeps the 5-form 1-phenylethyl set (the aromatic form is form [0] in
+    # RMG-Py) and the benzene aromatic+kek pair (job-01 reference).
+    from rmgpu.molecule.resonance import _form_is_aromatic
+    aromatic_forms = []
+    if _form_is_aromatic(original):
+        aromatic_forms.append(original)
+    else:
+        for m in mol_list:
+            if _form_is_aromatic(m):
+                aromatic_forms.append(m)
+
+    # Deduplicate by the STRUCTURAL key (positional, bond-order-sensitive,
+    # mirroring RMG's `is_identical` under keep_isomorphic=True), NOT the
+    # canonical SMILES: the two ortho benzylic forms share a canonical SMILES
+    # (different radical position) and the aromatic representative + its
+    # kekulized variant also share a canonical SMILES (different ring bond
+    # orders) - all must be kept (RMG-Py carries the full 5-form 1-phenylethyl
+    # set). Keeping first occurrence preserves the input-first ordering.
     seen = set()
     result = []
     for m in filtered:
-        key = m.to_smiles()
+        key = _structural_key(m)
         if key not in seen:
             seen.add(key)
             result.append(m)
-    if original not in result:
-        result.append(original)
+    # Re-attach any aromatic representative the passes dropped.
+    for m in aromatic_forms:
+        if _structural_key(m) not in seen:
+            seen.add(_structural_key(m))
+            result.append(m)
+    # Ensure the original structure is present (RMG keeps it first).
+    if _structural_key(original) not in seen:
+        result.insert(0, original)
     return result

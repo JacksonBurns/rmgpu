@@ -17,6 +17,224 @@ def _is_radical(mol):
     return any(atom.GetNumRadicalElectrons() > 0 for atom in mol.GetAtoms())
 
 
+# ---------------------------------------------------------------------------
+# Structural (positional) keys + aromatic-representative detection
+# ---------------------------------------------------------------------------
+
+def _form_key(m):
+    """A STRUCTURAL dedup key for a resonance form: the exact bond-order
+    signature on the STORED mol, (atom_a, atom_b, order) tuples, plus the
+    per-atom radical/charge.
+
+    Bond orders are NORMALIZED so that an aromatic-flagged bond (RDKit
+    `GetIsAromatic()`) counts as 1.5 regardless of whether RDKit shows it as a
+    fractional 1.5 or as an alternating single/double with the aromatic flag
+    set. rmgpu's aromatic species exist in two equivalent representations:
+    the delocalized one (1.5 bonds, aromatic-flagged, from SetAromaticity) and
+    the flagged Kekulé one (S/D bonds + aromatic flag, as parsed from
+    `c1ccccc1`). Both are the SAME aromatic representative and must dedupe to
+    one form, while the genuinely-kekulized variant (S/D, NO aromatic flag)
+    stays distinct. This is what keeps benzene/toluene at 2 forms (aromatic +
+    kekulized, matching the job-01 reference) AND the 5-form benzylic set
+    (job-05 Intra_ene).
+
+    The key is NOT the canonical SMILES (the two ortho forms share one SMILES)
+    nor the adjlist string (RDKit serializes a 1.5 aromatic ring bond as '2',
+    collapsing aromatic + kekulized).
+
+    CRITICAL: the signature is computed on the STORED mol (implicit-H,
+    `m._rdkit`), NOT `_with_explicit_h()`: RDKit's AddHs/sanitize RE-AROMATIZE
+    a genuinely-kekulized benzene ring (re-setting the aromatic flag), which
+    would collapse the kekulized variant (S/D, no flag) into the aromatic
+    representative (S/D, flagged) and drop it. The stored mol preserves the
+    flag distinction.
+    """
+    try:
+        em = m._rdkit
+    except Exception:
+        return m.to_smiles()
+    bonds = []
+    for b in em.GetBonds():
+        o = b.GetBondTypeAsDouble()
+        if b.GetIsAromatic():
+            o = 1.5
+        if o in (1.0, 1.5, 2.0, 3.0):
+            bonds.append((min(b.GetBeginAtomIdx(), b.GetEndAtomIdx()),
+                          max(b.GetBeginAtomIdx(), b.GetEndAtomIdx()), o))
+    atoms = []
+    for a in em.GetAtoms():
+        atoms.append((a.GetIdx(), a.GetSymbol(), a.GetNumRadicalElectrons(),
+                      a.GetFormalCharge()))
+    return (tuple(sorted(bonds)), tuple(atoms))
+
+
+def _aromatic_rep(mol):
+    """Return (is_aromatic_rep, ring_bond_pairs) for `mol`'s explicit-H graph.
+
+    `is_aromatic_rep` is True iff `mol` has a 6-membered ring ALL of whose
+    bonds carry RDKit's aromatic flag - the delocalized aromatic
+    representative. RDKit shows this form either as fractional 1.5 bonds
+    (after SetAromaticity) or as alternating S/D bonds WITH the aromatic flag
+    (as parsed from `c1ccccc1`); both are the same representative, so the test
+    is the aromatic FLAG, not the bond order. The genuinely-kekulized variant
+    (S/D, no aromatic flag) is NOT an aromatic representative.
+
+    `ring_bond_pairs` is the frozenset of (min_idx, max_idx) ring bonds of the
+    first 6-membered ring (empty if none), captured BEFORE any adjlist
+    round-trip so the aromatic-representative flag can be re-applied after the
+    round-trip Kekulizes the ring (job-05 step-06, Fix 3).
+
+    Computed on the STORED mol (`mol._rdkit`), not the AddHs graph: AddHs /
+    sanitize RE-AROMATIZE a genuinely-kekulized benzene ring (re-setting the
+    aromatic flag), which would make the kekulized variant look like the
+    aromatic representative. The stored mol preserves the flag.
+    """
+    try:
+        em = mol._rdkit
+    except Exception:
+        return False, frozenset()
+    for ring in em.GetRingInfo().AtomRings():
+        if len(ring) != 6:
+            continue
+        pairs = set()
+        all_ar = True
+        for k in range(6):
+            a, b = ring[k], ring[(k + 1) % 6]
+            bd = em.GetBondBetweenAtoms(a, b)
+            if bd is None or not bd.GetIsAromatic():
+                all_ar = False
+                break
+            pairs.add((min(a, b), max(a, b)))
+        return all_ar, frozenset(pairs)
+    return False, frozenset()
+
+
+def _form_is_aromatic(mol):
+    """True if `mol` is the delocalized aromatic representative (a 6-ring all
+    of whose bonds carry the aromatic flag). See `_aromatic_rep`."""
+    return _aromatic_rep(mol)[0]
+
+
+def _has_standard_kekule_ring(mol):
+    """True if `mol` has a 6-membered ring with alternating single/double
+    bonds (SDSDSD or DSDSDS) that is NOT the aromatic representative - i.e. a
+    standard Kekulized benzene ring (S/D bonds with NO aromatic flag). This is
+    RMG filtration's criterion for a 'redundant Kekule variant' of an aromatic
+    form - the form that gets marked non-reactive (RMG
+    mark_unreactive_structures). The aromatic representative itself (S/D WITH
+    the aromatic flag, or 1.5) is NOT a standard Kekulized variant, so it must
+    not be flagged (otherwise the aromatic form would be wrongly skipped).
+
+    Computed on the STORED mol (`mol._rdkit`), not the AddHs graph (AddHs /
+    sanitize re-aromatize a kekulized benzene ring, re-setting the flag).
+    """
+    try:
+        em = mol._rdkit
+    except Exception:
+        return False
+    for ring in em.GetRingInfo().AtomRings():
+        if len(ring) != 6:
+            continue
+        orders = []
+        all_ar = True
+        for k in range(6):
+            a, b = ring[k], ring[(k + 1) % 6]
+            bd = em.GetBondBetweenAtoms(a, b)
+            o = bd.GetBondTypeAsDouble()
+            orders.append('D' if abs(o - 2) < 0.1 else 'S' if abs(o - 1) < 0.1 else '?')
+            if not bd.GetIsAromatic():
+                all_ar = False
+        if all_ar:
+            return False  # the aromatic representative, not a Kekulized variant
+        return ''.join(orders) in ('SDSDSD', 'DSDSDS')
+    return False
+
+
+def _set_resonance_flags(structures):
+    """Attach the two resonance-form flags RMG-Py carries on Molecule (the
+    `reactive` flag + the delocalized-aromatic representation) to each form's
+    RDKit mol, so the enumeration loop (Fix 2) and the group matcher (Fix 3)
+    can read them.
+
+    - `rmgpu_aromatic_rep` = 1: the form has the delocalized (aromatic, 1.5-bond)
+      6-ring representation. The matcher reports its ring bonds as 1.5 (RMG
+      compares benzene bonds as 1.5), so a `[S,D]`/`[D,T]` template does not
+      match it while a `[D,T,B]` (benzene-including) template does.
+    - `rmgpu_reactive` = 0: the form is a redundant Kekulized variant of an
+      aromatic form (a standard SDSDSD/DSDSDS 6-ring while an aromatic form is
+      also present). RMG's mark_unreactive_structures sets reactive=False on
+      the filtered-out original (the Kekulized input) and the enumeration loop
+      skips it - this is what stops the Kekulized benzylic form from
+      generating the 3 spurious allene products.
+
+    The flags live on the RDKit mol (not the Molecule wrapper) because the
+    enumeration path rebuilds every form through the adjlist round-trip
+    (assign_fresh_ids), which drops plain Python attributes but preserves RDKit
+    mol properties that the caller re-applies.
+    """
+    has_aromatic = any(_form_is_aromatic(f) for f in structures)
+    for f in structures:
+        rdmol = f._rdkit
+        if _form_is_aromatic(f):
+            rdmol.SetProp('rmgpu_aromatic_rep', '1')
+        elif rdmol.HasProp('rmgpu_aromatic_rep'):
+            rdmol.DelProp('rmgpu_aromatic_rep')
+        if not rdmol.HasProp('rmgpu_reactive'):
+            rdmol.SetProp('rmgpu_reactive', '1')
+        if (has_aromatic and not _form_is_aromatic(f)
+                and _has_standard_kekule_ring(f)):
+            rdmol.SetProp('rmgpu_reactive', '0')
+
+
+def _allyl_bfs(seed_mols, max_depth=12):
+    """Breadth-first expansion over the allyl radical delocalization shift,
+    deduped by structural key. Returns the list of NEW forms reachable (beyond
+    the seeds) by successive allyl shifts.
+
+    The single-pass shift (the old behavior) reaches only ONE ortho form for a
+    benzylic radical: from the kekulized input, shifting through the ipso
+    double bond gives one valid ortho, but shifting through the ipso single
+    aromatic bond is pentavalent and is dropped. Running the shift ITERATIVELY
+    (RMG-Py's `_generate_resonance_structures` does exactly this: it applies the
+    allyl method to every generated form) reaches the second ortho AND the para
+    form, because from a proper cyclohexadienyl (ortho) form both further
+    shifts are valid. This is what closes the job-05 Intra_ene gap (the para
+    form is the sole source of product B, and the 2nd ortho is needed for A's
+    degeneracy of 6 instead of 3).
+
+    CRITICAL: the seed must be a KEKULIZED (explicit S/D) form, not the
+    aromatic representative. A shift that converts an aromatic ring bond to a
+    single bond leaves RDKit's Kekulize unable to resolve the ring (the
+    remaining ring bonds are still aromatic-flagged and inconsistent), so the
+    candidate is dropped and the BFS from an aromatic seed yields ZERO forms.
+    From the kekulized input, the ipso double-bond shift is valid (one ortho),
+    and from each ortho form the para shift is valid - reaching the full set.
+
+    Dedup is by `_form_key` (the positional explicit-H bond-order signature),
+    NOT the canonical SMILES: the two ortho forms share a canonical SMILES but
+    differ in the radical POSITION, so a SMILES dedup would wrongly collapse
+    them (RMG-Py keeps them as separate resonance forms).
+    """
+    seen = set()
+    for s in seed_mols:
+        seen.add(_form_key(s))
+    frontier = [s._rdkit for s in seed_mols]
+    out = []
+    depth = 0
+    while frontier and depth < max_depth:
+        depth += 1
+        nxt = []
+        for rdmol in frontier:
+            for s in _generate_allyl_delocalization_resonance_structures(rdmol):
+                k = _form_key(s)
+                if k not in seen:
+                    seen.add(k)
+                    out.append(s)
+                    nxt.append(s._rdkit)
+        frontier = nxt
+    return out
+
+
 def _get_lone_pairs(mol, atom):
     """Lone pairs per RMG-Py Molecule.update_lone_pairs():
 
@@ -163,11 +381,6 @@ def _generate_allyl_delocalization_resonance_structures(mol):
             a2 = bond.GetEndAtomIdx()
 
             # Determine target (the atom opposite the radical on the pi bond).
-            is_adjacent_a1 = atom.GetIdx() in (a1, a2) or a1 == rad_idx
-            # The radical is bonded to one endpoint (the ipso carbon); the
-            # target is the other.
-            if a1 == rad_idx or a2 == rad_idx:
-                continue  # can't happen (we excluded the radical's own bond)
             # The radical is NOT an endpoint of this bond (it's bonded to the
             # ipso carbon which IS an endpoint); identify which endpoint is
             # bonded to the radical.
@@ -344,35 +557,52 @@ def _generate_kekule_structure(mol):
 def generate_resonance_structures(molecule: Molecule) -> list[Molecule]:
     """
     Generate resonance structures for a molecule using RMG-style rules.
-    
+
     Args:
         molecule: A Molecule instance for which to generate resonance structures.
-        
+
     Returns:
         A list of Molecule instances representing the resonance structures.
         The input molecule is included in the list.
+
+    The benzylic / aromatic-radical handling (job-05 step-06): a radical
+    exocyclic to a benzene ring delocalizes to BOTH ortho positions and the
+    para position, in addition to the delocalized aromatic form and the
+    Kekulized input form - the 5-form set RMG-Py generates for 1-phenylethyl.
+    The single-pass allyl shift (the old behavior) reaches only ONE ortho
+    form for the kekulized input, so the allyl generator is now run
+    ITERATIVELY (BFS, mirroring RMG-Py's `_generate_resonance_structures`
+    which applies each method to every generated form) and seeded from the
+    KEKULED input (the aromatic representative CANNOT seed the shift: a shift
+    off an aromatic ring bond leaves RDKit's kekulizer unable to resolve the
+    ring, so all candidates are dropped). From the kekulized input the ipso
+    double-bond shift gives one ortho form, and from each ortho form the para
+    shift is valid.
+    The forms are deduped by their STRUCTURAL key (the exact explicit-H
+    bond-order signature with 1.5 kept distinct from S/D, plus per-atom
+    radical/charge), NOT the canonical SMILES: the two ortho benzylic forms
+    share a canonical SMILES but differ in radical position, and the aromatic
+    representative and the kekulized form also collapse to one SMILES - all
+    three distinctions are what RMG-Py keeps (5 distinct forms). Finally the
+    two RMG-Py resonance-form flags are attached to each form's RDKit mol
+    (`_set_resonance_flags`): the aromatic representative (matcher reports
+    its 6-ring bonds as 1.5) and the redundant Kekulized variant (marked
+    non-reactive, skipped by the enumeration loop).
     """
-    results = [molecule.copy()]
-    
     # Get RDKit molecule and analyze features
     rdmol = molecule._rdkit
     features = _analyze_molecule(rdmol)
 
-    # Generate resonance structures using different algorithms
     new_structures = []
 
-    # Allyl radical delocalization. The radical atom is guarded inside
-    # _generate_allyl_delocalization_resonance_structures to be non-aromatic,
-    # so in-ring (aryl) radicals do not break their ring's pi system, while
-    # exocyclic radicals (a benzylic radical) delocalize into an adjacent
-    # aromatic ring (forming the exocyclic C=C + ring-radical forms RMG-Py
-    # generates). The old `and not is_aromatic` gate suppressed this for
-    # aromatic molecules and dropped those exocyclic forms (an Intra_ene
-    # product-set divergence at the job-05 gate), so it is now always run for
-    # radicals.
+    # Allyl radical delocalization (the benzylic forms). The radical atom is
+    # guarded inside the generator to be non-aromatic, so in-ring (aryl)
+    # radicals do not break their ring's pi system, while exocyclic radicals
+    # (a benzylic radical) delocalize into the ring. It is run ITERATIVELY
+    # (BFS) so both ortho forms AND the para form are reached. The seed is the
+    # KEKULED input (never the aromatic representative - see _allyl_bfs).
     if features['is_radical']:
-        new_structures.extend(
-            _generate_allyl_delocalization_resonance_structures(rdmol))
+        new_structures.extend(_allyl_bfs([molecule.copy()]))
 
     if features['hasLonePairs'] and not features['is_aromatic']:
         new_structures.extend(_generate_lone_pair_multiple_bond_resonance_structures(rdmol))
@@ -382,18 +612,33 @@ def generate_resonance_structures(molecule: Molecule) -> list[Molecule]:
         new_structures.extend(_generate_optimal_aromatic_resonance_structures(rdmol))
         new_structures.extend(_generate_kekule_structure(rdmol))
 
-    # Deduplicate against the input (canonical SMILES)
+    # Deduplicate by the STRUCTURAL key (exact explicit-H bond-order
+    # signature), NOT the canonical SMILES: the two ortho benzylic forms
+    # share a canonical SMILES but differ in radical position, and the
+    # aromatic representative + kekulized form share a SMILES too - all
+    # must be kept (RMG-Py carries 5 distinct forms). The input form is
+    # always preserved first.
     all_structures = [molecule.copy()]
-    input_smi = molecule.to_smiles()
+    seen = {_form_key(all_structures[0])}
     for structure in new_structures:
-        smi = structure.to_smiles()
-        if smi != input_smi:
+        k = _form_key(structure)
+        if k not in seen:
+            seen.add(k)
             all_structures.append(structure)
+
+    # Attach the RMG-Py resonance-form flags (aromatic-representative +
+    # reactive) to each form's RDKit mol (Fix 2 / Fix 3 read these).
+    _set_resonance_flags(all_structures)
 
     # Filtration: keep only representative structures (RMG-Py
     # filtration.filter_structures), always preserving the input.
     from rmgpu.molecule.resonance_filtration import filter_structures
-    return filter_structures(all_structures, molecule.copy())
+    result = filter_structures(all_structures, molecule.copy())
+
+    # Filtration's octet/charge pass can drop forms; re-assert the flags on
+    # the survivors so the enumeration/matcher see the correct flags.
+    _set_resonance_flags(result)
+    return result
 
 
 # Expose this function as a method on Molecule

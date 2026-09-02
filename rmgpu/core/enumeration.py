@@ -453,6 +453,54 @@ def expand_resonance(structures):
     return species
 
 
+def _re_aromatize_ring(rdmol):
+    """Re-set the bonds of every 6-membered ring in `rdmol` to AROMATIC (1.5).
+
+    Used by assign_fresh_ids to restore the delocalized-aromatic
+    representation on a form that the adjlist round-trip Kekulized to S/D.
+    The matcher's bond comparison is an EXACT match on the bond order, and
+    RDKit's AddHs (used by _explicit_graph) preserves a genuine AROMATIC bond
+    as order 1.5 - so after this, the matcher's _explicit_graph reports the
+    ring bonds as 1.5 and [S,D]/[D,T] templates do not match while [D,T,B]
+    (benzene-including) templates do. Mirrors RMG, which compares aromatic
+    ring bonds as 1.5.
+    """
+    from rdkit import Chem
+    from rdkit.Chem import BondType
+    try:
+        em = Chem.Mol(rdmol)
+        Chem.SanitizeMol(em)
+        rw = Chem.RWMol(em)
+        # Identify the 6-membered ring atoms first (on the sanitized copy,
+        # where ring info is valid), then set each ring bond to AROMATIC.
+        ring_atoms = set()
+        for ring in rw.GetRingInfo().AtomRings():
+            if len(ring) == 6:
+                for a in ring:
+                    ring_atoms.add(a)
+        for b in rw.GetBonds():
+            if b.GetBeginAtomIdx() in ring_atoms and \
+                    b.GetEndAtomIdx() in ring_atoms:
+                b.SetBondType(BondType.AROMATIC)
+        for b in rw.GetBonds():
+            if b.GetBondType() != BondType.AROMATIC:
+                b.SetIsAromatic(False)
+        Chem.SanitizeMol(rw)
+        # Write the AROMATIC bond types back onto the original mol's bonds.
+        for b in rdmol.GetBonds():
+            rb = rw.GetBondBetweenAtoms(b.GetBeginAtomIdx(), b.GetEndAtomIdx())
+            if rb is not None:
+                b.SetBondType(rb.GetBondType())
+                b.SetIsAromatic(rb.GetIsAromatic())
+        # Refresh the aromatic cache on the original mol.
+        try:
+            Chem.SanitizeMol(rdmol)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+
 def assign_fresh_ids(species):
     """
     Assign atom IDs with RMG's resonance semantics and normalize every form to
@@ -475,18 +523,53 @@ def assign_fresh_ids(species):
     (to_adjlist / from_adjacency_list) puts it in RMG's explicit-H, kekulized
     representation - the space the matcher, the recipe engine and the degeneracy
     bookkeeping all operate in.
+
+    The adjlist round-trip drops the two resonance-form props (rmgpu_aromatic_
+    rep / rmgpu_reactive, set by generate_resonance_structures) and Kekulizes
+    the delocalized aromatic representative's 6-ring to S/D - which would make
+    the aromatic form match [S,D]/[D,T] templates (wrong: RMG compares benzene
+    bonds as 1.5, so the aromatic form must give 0 matchings against them). So
+    the props are captured BEFORE the round-trip and re-applied after, and the
+    aromatic representative's ring bonds are re-set to AROMATIC (1.5) so the
+    matcher's exact bond-order comparison sees 1.5 for them (RMG-faithful; this
+    is the job-05 step-06 Fix 3 "explicit graph reports 1.5 for aromatic ring
+    bonds" behavior, achieved by restoring the form's genuine 1.5 bonds rather
+    than special-casing the matcher).
     """
     base = 0
     for i, spc in enumerate(species):
+        # Capture the resonance-form props BEFORE the round-trip (they are
+        # dropped by to_adjlist/from_adjacency_list). Atom order is preserved
+        # by the round-trip, so index j maps the same form.
+        pre = []
+        for f in spc:
+            r = f._rdkit
+            is_ar = r.HasProp('rmgpu_aromatic_rep') and \
+                r.GetProp('rmgpu_aromatic_rep') == '1'
+            rea = r.GetProp('rmgpu_reactive') if r.HasProp('rmgpu_reactive') \
+                else '1'
+            pre.append((is_ar, rea))
         # Normalize to explicit-H first so the ID count and the matcher/recipe
         # index spaces agree.
         species[i] = [Molecule.from_adjacency_list(f.to_adjlist()) for f in spc]
         n = len(species[i][0]._rdkit.GetAtoms())
         ids = list(range(base, base + n))
-        for form in species[i]:
-            for j, atom in enumerate(form._rdkit.GetAtoms()):
-                if j < len(ids):
-                    atom.SetProp('atomid', str(ids[j]))
+        for j, form in enumerate(species[i]):
+            is_ar, rea = pre[j] if j < len(pre) else (False, '1')
+            r = form._rdkit
+            # Re-apply the resonance-form props (Fix 2 reads rmgpu_reactive).
+            r.SetProp('rmgpu_reactive', '1' if rea == '1' else '0')
+            if is_ar:
+                # Fix 3: restore the delocalized aromatic representation -
+                # re-aromatize the 6-ring bonds to 1.5 (the round-trip
+                # Kekulized them to S/D). The matcher then compares the ring
+                # bonds as 1.5, so [S,D]/[D,T] templates do not match this
+                # form while [D,T,B] (benzene-including) templates do.
+                _re_aromatize_ring(r)
+                r.SetProp('rmgpu_aromatic_rep', '1')
+            for j2, atom in enumerate(r.GetAtoms()):
+                if j2 < len(ids):
+                    atom.SetProp('atomid', str(ids[j2]))
         base += n
 
 
@@ -933,6 +1016,19 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
     tfam = matcher.family
     rxn_list = []
 
+    def _is_reactive(form):
+        """True if the form SHOULD be reacted. RMG `if molecule.reactive or
+        react_non_reactive`: a resonance form marked non-reactive
+        (rmgpu_reactive=0, set by generate_resonance_structures on the
+        redundant Kekulized variant of an aromatic form) is SKIPPED by the
+        enumeration loop. This is what stops the Kekulized benzylic form from
+        generating the 3 spurious allene products (job-05 step-06, Fix 2).
+        Forms with no flag default to reactive (RMG default)."""
+        r = form._rdkit
+        if r.HasProp('rmgpu_reactive'):
+            return r.GetProp('rmgpu_reactive') == '1'
+        return True
+
     # ---- single-group split (Disproportionation / R_Recombination) ----
     # One forward-template reactant that splits into >1 component groups; each
     # species matches one component (RMG _generate_reactions split branch).
@@ -945,7 +1041,11 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
             # A + B branch (template order: A->ca, B->cb; RMG passes
             # structures [molecule_b, molecule_a], maps [map_b, map_a])
             for ma in sa:
+                if not _is_reactive(ma):
+                    continue
                 for mb in sb:
+                    if not _is_reactive(mb):
+                        continue
                     la = _match_labelings(ca, ma)
                     lb = _match_labelings(cb, mb)
                     for map_a in la:
@@ -963,7 +1063,11 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
             # is redundant when the species are isomorphic)
             if not _species_isomorph(sa, sb):
                 for ma in sa:
+                    if not _is_reactive(ma):
+                        continue
                     for mb in sb:
+                        if not _is_reactive(mb):
+                            continue
                         la = _match_labelings(cb, ma)
                         lb = _match_labelings(ca, mb)
                         for map_a in la:
@@ -982,6 +1086,8 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
     # ---- unimolecular (one reactant, single template slot) ----
     if len(species) == 1:
         for form in species[0]:
+            if not _is_reactive(form):
+                continue
             for mapping in matcher.match_molecule(form, 0, 'ab'):
                 _set_labels(form, mapping)
                 rxn = _apply_one_application(family, [form], relabel_atoms)
@@ -995,7 +1101,11 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
         # A + B (template order; RMG passes structures [molecule_b,
         # molecule_a], maps [map_b, map_a])
         for ma in a:
+            if not _is_reactive(ma):
+                continue
             for mb in b:
+                if not _is_reactive(mb):
+                    continue
                 for map_a in matcher.match_molecule(ma, 0, 'ab'):
                     for map_b in matcher.match_molecule(mb, 1, 'ab'):
                         _set_labels(ma, map_a)
@@ -1010,7 +1120,11 @@ def _enumerate_fresh(family, reactants, matcher, relabel_atoms):
         # B + A (swapped) - only when the two reactants differ
         if not _species_isomorph(a, b):
             for ma in a:
+                if not _is_reactive(ma):
+                    continue
                 for mb in b:
+                    if not _is_reactive(mb):
+                        continue
                     for map_a in matcher.match_molecule(ma, 1, 'ba'):
                         for map_b in matcher.match_molecule(mb, 0, 'ba'):
                             _set_labels(ma, map_a)
