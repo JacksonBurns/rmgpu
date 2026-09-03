@@ -1,0 +1,9 @@
+rmgpu: '1.0'
+core:
+  rmgpu: '1.0'
+  species: []
+  reactions: []
+  core_species_labels: null
+  edge_species_labels: null
+edge: null
+provenance: null

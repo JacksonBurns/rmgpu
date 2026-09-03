@@ -1,0 +1,42 @@
+database:
+  kinetics_estimator: ml
+  kinetics_families: default
+  reaction_libraries:
+  - primaryH2O2
+  thermo_libraries:
+  - primaryThermoLibrary
+model:
+  maximum_edge_species: 100000
+  tolerance_interrupt_simulation: 1.0
+  tolerance_keep_in_edge: 0.0
+  tolerance_move_to_core: 0.1
+options:
+  save_edge: false
+  save_plots: false
+  save_profiles: false
+  units: si
+reactors:
+- initial_mole_fractions:
+    CH4: 0.1
+    O2: 0.4
+  pressure: 1 bar
+  temperature: 1000 K
+  termination:
+    conversion:
+      species: CH4
+      value: 0.9
+    time: 10 ms
+  type: simple
+rmgpu: '1.0'
+simulator:
+  atol: 1e-16
+  rtol: 1e-8
+species:
+- label: CH4
+  reactive: true
+  structure:
+    smiles: C
+- label: O2
+  reactive: true
+  structure:
+    smiles: '[O]=O'

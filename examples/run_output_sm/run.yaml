@@ -1,0 +1,94 @@
+catalyst_properties: null
+database:
+  kinetics_depositories:
+  - training
+  kinetics_estimator: rate rules
+  kinetics_families:
+  - H_Abstraction
+  - Disproportionation
+  - R_Recombination
+  - Birad_recombination
+  - Birad_R_Recombination
+  reaction_libraries: []
+  seed_mechanisms: []
+  thermo_libraries:
+  - primaryThermoLibrary
+  transport_libraries: auto
+extends: null
+forbidden: null
+generated_species_constraints: null
+ml_estimator: null
+model:
+  filter_reactions: false
+  maximum_edge_species: 100000
+  tolerance_interrupt_simulation: 0.001
+  tolerance_keep_in_edge: 0.0
+  tolerance_move_to_core: 0.001
+options:
+  generate_output_html: true
+  generate_plots: false
+  save_edge: false
+  save_edge_species: true
+  save_plots: false
+  save_profiles: false
+  save_simulation_profiles: true
+  units: si
+pressure_dependence: null
+quantum_mechanics: null
+reactors:
+- balance_species: null
+  constant_species: null
+  initial_mole_fractions:
+    H2: 0.67
+    O2: 0.33
+  n_sims: null
+  pressure:
+    unit: bar
+    value: 1.0
+  sensitivity: null
+  sensitivity_threshold: null
+  temperature:
+    unit: K
+    value: 1000.0
+  termination:
+    conversion:
+      H2: 0.9
+    criticality: null
+    rate_ratio: null
+    time:
+      unit: s
+      value: 1000000.0
+  type: simple
+rmgpu: '1.0'
+simulator:
+  atol: 1.0e-16
+  rtol: 1.0e-08
+solvation: null
+species:
+- constraints: null
+  kinetics: null
+  label: H2
+  reactive: true
+  structure:
+    adjlist: null
+    fragment: false
+    fragment_adjlist: null
+    group_adjlist: null
+    inchi: null
+    smarts: null
+    smiles: '[H][H]'
+  thermo: null
+- constraints: null
+  kinetics: null
+  label: O2
+  reactive: true
+  structure:
+    adjlist: null
+    fragment: false
+    fragment_adjlist: null
+    group_adjlist: null
+    inchi: null
+    smarts: null
+    smiles: '[O][O]'
+  thermo: null
+uncertainty: null

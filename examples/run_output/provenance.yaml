@@ -1,0 +1,14 @@
+input_path: examples/minimal.yaml
+ml_checkpoint_hashes: {}
+rmgdb_hash: unknown
+rmgdb_version: unknown
+rmgpu_git: 6113a0663e241865af4337bacb8b6b82e63c9773
+solver: torchdae
+timestamp: '2026-09-02T17:41:49.231204+00:00'
+units: SI
+versions:
+  cantera: 3.2.0
+  pint: 0.25.3
+  python: 3.11.16
+  rdkit: 2026.3.5
+  torch: 2.13.0

@@ -1,0 +1,27 @@
+# Summary
+
+Core species: 20
+Core reactions: 100
+Edge species: 27
+Edge reactions: 346
+Iterations: 6
+
+Estimation coverage:
+- library_hits: 2
+- ml_hits: 491
+- coverage_errors: 550
+
+Coverage gaps:
+- thermo_errors: 402
+- kinetics_errors: 148
+- species_dropped: 402
+- reactions_dropped: 550
+
+seed core: 2 species
+iteration 1: core=2 spc/0 rxn, edge=0 spc/0 rxn
+iteration 2: core=5 spc/2 rxn, edge=0 spc/0 rxn
+iteration 3: core=10 spc/12 rxn, edge=1 spc/3 rxn
+iteration 4: core=16 spc/41 rxn, edge=7 spc/16 rxn
+iteration 5: core=20 spc/98 rxn, edge=25 spc/115 rxn
+iteration 6: core=20 spc/100 rxn, edge=27 spc/346 rxn
+steady state at iteration 6

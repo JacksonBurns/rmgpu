@@ -1,0 +1,117 @@
+catalyst_properties: null
+database:
+  kinetics_depositories:
+  - training
+  kinetics_estimator: rate rules
+  kinetics_families: default
+  reaction_libraries: []
+  seed_mechanisms:
+  - GRI-Mech3.0-N
+  thermo_libraries:
+  - primaryThermoLibrary
+  - GRI-Mech3.0-N
+  transport_libraries: auto
+extends: null
+forbidden: null
+generated_species_constraints:
+  allow_singlet_o2: null
+  allowed:
+  - seed mechanisms
+  maximum_carbene_radicals: null
+  maximum_carbon_atoms: null
+  maximum_heavy_atoms: null
+  maximum_nitrogen_atoms: null
+  maximum_oxygen_atoms: null
+  maximum_radical_electrons: 4
+  maximum_silicon_atoms: null
+  maximum_singlet_carbenes: null
+  maximum_sulfur_atoms: null
+  maximum_surface_bond_order: null
+  maximum_surface_sites: null
+ml_estimator: null
+model:
+  filter_reactions: false
+  maximum_edge_species: 9999999
+  tolerance_interrupt_simulation: 0.1
+  tolerance_keep_in_edge: 1.0e-05
+  tolerance_move_to_core: 0.01
+options:
+  generate_output_html: false
+  generate_plots: false
+  save_edge: false
+  save_plots: false
+  save_profiles: false
+  units: si
+pressure_dependence: null
+quantum_mechanics: null
+reactors:
+- balance_species: null
+  constant_species: null
+  initial_mole_fractions:
+    C2H2: 0.099
+    CH2: 0.001
+    N2: 0.9
+  n_sims: null
+  pressure:
+    unit: bar
+    value: 1.0
+  sensitivity: null
+  sensitivity_threshold: null
+  temperature:
+    unit: K
+    value: 1350.0
+  termination:
+    conversion:
+      C2H2: 0.9
+    criticality: null
+    rate_ratio: null
+    time:
+      unit: s
+      value: 1000000000000.0
+  type: simple
+rmgpu: '1.0'
+simulator:
+  atol: 1.0e-16
+  rtol: 1.0e-08
+solvation: null
+species:
+- constraints: null
+  kinetics: null
+  label: CH2
+  reactive: true
+  structure:
+    adjlist: null
+    fragment: false
+    fragment_adjlist: null
+    group_adjlist: null
+    inchi: null
+    smarts: null
+    smiles: '[CH2]'
+  thermo: null
+- constraints: null
+  kinetics: null
+  label: C2H2
+  reactive: true
+  structure:
+    adjlist: null
+    fragment: false
+    fragment_adjlist: null
+    group_adjlist: null
+    inchi: null
+    smarts: null
+    smiles: C#C
+  thermo: null
+- constraints: null
+  kinetics: null
+  label: N2
+  reactive: false
+  structure:
+    adjlist: null
+    fragment: false
+    fragment_adjlist: null
+    group_adjlist: null
+    inchi: InChI=1/N2/c1-2
+    smarts: null
+    smiles: null
+  thermo: null
+uncertainty: null

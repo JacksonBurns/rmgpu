@@ -83,16 +83,24 @@ def main():
 
 @main.command()
 @click.argument("path", type=click.Path(exists=True, dir_okay=False))
-def run(path: str) -> None:
-    """Load, validate, and print the resolved input document as YAML."""
+@click.option("--out", type=click.Path(dir_okay=True),
+              help="Output tree root (default: <input dir>/run_output).")
+def run(path: str, out: Optional[str]) -> None:
+    """Run the full mechanism generation (job-06 driver): load, build,
+    enlarge/simulate/screen to steady state, write the output tree."""
     try:
-        doc = load_document(path)
-        input_model = Input(**doc)
+        from rmgpu.main import run as run_driver
+        summary = run_driver(path, out_root=out)
     except Exception as e:
-        click.echo(f"Validation error: {e}", err=True)
+        click.echo(f"Run failed: {e}", err=True)
         sys.exit(1)
-    output = input_model.model_dump()
-    click.echo(yaml.dump(output, Dumper=QuantityDumper, default_flow_style=False))
+    click.echo(f"Done. iterations={summary['iterations']} "
+               f"steady_state={summary['steady_state']} "
+               f"core={summary['core_species_count']}spc/"
+               f"{summary['core_reaction_count']}rxn "
+               f"edge={summary['edge_species_count']}spc/"
+               f"{summary['edge_reaction_count']}rxn")
+    click.echo(f"Output tree: {summary['out_root']}")
 
 
 @main.command()

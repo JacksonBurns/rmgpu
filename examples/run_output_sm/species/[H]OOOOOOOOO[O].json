@@ -1,0 +1,16 @@
+{
+  "label": "[H]OOOOOOOOO[O]",
+  "formula": "HO10",
+  "smiles": "[H]OOOOOOOOO[O]",
+  "adjlist": "multiplicity 2\n1  O u0 p2 c0 {2,S} {8,S}\n2  O u0 p2 c0 {1,S} {3,S}\n3  O u0 p2 c0 {2,S} {4,S}\n4  O u0 p2 c0 {3,S} {5,S}\n5  O u0 p2 c0 {4,S} {6,S}\n6  O u0 p2 c0 {5,S} {7,S}\n7  O u1 p2 c0 {6,S}\n8  O u0 p2 c0 {1,S} {9,S}\n9  O u0 p2 c0 {8,S} {10,S}\n10 O u0 p2 c0 {9,S} {11,S}\n11 H u0 p0 c0 {10,S}\n",
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": 6988.5498046875,
+    "S298": 414.8533935546875,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}

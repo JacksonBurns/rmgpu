@@ -1,0 +1,271 @@
+{
+ "example": "superminimal",
+ "generator": "RMG-Py (from completed output dir, chem.inp + species_dictionary.txt)",
+ "n_iterations": null,
+ "core_species": [
+  "N#N",
+  "O=O",
+  "[Ar]",
+  "[H]",
+  "[H]OO[H]",
+  "[H]O[H]",
+  "[H]O[O]",
+  "[H][H]",
+  "[H][O]",
+  "[He]",
+  "[Ne]",
+  "[O]",
+  "[O][O]"
+ ],
+ "edge_species": [],
+ "core_reactions_keys": [
+  "[H].[H]>>[H][H]",
+  "[H].[H]OO[H]>>[H]O[O].[H][H]",
+  "[H].[H]O[O]>>[H]OO[H]",
+  "[H].[H][O]>>[H]O[H]",
+  "[H].[O]>>[H][O]",
+  "[H].[O][O]>>[H]O[O]",
+  "[H]OO[H].[H][O]>>[H]O[H].[H]O[O]",
+  "[H]OO[H].[O]>>[H]O[O].[H][O]",
+  "[H]O[H].[O]>>[H][O].[H][O]",
+  "[H]O[H].[O][O]>>[H]O[O].[H][O]",
+  "[H]O[O].[H]O[O]>>[H]OO[H].[O][O]",
+  "[H]O[O].[O]>>O=O.[H][O]",
+  "[H]O[O].[O]>>[H][O].[O][O]",
+  "[H][H].[H][O]>>[H].[H]O[H]",
+  "[H][H].[O]>>[H].[H][O]",
+  "[H][H].[O][O]>>[H].[H]O[O]",
+  "[H][O].[H][O]>>[H]OO[H]",
+  "[H][O].[O]>>[H]O[O]",
+  "[H][O].[O][O]>>O=O.[H][O]"
+ ],
+ "edge_reactions_keys": [],
+ "core_reactions": [
+  {
+   "key": "[H].[H]>>[H][H]",
+   "reactants": [
+    "[H]",
+    "[H]"
+   ],
+   "products": [
+    "[H][H]"
+   ],
+   "family": "R_Recombination"
+  },
+  {
+   "key": "[H][H].[O][O]>>[H].[H]O[O]",
+   "reactants": [
+    "[H][H]",
+    "[O][O]"
+   ],
+   "products": [
+    "[H]",
+    "[H]O[O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H].[O][O]>>[H]O[O]",
+   "reactants": [
+    "[H]",
+    "[O][O]"
+   ],
+   "products": [
+    "[H]O[O]"
+   ],
+   "family": "R_Recombination"
+  },
+  {
+   "key": "[H].[H]OO[H]>>[H]O[O].[H][H]",
+   "reactants": [
+    "[H]",
+    "[H]OO[H]"
+   ],
+   "products": [
+    "[H]O[O]",
+    "[H][H]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H].[H]O[O]>>[H]OO[H]",
+   "reactants": [
+    "[H]",
+    "[H]O[O]"
+   ],
+   "products": [
+    "[H]OO[H]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H]O[O].[H]O[O]>>[H]OO[H].[O][O]",
+   "reactants": [
+    "[H]O[O]",
+    "[H]O[O]"
+   ],
+   "products": [
+    "[H]OO[H]",
+    "[O][O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H][O].[H][O]>>[H]OO[H]",
+   "reactants": [
+    "[H][O]",
+    "[H][O]"
+   ],
+   "products": [
+    "[H]OO[H]"
+   ],
+   "family": "R_Recombination"
+  },
+  {
+   "key": "[H][H].[H][O]>>[H].[H]O[H]",
+   "reactants": [
+    "[H][H]",
+    "[H][O]"
+   ],
+   "products": [
+    "[H]",
+    "[H]O[H]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H].[H][O]>>[H]O[H]",
+   "reactants": [
+    "[H]",
+    "[H][O]"
+   ],
+   "products": [
+    "[H]O[H]"
+   ],
+   "family": "R_Recombination"
+  },
+  {
+   "key": "[H]O[H].[O][O]>>[H]O[O].[H][O]",
+   "reactants": [
+    "[H]O[H]",
+    "[O][O]"
+   ],
+   "products": [
+    "[H]O[O]",
+    "[H][O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H]OO[H].[H][O]>>[H]O[H].[H]O[O]",
+   "reactants": [
+    "[H]OO[H]",
+    "[H][O]"
+   ],
+   "products": [
+    "[H]O[H]",
+    "[H]O[O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H][O].[O][O]>>O=O.[H][O]",
+   "reactants": [
+    "[H][O]",
+    "[O][O]"
+   ],
+   "products": [
+    "O=O",
+    "[H][O]"
+   ],
+   "family": null
+  },
+  {
+   "key": "[H][O].[O]>>[H]O[O]",
+   "reactants": [
+    "[H][O]",
+    "[O]"
+   ],
+   "products": [
+    "[H]O[O]"
+   ],
+   "family": "Birad_R_Recombination"
+  },
+  {
+   "key": "[H].[O]>>[H][O]",
+   "reactants": [
+    "[H]",
+    "[O]"
+   ],
+   "products": [
+    "[H][O]"
+   ],
+   "family": "Birad_R_Recombination"
+  },
+  {
+   "key": "[H]O[O].[O]>>[H][O].[O][O]",
+   "reactants": [
+    "[H]O[O]",
+    "[O]"
+   ],
+   "products": [
+    "[H][O]",
+    "[O][O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H][H].[O]>>[H].[H][O]",
+   "reactants": [
+    "[H][H]",
+    "[O]"
+   ],
+   "products": [
+    "[H]",
+    "[H][O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H]OO[H].[O]>>[H]O[O].[H][O]",
+   "reactants": [
+    "[H]OO[H]",
+    "[O]"
+   ],
+   "products": [
+    "[H]O[O]",
+    "[H][O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H]O[H].[O]>>[H][O].[H][O]",
+   "reactants": [
+    "[H]O[H]",
+    "[O]"
+   ],
+   "products": [
+    "[H][O]",
+    "[H][O]"
+   ],
+   "family": "H_Abstraction"
+  },
+  {
+   "key": "[H]O[O].[O]>>O=O.[H][O]",
+   "reactants": [
+    "[H]O[O]",
+    "[O]"
+   ],
+   "products": [
+    "O=O",
+    "[H][O]"
+   ],
+   "family": "Birad_R_Recombination"
+  }
+ ],
+ "edge_reactions": [],
+ "n_core_species": 13,
+ "n_edge_species": 0,
+ "n_core_reactions": 19,
+ "n_edge_reactions": 0
+}

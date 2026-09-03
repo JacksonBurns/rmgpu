@@ -1,0 +1,16 @@
+{
+  "label": "[H]OOO[O]",
+  "formula": "HO4",
+  "smiles": "[H]OOO[O]",
+  "adjlist": "multiplicity 2\n1 O u0 p2 c0 {2,S} {5,S}\n2 O u0 p2 c0 {1,S} {3,S}\n3 O u0 p2 c0 {2,S} {4,S}\n4 O u1 p2 c0 {3,S}\n5 H u0 p0 c0 {1,S}\n",
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": 55823.8125,
+    "S298": 289.882568359375,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}

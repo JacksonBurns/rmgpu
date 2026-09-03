@@ -1,0 +1,204 @@
+! ELEMENTS
+	H
+	O
+! END
+
+! SPECIES
+H2                    H2                            G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+O2                    O2                            G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]                   H1                            G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]O[O]               H1O2                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[O]OO[O]              O4                            G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOOO[O]           H1O6                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOO[H]            H2O4                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOO[O]             H1O4                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[O]OOOOOO[O]          O8                            G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[O]OOOO[O]            O6                            G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOOOOOOOOOO[      H2O12                         G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOOOOOOOOO[O      H1O12                         G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOOOOOO[H]        H2O8                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOOOOO[O]         H1O8                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[O]OOOOOOOOOOOOO      O16                           G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[O]OOOOOOOOOO[O]      O12                           G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOOOOOOO[O]       H1O10                         G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OOOOOO[H]          H2O6                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[H]OO[H]              H2O2                          G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+[O]OOOOOOOO[O]        O10                           G       300      5000      1000
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+    0.00000e+00    0.00000e+00    0.00000e+00    0.00000e+00
+! END
+
+! REACTIONS
+! O2H2=[H]O[O][H]                                              1.689e-02      3.252     61.900
+! O2O2=[O]OO[O]                                                8.568e+30     -8.493     48.028
+! [H]O2=[H]O[O]                                                1.609e+07      0.499     -3.435
+! [H][H]=H2                                                    8.419e+16     -2.076     -6.205
+! [O]OO[O][H]O[O]=[H]OOOOO[O]                                  2.011e+08     -0.631     -6.863
+! [H]O[O][H]O[O]=[H]OOOO[H]                                    3.748e+08     -0.764      4.399
+! [H]O[O]O2=[H]OOO[O]                                          9.166e+05     -0.175    -18.097
+! [O]OO[O]H2=[H]OOO[O][H]                                      1.307e+04      0.929     -6.646
+! [O]OO[O][H]O[O]=[H]OOO[O]O2                                  4.813e+05     -0.060    -25.543
+! [O]OO[O][H]=[H]OOO[O]                                        2.155e+06      0.379     -4.509
+! [O]OO[O][O]OO[O]=[O]OOOOOO[O]                                1.169e+09     -1.133     -4.279
+! [O]OO[O]O2=[O]OOOO[O]                                        3.820e+06     -0.029      3.435
+! [H]OOO[O]O2=[H]OOOOO[O]                                      4.976e+08     -0.363     20.667
+! [O]OOOO[O]O2=[O]OOOOOO[O]                                    8.300e+02      1.554     26.452
+! [H]OOO[O]H2=[H]OOOO[H][H]                                    1.144e+08     -0.360    -12.827
+! [O]OOOO[O]H2=[H]OOOOO[O][H]                                  3.062e+06      0.223     -8.669
+! [H]OOO[O][H]O[O]=[H]OOOO[H]O2                                6.919e+08     -0.900     -9.478
+! [O]OOOO[O][H]O[O]=[H]OOOOO[O]O2                              1.903e+07     -0.108     -9.956
+! [H]OOO[O][H]OOOOO[O]=[H]OOOO[H][O]OOOO[O]                    5.356e+08      0.076     52.724
+! [O]OOOO[O][H]OOOO[H]=[H]OOOOO[O][H]OOO[O]                    2.211e+08     -0.019     37.088
+! [H]OOO[O][H]OOO[O]=[H]OOOO[H][O]OO[O]                        3.712e+07     -0.255     30.274
+! [O]OOOO[O][H]OOO[O]=[H]OOOOO[O][O]OO[O]                      5.437e+05      0.287     29.020
+! [H]OOO[O][H]=[H]OOOO[H]                                      1.375e+09     -0.789    -11.840
+! [O]OOOO[O][H]=[H]OOOOO[O]                                    1.661e+05      0.554     -6.264
+! [H]OOOOO[O][H]OOOOO[O]=[H]OOOOOOOOOOOO[H]                    1.020e+11     -0.008     86.061
+! [O]OOOO[O][H]OOOOO[O]=[H]OOOOOOOOOOO[O]                      5.552e+09      0.158     69.199
+! [O]OOOOOO[O][H]OOO[O]=[H]OOOOOOOOOOO[O]                      5.466e+09      0.235     82.705
+! [H]OOOOO[O][H]O[O]=[H]OOOOOOOO[H]                            4.893e+08     -0.573     -0.850
+! [H]OOO[O][H]OOO[O]=[H]OOOOOOOO[H]                            1.185e+10     -0.703     27.701
+! [H]OOOOO[O]O2=[H]OOOOOOO[O]                                  1.224e+08      0.449     55.035
+! [O]OOOO[O][H]O[O]=[H]OOOOOOO[O]                              2.291e+07     -0.116     -5.044
+! [H]OOO[O][O]OO[O]=[H]OOOOOOO[O]                              1.270e+09     -0.740      1.977
+! [O]OOOOOO[O]H2=[H]OOOOOOO[O][H]                              1.503e+07      0.181     15.460
+! [O]OOOOOO[O][H]O[O]=[H]OOOOOOO[O]O2                          3.106e+06      0.043     -6.222
+! [O]OOOOOO[O][H]OOOOO[O]=[H]OOOOOOO[O][O]OOOO[O]              3.409e+08      0.412     84.377
+! [O]OOOOOO[O][H]OOOO[H]=[H]OOOOOOO[O][H]OOO[O]                1.143e+09      0.073     66.405
+! [O]OOOOOO[O][H]OOO[O]=[H]OOOOOOO[O][O]OO[O]                  3.804e+07      0.209     61.772
+! [O]OOOOOO[O][H]=[H]OOOOOOO[O]                                1.682e+05      0.745     22.081
+! [O]OOOOOO[O][O]OOOOOO[O]=[O]OOOOOOOOOOOOOO[O]                2.377e+09      0.752    120.140
+! [O]OOOOOO[O][O]OO[O]=[O]OOOOOOOOOO[O]                        1.270e+08      0.372     56.012
+! [O]OOOO[O][O]OOOO[O]=[O]OOOOOOOOOO[O]                        2.928e+07      0.378     46.484
+! [H]OOOOOOO[O][O]OO[O]=[H]OOOOOOOOOOO[O]                      1.170e+09      0.287     67.917
+! [O]OOOOOOOOOO[O][O]OO[O]=[O]OOOOOOOOOOOOOO[O]                1.227e+09      0.824    114.271
+! [H]OOOOOOO[O][H]OOO[O]=[H]OOOOOOOOOOOO[H]                    7.107e+10      0.132     90.918
+! [H]OOOOOOOOOOO[O]H2=[H]OOOOOOOOOOOO[H][H]                    6.783e+09      0.593    109.254
+! [H]OOOOOOO[O]H2=[H]OOOOOOOO[H][H]                            9.174e+08      0.159     47.057
+! [O]OOOOOOOOOO[O]H2=[H]OOOOOOOOOOO[O][H]                      2.917e+09      0.414     92.317
+! [H]OOOOOOOOOOO[O][H]O[O]=[H]OOOOOOOOOOOO[H]O2                4.377e+07      0.747     75.256
+! [H]OOOOOOO[O][H]O[O]=[H]OOOOOOOO[H]O2                        9.995e+07     -0.127     10.578
+! [O]OOOOOOOOOO[O][H]O[O]=[H]OOOOOOOOOOO[O]O2                  6.035e+06      0.627     55.360
+! [H]OOOOOOOOOOO[O][H]OOOOO[O]=[H]OOOOOOOOOOOO[H][O]OOOO[O]    1.849e+10      0.605    137.073
+! [H]OOOOOOO[O][H]OOOOO[O]=[H]OOOOOOOO[H][O]OOOO[O]            1.687e+09      0.472     96.521
+! [O]OOOOOOOOOO[O][H]OOOOO[O]=[H]OOOOOOOOOOO[O][O]OOOO[O]      2.192e+10      0.425    128.794
+! [H]OOOOOOOOOOO[O][H]OOOO[H]=[H]OOOOOOOOOOOO[H][H]OOO[O]      2.926e+10      0.484    125.655
+! [H]OOOOOOO[O][H]OOOO[H]=[H]OOOOOOOO[H][H]OOO[O]              1.385e+10      0.152     82.322
+! [O]OOOOOOOOOO[O][H]OOOO[H]=[H]OOOOOOOOOOO[O][H]OOO[O]        1.684e+10      0.289    114.515
+! [H]OOOOOOOOOOO[O][H]OOO[O]=[H]OOOOOOOOOOOO[H][O]OO[O]        8.782e+09      0.454    124.351
+! [H]OOOOOOO[O][H]OOO[O]=[H]OOOOOOOO[H][O]OO[O]                6.870e+08      0.190     75.639
+! [O]OOOOOOOOOO[O][H]OOO[O]=[H]OOOOOOOOOOO[O][O]OO[O]          8.957e+09      0.243    113.770
+! [H]OOOOOOO[O][H]OOOOOOOOOOOO[H]=[H]OOOOOOOO[H][H]OOOOOOOOOOO[O] 6.513e+10      0.734    148.422
+! [O]OOOOOOOOOO[O][H]OOOOOOOOOOOO[H]=[H]OOOOOOOOOOO[O][H]OOOOOOOOOOO[O] 6.101e+11      0.635    168.480
+! [H]OOOOOOOOOOO[O][H]OOOOOOOOOOO[O]=[H]OOOOOOOOOOOO[H][O]OOOOOOOOOO[O] 7.626e+10      0.635    168.480
+! [H]OOOOOOO[O][H]OOOOOOOOOOO[O]=[H]OOOOOOOO[H][O]OOOOOOOOOO[O] 1.874e+10      0.614    142.332
+! [O]OOOOOOOOOO[O][H]OOOOOOOO[H]=[H]OOOOOOOOOOO[O][H]OOOOOOO[O] 7.494e+10      0.614    142.332
+! [H]OOOOOOO[O][H]OOOOOOO[O]=[H]OOOOOOOO[H][O]OOOOOO[O]        4.116e+08      0.614    106.074
+! [O]OOOOOOOOOO[O][H]OOOOOOO[O]=[H]OOOOOOOOOOO[O][O]OOOOOO[O]  2.951e+10      0.442    135.151
+! [H]OOOOOOOOOOO[O][H]=[H]OOOOOOOOOOOO[H]                      5.387e+08      0.860    116.984
+! [H]OOOOOOO[O][H]=[H]OOOOOOOO[H]                              5.035e+07      0.406     51.500
+! [O]OOOOOOOOOO[O][H]=[H]OOOOOOOOOOO[O]                        7.139e+07      0.881    101.379
+! [O]OOOOOO[O][H]O[O]=[H]OOOOOOOOO[O]                          3.237e+06      0.275     13.199
+! [H]OOOOO[O][O]OO[O]=[H]OOOOOOOOO[O]                          3.481e+09     -0.296     34.352
+! [O]OOOO[O][H]OOO[O]=[H]OOOOOOOOO[O]                          6.023e+09     -0.314     40.015
+! [H]OOOOOOO[O]O2=[H]OOOOOOOOO[O]                              1.193e+08      0.917     91.749
+! [H]OOOOOOOOO[O]O2=[H]OOOOOOOOOOO[O]                          4.104e+08      1.164    124.317
+! [H]OOOOOOOOO[O][H]O[O]=[H]OOOOOOOOOOOO[H]                    7.257e+07      0.562     65.627
+! [H]OOO[O][H]O[O]=[H]OOOOOO[H]                                1.235e+08     -0.680    -12.015
+! [H]OOOOO[O]H2=[H]OOOOOO[H][H]                                6.936e+08     -0.294      9.728
+! [H]OOOOO[O][H]O[O]=[H]OOOOOO[H]O2                            1.373e+08     -0.435     -9.331
+! [H]OOOOO[O][H]OOOOO[O]=[H]OOOOOO[H][O]OOOO[O]                2.948e+08      0.352     74.837
+! [H]OOOOO[O][H]=[H]OOOOOO[H]                                  5.457e+07     -0.139      9.285
+! [H]O[O]H2=[H]OO[H][H]                                        5.956e+04      1.000      4.729
+! [H]O[O][H]O[O]=[H]OO[H]O2                                    4.250e+04      0.630     -2.524
+! [H]O[O][H]=[H]OO[H]                                          1.449e+09     -0.624     -6.862
+! [O]OOOOOO[O]O2=[O]OOOOOOOO[O]                                1.611e+06      1.463     83.135
+! [O]OOOO[O][O]OO[O]=[O]OOOOOOOO[O]                            6.519e+07     -0.044     16.911
+! [O]OOOOOOOO[O]O2=[O]OOOOOOOOOO[O]                            1.042e+08      1.372    116.723
+! [O]OOOOOOOO[O][H]O[O]=[H]OOOOOOOOOOO[O]                      3.106e+06      0.707     48.435
+! [O]OOOOOOOO[O][O]OOOO[O]=[O]OOOOOOOOOOOOOO[O]                8.890e+08      0.881    113.201
+! [O]OOOOOOOO[O]H2=[H]OOOOOOOOO[O][H]                          2.724e+08      0.307     57.451
+! [O]OOOOOOOO[O][H]O[O]=[H]OOOOOOOOO[O]O2                      2.135e+06      0.350     20.553
+! [O]OOOOOOOO[O][H]OOOOO[O]=[H]OOOOOOOOO[O][O]OOOO[O]          3.984e+09      0.396    108.151
+! [O]OOOOOOOO[O][H]OOOO[H]=[H]OOOOOOOOO[O][H]OOO[O]            5.002e+09      0.188     92.013
+! [O]OOOOOOOO[O][H]OOO[O]=[H]OOOOOOOOO[O][O]OO[O]              1.198e+09      0.176     89.066
+! [O]OOOOOOOO[O][H]OOOOOOOOOOOO[H]=[H]OOOOOOOOO[O][H]OOOOOOOOOOO[O] 2.345e+11      0.625    156.482
+! [O]OOOOOOOO[O][H]OOOOOOOOOOO[O]=[H]OOOOOOOOO[O][O]OOOOOOOOOO[O] 1.052e+11      0.459    150.338
+! [O]OOOOOOOO[O][H]OOOOOOOO[H]=[H]OOOOOOOOO[O][H]OOOOOOO[O]    1.878e+10      0.607    125.608
+! [O]OOOOOOOO[O][H]OOOOOOO[O]=[H]OOOOOOOOO[O][O]OOOOOO[O]      5.133e+09      0.452    117.310
+! [O]OOOOOOOO[O][H]=[H]OOOOOOOOO[O]                            4.387e+06      0.832     66.311
+! [O]OOOOOOOO[O][H]OOOOOO[H]=[H]OOOOOOOOO[O][H]OOOOO[O]        5.305e+09      0.618    110.515
+! [O]OOOOOOOO[O][H]OO[H]=[H]OOOOOOOOO[O][H]O[O]                3.826e+08      0.148     63.747
+! END
+
+! TERMINATION
+!     H,H2,H2O
+! END
+
+! INITIAL
+!     1 0.0 1000. 101325.
+!     2 0.0 1000. 101325.
+! END
+
+! INITIAL-SPECIES
+! END
+
+! END

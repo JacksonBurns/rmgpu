@@ -1,0 +1,36 @@
+rmgpu: '1.0'
+core:
+  rmgpu: '1.0'
+  species:
+  - label: CH4
+    formula: null
+    smiles: C
+    adjlist: null
+    source: ml
+    symmetry: null
+    thermo:
+      model: ml
+      Hf298: null
+      S298: null
+      Cp: null
+      method: ml
+      uncertainty: null
+  - label: O2
+    formula: null
+    smiles: O=O
+    adjlist: null
+    source: ml
+    symmetry: null
+    thermo:
+      model: ml
+      Hf298: null
+      S298: null
+      Cp: null
+      method: ml
+      uncertainty: null
+  reactions: []
+  core_species_labels: null
+  edge_species_labels: null
+edge: null
+provenance:
+  iteration: 2

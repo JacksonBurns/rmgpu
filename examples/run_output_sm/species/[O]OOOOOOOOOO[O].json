@@ -1,0 +1,16 @@
+{
+  "label": "[O]OOOOOOOOOO[O]",
+  "formula": "O12",
+  "smiles": "[O]OOOOOOOOOO[O]",
+  "adjlist": "multiplicity 3\n1  O u0 p2 c0 {2,S} {8,S}\n2  O u0 p2 c0 {1,S} {3,S}\n3  O u0 p2 c0 {2,S} {4,S}\n4  O u0 p2 c0 {3,S} {5,S}\n5  O u0 p2 c0 {4,S} {6,S}\n6  O u0 p2 c0 {5,S} {7,S}\n7  O u1 p2 c0 {6,S}\n8  O u0 p2 c0 {1,S} {9,S}\n9  O u0 p2 c0 {8,S} {10,S}\n10 O u0 p2 c0 {9,S} {11,S}\n11 O u0 p2 c0 {10,S} {12,S}\n12 O u1 p2 c0 {11,S}\n",
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": 8074.89111328125,
+    "S298": 433.2309265136719,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}

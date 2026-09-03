@@ -1,0 +1,16 @@
+{
+  "label": "[O]OOOO[O]",
+  "formula": "O6",
+  "smiles": "[O]OOOO[O]",
+  "adjlist": "multiplicity 3\n1 O u0 p2 c0 {2,S} {3,S}\n2 O u1 p2 c0 {1,S}\n3 O u0 p2 c0 {1,S} {4,S}\n4 O u0 p2 c0 {3,S} {5,S}\n5 O u0 p2 c0 {4,S} {6,S}\n6 O u1 p2 c0 {5,S}\n",
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": 59271.0859375,
+    "S298": 335.6714782714844,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}

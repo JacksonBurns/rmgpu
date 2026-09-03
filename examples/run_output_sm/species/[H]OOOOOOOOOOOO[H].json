@@ -1,0 +1,16 @@
+{
+  "label": "[H]OOOOOOOOOOOO[H]",
+  "formula": "H2O12",
+  "smiles": "[H]OOOOOOOOOOOO[H]",
+  "adjlist": "1  O u0 p2 c0 {2,S} {7,S}\n2  O u0 p2 c0 {1,S} {3,S}\n3  O u0 p2 c0 {2,S} {4,S}\n4  O u0 p2 c0 {3,S} {5,S}\n5  O u0 p2 c0 {4,S} {6,S}\n6  H u0 p0 c0 {5,S}\n7  O u0 p2 c0 {1,S} {8,S}\n8  O u0 p2 c0 {7,S} {9,S}\n9  O u0 p2 c0 {8,S} {10,S}\n10 O u0 p2 c0 {9,S} {11,S}\n11 O u0 p2 c0 {10,S} {12,S}\n12 O u0 p2 c0 {11,S} {13,S}\n13 O u0 p2 c0 {12,S} {14,S}\n14 H u0 p0 c0 {13,S}\n",
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": 3601.9296875,
+    "S298": 476.0842590332031,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}

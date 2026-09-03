@@ -1,0 +1,16 @@
+{
+  "label": "O2",
+  "formula": null,
+  "smiles": "O=O",
+  "adjlist": null,
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": null,
+    "S298": null,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}

@@ -90,14 +90,25 @@ simulator:
     path.write_text(content)
     return str(path)
 
-def test_run_prints_valid_yaml(minimal_yaml):
+def test_run_invokes_driver(minimal_yaml, monkeypatch):
+    """The CLI run command delegates to rmgpu.main.run (job-06 driver)."""
+    import rmgpu.main
+    calls = []
+
+    def fake_run(path, out_root=None):
+        calls.append((path, out_root))
+        return {"iterations": 3, "steady_state": True,
+                "core_species_count": 2, "core_reaction_count": 1,
+                "edge_species_count": 0, "edge_reaction_count": 0,
+                "out_root": out_root or "run_output"}
+
+    monkeypatch.setattr(rmgpu.main, "run", fake_run)
     runner = CliRunner()
-    result = runner.invoke(main, ["run", minimal_yaml])
+    result = runner.invoke(main, ["run", minimal_yaml, "--out", "somewhere"])
     assert result.exit_code == 0, result.output
-    # Output should be valid YAML with the resolved document
-    assert "rmgpu: '1.0'" in result.output
-    assert "database:" in result.output
-    assert "CH4" in result.output
+    assert calls and calls[0][0] == os.path.abspath(minimal_yaml)
+    assert "iterations=3" in result.output
+    assert "steady_state=True" in result.output
 
 def test_validate_passes(minimal_yaml):
     runner = CliRunner()

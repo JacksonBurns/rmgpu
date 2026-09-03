@@ -1,0 +1,15 @@
+blocked_families: []
+blocked_ml: []
+input_path: /home/jackson/rmgpu/rmgpu/examples/superminimal.yaml
+ml_checkpoint_hashes:
+  chemeleon_thermo_662946.ckpt: 87effa2f13044cc9637a28dbca818e903265c11c3e71e6424842d73881c1597c
+  chemprop_kinetics_662946.ckpt: 176144be2d5378f7c5200381fbcd56fb6a9d967e44a21a4b5209fe47414a486c
+rmgdb_hash: 512882d8b9362d8244571fcb3093b5e337c052657abef06d96cc8abf2e23bf29
+rmgpu_git: 6113a0663e241865af4337bacb8b6b82e63c9773
+solver: torchdae
+timestamp: '2026-09-03T03:20:59.585138+00:00'
+units: SI
+versions:
+  python: 3.11.16
+  rdkit: 2026.3.5
+  torch: 2.13.0

@@ -1,0 +1,6 @@
+pressure_Pa: 100000.0
+reactor: reactor
+solver: torchdae tr_bdf2
+t_end_s: 421878.5143723445
+temperature_K: 1000.0
+units: mole_fraction

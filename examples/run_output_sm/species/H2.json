@@ -1,0 +1,16 @@
+{
+  "label": "H2",
+  "formula": "H2",
+  "smiles": "[H][H]",
+  "adjlist": "1 H u0 p0 c0 {2,S}\n2 H u0 p0 c0 {1,S}\n",
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": 0.0,
+    "S298": 130.678872,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}
