@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-06-step-06-gate.md
+NEXT: prompts/steps/job-07-step-01-statmech
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -20,7 +20,7 @@ at a time.)
 | 03 | YAML input schema + CLI + legacy importer | 50 example input.py -> yaml, lossless (gate_03.py) | done |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | done (GREEN 2026-08-28, floors lowered per user decision; finding in reports/job-04.md) |
 | 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | done |
-| 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | pending |
+| 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | done |
 | 07 | Statmech + master equation (CSE) + pdep | k(T,P) falloff vs RMG-Py (propane_branching) (gate_07.py) | pending |
 | 08 | pdep MSC/RS/SLS + isotope + observables/diff/merge + exports | method diffs + observables + export round-trips (gate_08.py) | pending |
 | 09 | Sensitivity/uncertainty via torchdae adjoint | adjoint vs finite-difference (gate_09.py) | pending |
@@ -75,7 +75,7 @@ documented finding) and the session log has the evidence.
 || 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | done |
 || 06/04 | Mechanism artifact schema + the output tree writer | test_output.py | done |
 || 06/05 | Chemkin writer + species dictionary | test_chemkin.py | done |
-| 06/06 | Job-06 gate (first real mechanism generation) | gate_06.py (superminimal + c3h4) | pending |
+| 06/06 | Job-06 gate (first real mechanism generation) | gate_06.py (superminimal + c3h4) | done |
 | 07/01 | Statmech modes: conformer, vibration, rotation | test_statmech_modes.py | pending |
 | 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | pending |
 | 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | pending |
