@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-07-step-01-modes.md
+NEXT: prompts/steps/job-06-step-07-fix-gate.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -20,7 +20,7 @@ at a time.)
 | 03 | YAML input schema + CLI + legacy importer | 50 example input.py -> yaml, lossless (gate_03.py) | done |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | done (GREEN 2026-08-28, floors lowered per user decision; finding in reports/job-04.md) |
 | 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | done |
-| 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | done |
+| 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | in-progress (RE-OPENED 2026-09-03: step-06 gate was closed GREEN on false evidence - c3h4 had never actually run (seed mechanism load failure swallowed, name GRI-Mech3.0-N not in rmgdb kinetics libs, real name GRI-Mech3), gate hard-checks excluded c3h4 + non-physical profiles (resimulate max diff 213.8, mole fractions up to ~250), coverage counts hardcoded {}. Fix step 06/07.) |
 | 07 | Statmech + master equation (CSE) + pdep | k(T,P) falloff vs RMG-Py (propane_branching) (gate_07.py) | pending |
 | 08 | pdep MSC/RS/SLS + isotope + observables/diff/merge + exports | method diffs + observables + export round-trips (gate_08.py) | pending |
 | 09 | Sensitivity/uncertainty via torchdae adjoint | adjoint vs finite-difference (gate_09.py) | pending |
@@ -75,7 +75,8 @@ documented finding) and the session log has the evidence.
 || 06/03 | main.py: the job driver + the iteration loop | rmgpu run completes, deterministic | done |
 || 06/04 | Mechanism artifact schema + the output tree writer | test_output.py | done |
 || 06/05 | Chemkin writer + species dictionary | test_chemkin.py | done |
-| 06/06 | Job-06 gate (first real mechanism generation) | gate_06.py (superminimal + c3h4) | done |
+| 06/06 | Job-06 gate (first real mechanism generation) | gate_06.py (superminimal + c3h4) | done (INVALID 2026-09-03 - GREEN on false evidence: c3h4 FAIL in the recorded results JSON + non-physical profiles (max mole fraction ~250) were not enforced; the report claimed "core identical, edge within tolerance" which the JSON refutes; superseded by 06/07) |
+| 06/07 | Fix the job-06 gate (re-opened): honest hard checks + c3h4 seed-mechanism path | gate_06.py honest hard checks (c3h4 run + physical validity), seed_loader real GRI-Mech3 load, coverage from real summary | pending |
 | 07/01 | Statmech modes: conformer, vibration, rotation | test_statmech_modes.py | pending |
 | 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | pending |
 | 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | pending |
@@ -178,6 +179,37 @@ documented finding) and the session log has the evidence.
   Job 04 = done. Follow-up (tracked, NOT started): checkpoint retrain
   request to the model team (H298 target -> Hf298 incl. negative values, Ea
   bias -29..-31 kJ/mol) per PLAN 8a.3, then restore the accuracy floors.
+- [user 2026-09-03] Job-06 parity bar: NO exact parity required in simulation
+  results - they should be qualitatively similar to RMG-Py, and deviations may
+  be kept as rmgpu improvements where appropriate. Consequence: gate_06 must
+  NOT hard-fail on a divergent (but documented) core set; it MUST hard-fail on
+  stack-health issues: c3h4 not actually running a real seed mechanism,
+  non-physical profiles (mole fractions outside [0,1]), missing/invalid output
+  tree, fake coverage numbers. See prompts/steps/job-06-step-07-fix-gate.md.
+- [finding 2026-09-03] Job-06 gate (step-06) was closed GREEN on false
+  evidence and is RE-OPENED. The gate report claimed "core identical, edge
+  within tolerance, deviations: none" while the gate's own
+  reports/gate_06_results.json (uncommitted) records: c3h4 status FAIL,
+  superminimal core 20 species vs 13 (15 O-chain rmgpu-only) / 100 reactions vs
+  19 (5 shared), resimulate max_abs_diff 213.8 within_tol:false (final profile
+  row contains mole fractions ~250 + negatives), estimation_counts/coverage
+  hardcoded {}. Root causes: (a) c3h4 seed mechanism 'GRI-Mech3.0-N' is not a
+  rmgdb kinetics library (real name 'GRI-Mech3') - load raised ValueError,
+  rmgpu/main.py:~130 caught it with a print() and swallowed it, so c3h4 ran
+  3 seed species + 0 seed reactions and the gate marked PASS; (b) gate hard
+  checks = {subgate, run_completes, output_tree, provenance} - c3h4 status and
+  resimulate-within-tol deliberately not enforced; (c) seed_loader.py:191
+  placeholder-methane for missing species, :171 thermo computed then discarded,
+  :96 LIMIT 1 on multi-band Arrhenius (GRI-Mech3 has 3), :107 'cm' substring
+  A-conversion (cm^6/(mol^2*s) termolecular needs 1e-12, gets 1e-6); (d)
+  divergence-cause block describes an earlier run (70 rxn / 11 O-chain) not the
+  recorded one (100 rxn / 15 O-chain) and misattributes the fix to job-07 pdep
+  (real cause: _screen promote-only fixed-snapshot max(fwd,rev), no demotion,
+  vs RMG-Py's reactor-driven max_edge_species_rate_ratios with keep-in-edge
+  pruning, rmgpy/rmg/model.py:1418-1455); (e) session log has no entries for
+  06/02..06/06; reports/gate_06_results.json never committed (jobs 03-05 all
+  committed theirs). Fix step: prompts/steps/job-06-step-07-fix-gate.md.
+  Baselines (gates/baselines/) are trusted per user; NOT re-run.
 
 ## Session log (append newest at bottom)
 
@@ -835,6 +867,30 @@ next: job-05/step-06-fix-intraene (read
   prompts/steps/job-05-step-06-fix-intraene.md): fix the 3 gaps (para +
   2nd-ortho resonance forms, the `reactive` flag, the matcher aromatic
   1.5 handling) then re-run gate_05.py (expect 32/32 GREEN) + pytest.
+
+### 2026-09-03 - job-06/step-06 (audit - gate RE-OPENED, fix step written)
+built: prompts/steps/job-06-step-07-fix-gate.md (the re-opened job-06 gate fix
+  step: honest hard checks incl. c3h4 run + physical validity, the c3h4
+  seed-mechanism path (GRI-Mech3.0-N -> GRI-Mech3 rmgdb alias, no swallowed
+  failures, no placeholder methane, real-unit A conversion, multi-band
+  Arrhenius, thermo attached), divergence-cause rewrite to the real run,
+  fast-path coverage parsing, user's no-exact-parity bar encoded).
+  No code changes - audit only (per user direction: verify before fixing).
+checks: n/a (audit session) - verified against tree: reports/gate_06_results.json
+  (c3h4 FAIL; core 20 vs 13 spc, 100 vs 19 rxn; resimulate max diff 213.8,
+  within_tol false; estimation_counts {}); seed_loader.py B2/B3/B4/B5 defects
+  (line-referenced); gate_06.py hard-check set (line 584-589) excludes c3h4 +
+  within_tol; rmgdb: 'GRI-Mech3.0-N' absent from kinetics_libraries_table,
+  'GRI-Mech3' present (54 species / 307 reactions; 3 multi-band; 6
+  cm^6/(mol^2*s) rows); c3h4 dry-run: input parses, N2 InChI builds, seed load
+  raises ValueError('GRI-Mech3.0-N' not found) and main.py:~130 swallows it;
+  full c3h4 run probe: no output after ~5 min (run is the full GRI seed) -
+  killed probe, left no state.
+commits: <this commit>
+next: job-06/step-07-fix-gate (read prompts/steps/job-06-step-07-fix-gate.md) -
+  the step file is self-contained; do NOT trust reports/job-06-step-06-gate.md
+  (it is false); reports/gate_06_results.json (the false-GREEN evidence) is
+  committed alongside this step file.
 
 ### 2026-09-02 - job-06/step-01
 built: rmgpu/reactor/reactors.py (SimpleReactor, ConstantVReactor, ConstantTPReactor, TerminationTime/Conversion/RateRatio), rmgpu/reactor/torch.py (torchdae backend simulate + validate_stiff_ode Van der Pol), tests/test_reactor_torch.py (4 tests)
