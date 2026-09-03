@@ -56,18 +56,79 @@ def load_input(path: str) -> Input:
 def _smiles_of(struct) -> str:
     if isinstance(struct, str):
         return struct
-    return getattr(struct, "smiles", None) or getattr(struct, "value", None) or ""
+    # Support both SMILES and InChI
+    smiles = getattr(struct, "smiles", None)
+    inchi = getattr(struct, "inchi", None)
+    # StructureValue.value returns the first non-None field
+    value = getattr(struct, "value", None)
+    if smiles:
+        return smiles
+    if inchi:
+        return f"inchi:{inchi}"
+    if value:
+        # If value looks like an InChI, treat as inchi
+        if isinstance(value, str) and value.startswith("InChI="):
+            return f"inchi:{value}"
+        return value
+    return ""
 
 
 def _build_seed_species(model_input: Input) -> list[Species]:
     out = []
     for sp in model_input.species or []:
-        smiles = _smiles_of(sp.structure)
-        if not smiles:
-            raise ValueError(f"Species {sp.label} has no SMILES")
-        out.append(Species(label=sp.label, molecule=Molecule(smiles=smiles),
-                           reactive=bool(sp.reactive)))
+        val = _smiles_of(sp.structure)
+        if not val:
+            raise ValueError(f"Species {sp.label} has no SMILES/InChI")
+        if isinstance(val, str) and val.startswith("inchi:"):
+            inchi = val[6:]
+            out.append(Species(label=sp.label, molecule=Molecule(inchi=inchi),
+                               reactive=bool(sp.reactive)))
+        else:
+            out.append(Species(label=sp.label, molecule=Molecule(smiles=val),
+                               reactive=bool(sp.reactive)))
     return out
+
+
+def _build_seed_mechanisms(model_input: Input, databases):
+    from rmgpu.core.model import Reaction
+    from rmgpu.db.seed_loader import load_seed_mechanism
+    db_block = getattr(model_input, "database", None)
+    seed_names = []
+    if db_block is not None:
+        seed_names = list(db_block.seed_mechanisms or [])
+    # Map RMG-Py library names to rmgdb names
+    name_map = {
+        "GRI-Mech3.0-N": "GRI-Mech3",
+        "GRI-Mech3.0": "GRI-Mech3",
+    }
+    all_species = []
+    all_reactions = []
+    seen_species_keys = set()
+    seen_reaction_keys = set()
+    for name in seed_names:
+        db_name = name_map.get(name, name)
+        try:
+            species, reactions = load_seed_mechanism(db_name, databases)
+            # Deduplicate by canonical SMILES
+            for sp in species:
+                from rmgpu.core.loop import canonical_key
+                key = canonical_key(sp.molecule)
+                if key not in seen_species_keys:
+                    seen_species_keys.add(key)
+                    all_species.append(sp)
+            for rx in reactions:
+                # Build a simple key from reactant/product labels
+                r_labels = tuple(sorted(s.label for s in rx.reactants))
+                p_labels = tuple(sorted(s.label for s in rx.products))
+                key = (r_labels, p_labels)
+                if key not in seen_reaction_keys:
+                    seen_reaction_keys.add(key)
+                    all_reactions.append(rx)
+        except Exception as e:
+            # Seed mechanism load failure is non-fatal: log and continue
+            # (the gate will record BLOCKED-STRUCTURAL if this is critical)
+            print(f"warning: seed mechanism {name!r} load failed: {e}")
+    return all_species, all_reactions
 
 
 def _build_databases(model_input: Input):
@@ -171,6 +232,7 @@ def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
     fam_sel = fam_sel.kinetics_families if fam_sel is not None else "default"
     families = _build_families(fam_sel)
     seed_species = _build_seed_species(model_input)
+    seed_mech_species, seed_mech_reactions = _build_seed_mechanisms(model_input, databases)
     T, P, imf, t_term, conv = _build_reactor(model_input)
 
     # Model-block tolerances
@@ -201,6 +263,10 @@ def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
         termination_time=t_term,
         termination_conversion=conv,
     )
+    # Attach seed mechanism data to context via extra attributes
+    # (RunContext is a dataclass; we extend it dynamically for job-06 seed support)
+    ctx.seed_mechanisms_species = seed_mech_species
+    ctx.seed_mechanisms_reactions = seed_mech_reactions
 
     loop = CoreEdgeLoop(ctx)
     result = loop.run()

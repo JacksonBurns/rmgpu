@@ -122,6 +122,8 @@ class RunContext:
     reaction_libraries: Optional[List[str]] = None
     termination_time: Optional[float] = None       # s
     termination_conversion: Optional[Dict[str, float]] = None
+    seed_mechanisms_species: List[Species] = field(default_factory=list)
+    seed_mechanisms_reactions: List[Reaction] = field(default_factory=list)
 
 
 @dataclass
@@ -466,10 +468,39 @@ class CoreEdgeLoop:
     def run(self) -> RunResult:
         ctx = self.ctx
         cfg = ctx.config
+        # Seed species from input species block
         for sp in ctx.seed_species:
             self.model.add_species_to_core(sp)
             self.species_by_key[canonical_key(sp.molecule)] = sp
             self._thermo(sp, 0)
+        # Load seed mechanisms (rmgdb libraries) into core
+        self.log.append("seed mechanisms: %d species / %d reactions" % (len(ctx.seed_mechanisms_species), len(ctx.seed_mechanisms_reactions)))
+        for sp in ctx.seed_mechanisms_species:
+            key = canonical_key(sp.molecule)
+            if key not in self.species_by_key:
+                self.species_by_key[key] = sp
+                self.model.add_species_to_core(sp)
+                self._thermo(sp, 0)
+        for rx in ctx.seed_mechanisms_reactions:
+            # Ensure all species are registered
+            for s in rx.reactants + rx.products:
+                key = canonical_key(s.molecule)
+                if key not in self.species_by_key:
+                    self.species_by_key[key] = s
+                    self.model.add_species_to_core(s)
+                    self._thermo(s, 0)
+            # Add reaction to core if all participants are in core
+            core_keys = self._core_key_set()
+            react_keys = [canonical_key(s.molecule) for s in rx.reactants]
+            prod_keys = [canonical_key(s.molecule) for s in rx.products]
+            if all(k in core_keys for k in react_keys + prod_keys):
+                self.model.add_reaction_to_core(rx)
+            else:
+                # If not all core, add to edge
+                self.model.add_reaction_to_edge(rx)
+                for s in rx.reactants + rx.products:
+                    if canonical_key(s.molecule) not in core_keys:
+                        self.model.add_species_to_edge(s)
         self.log.append("seed core: %d species" % len(self.model.core.species))
 
         prev_sig = None

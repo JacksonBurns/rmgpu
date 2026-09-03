@@ -12,7 +12,11 @@ def test_main_driver_minimal(tmp_path):
             {'label': 'CH4', 'reactive': True, 'structure': {'smiles': 'C'}},
             {'label': 'O2', 'reactive': True, 'structure': {'smiles': '[O]=O'}},
         ],
-        'reactors': [],
+        'reactors': [{
+            'temperature': {'value': 1000, 'unit': 'K'},
+            'pressure': {'value': 1.0, 'unit': 'bar'},
+            'initial_mole_fractions': {'CH4': 1.0, 'O2': 0.0},
+        }],
         'model': {
             'tolerance_move_to_core': 0.1,
             'tolerance_keep_in_edge': 0.0,
@@ -25,7 +29,7 @@ def test_main_driver_minimal(tmp_path):
 
     summary = run(str(tmp))
     assert summary['core_species_count'] == 2
-    assert summary['iteration'] >= 1
+    assert summary['iterations'] >= 1
     # Determinism: two runs produce same labels
     summary2 = run(str(tmp))
     assert summary['core_species_labels'] == summary2['core_species_labels']
