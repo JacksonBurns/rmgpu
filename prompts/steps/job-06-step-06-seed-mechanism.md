@@ -4,12 +4,12 @@
 Gate runs for superminimal (parity divergent but documented) and c3h4 is BLOCKED-STRUCTURAL because rmgpu does not load seed mechanisms. RMG-Py c3h4 uses `database.seedMechanisms = ['GRI-Mech3.0-N']`, which seeds the core from the GRI library. rmgpu currently only seeds from `species:` block.
 
 ## Goal
-Make c3h4 parity checkable by implementing rmgdb-backed seed-mechanism loading, then re-run gates/gate_06.py and report results.
+Make c3h4 parity checkable by implementing rmgdb-backed seed-mechanism loading, then re-run gates/gate_06.py and report results. The gate must run a real `rmgpu run` on `examples/c3h4.yaml`, produce a full PLAN 12.3 output tree, and compare core/edge sets vs the RMG-Py baseline. c3h4 should run end-to-end like superminimal, not remain BLOCKED-STRUCTURAL.
 
 ## Changes needed
 
-### 1. Add rmgdb seed-mechanism loader
-File: `rmgpu/db/seed_loader.py` (new)
+### 1. Ensure rmgdb seed-mechanism loader exists and works
+File: `rmgpu/db/seed_loader.py`
 - Resolve mechanism name to kinetics library id in `/home/jackson/rmgpu/rmgdb/db/kinetics.db`
   * `kinetics_libraries_table` → id by name
   * Species: `kinetics_library_dictionary_table` with `library_id`, `label`, `adjacency_list`
@@ -46,17 +46,19 @@ File: `rmgpu/core/loop.py`
   * Thermo-estimate seed species if thermo missing (existing `_thermo` path)
 - Log: `seed mechanisms: X species / Y reactions`
 
-### 4. Update gates/gate_06.py fast-path
-Already partially done. Ensure `check_c3h4` now runs a real `rmgpu run` instead of BLOCKED-STRUCTURAL:
+### 4. Update gates/gate_06.py to run real c3h4
+File: `gates/gate_06.py`
 - Change `check_c3h4` to call `M.run` on `examples/c3h4.yaml` with output root `examples/run_output_c3h4`
 - Parity vs `gates/baselines/c3h4/summary.json` using same canonical key logic as superminimal
 - Report core/edge counts, set diffs, and divergence cause
+- Remove BLOCKED-STRUCTURAL fast-path; real run must complete
 
 ## Checks targeting
 - `python gates/gate_06.py` → c3h4 status changes from BLOCKED-STRUCTURAL to PASS/ documented divergence
 - `pytest tests/ -q` → all pass
 - c3h4 parity vs RMG-Py baseline recorded in `reports/gate_06_results.json`
 - Output tree for c3h4 exists per PLAN 12.3
+- Output tree for superminimal remains valid
 
 ## Notes for next session
 - Seed mechanism loading uses rmgdb SQLite only, no RMG-database Python files
