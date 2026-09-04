@@ -7,7 +7,7 @@
   "symmetry": null,
   "thermo": {
     "model": "ml",
-    "Hf298": 9119.2578125,
+    "Hf298": 9119.2626953125,
     "S298": 219.361328125,
     "Cp": null,
     "method": "ml",

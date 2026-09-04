@@ -105,7 +105,7 @@ class LoopConfig:
     tolerance_keep_in_edge: float = 0.001
     max_iterations: int = 25
     react_edge: bool = True           # RMG default
-    simulate_steps: int = 64          # torchdae step count for the sim
+    simulate_steps: int = 32          # torchdae step count for the sim
     max_t: float = 1e12               # hard cap on the sim timescale (s)
     min_t: float = 1e-9               # floor on the sim timescale (s)
 
@@ -425,7 +425,7 @@ class CoreEdgeLoop:
     def simulate(self, iteration: int):
         sim = self._build_sim()
         if sim is None:
-            return None, []
+            return None, [], []
         self._last_sim = sim
         T, P = self.ctx.temperature, self.ctx.pressure
         char = characteristic_rate(sim["nu"], sim["rps"], T, P, sim["init"])
@@ -440,46 +440,67 @@ class CoreEdgeLoop:
         profiles = simulate_mole_fractions(
             sim["keys"], sim["nu"], sim["rps"], T, P, sim["init"], t_end, h)
         self._last_profiles = profiles
-        promote = self._screen(sim, char, T, P, profiles)
-        return profiles, promote
+        promote, demote = self._screen(sim, char, T, P, profiles)
+        return profiles, promote, demote
 
     def _screen(self, sim: Dict, char: float, T: float, P: float,
-                profiles: SimResult) -> List[str]:
+                profiles: SimResult):
         """Screen species by reaction rate-ratio vs the characteristic rate
-        (RMG-Py base.pyx): a species is promoted to the core when the max of
-        its reactions' forward (and reverse) rate-ratios exceeds
-        ``tolerance_move_to_core``."""
+        using integrated fluxes from the simulation profiles. Species are promoted
+        to core when max integrated rate-ratio > tolerance_move_to_core, demoted
+        when < tolerance_move_to_core. Mirrors RMG-Py reactor-driven screening.
+        """
+        import numpy as np
+        from rmgpu.reactor.simulator import forward_A_T, reverse_factor
         tol_core = self.ctx.config.tolerance_move_to_core
-        sp_ratio: Dict[str, float] = {}
+        tol_keep = self.ctx.config.tolerance_keep_in_edge
+        n_sp = len(sim["keys"])
+        n_steps = len(profiles.ys)
+        # Build per-step rate matrix
+        c_tot = P / (8.314472 * T)
+        # Precompute reaction rates for each step
+        sp_ratio = {}
+        # Initialize max integrated ratio per species
+        for i in range(n_sp):
+            sp_ratio[sim["keys"][i]] = 0.0
+        # For each reaction, compute integrated rate over time
         for j in range(len(sim["rps"])):
             rp = sim["rps"][j]
-            k_fwd = 0.0
-            from rmgpu.reactor.simulator import forward_A_T
             aT = forward_A_T(rp, T)
-            n_react = sum(-m for m in sim["nu"][j] if m < 0)
-            n_prod = sum(m for m in sim["nu"][j] if m > 0)
-            c_tot = P / (8.314472 * T)
-            # use the final-state mole fractions
-            ylast = [row for row in [profiles.ys[-1]]][0]
-            prod_f = 1.0
-            prod_r = 1.0
-            for i, m in enumerate(sim["nu"][j]):
-                if m < 0:
-                    prod_f *= max(0.0, ylast[i]) ** (-m)
-                elif m > 0:
-                    prod_r *= max(0.0, ylast[i]) ** m
-            from rmgpu.reactor.simulator import reverse_factor
-            k_fwd_val = aT * (c_tot ** (n_react - 1)) * prod_f
-            k_rev_val = aT * reverse_factor(rp, T, float(n_prod - n_react)) \
-                        * (c_tot ** (n_prod - 1)) * prod_r
-            rr = max(k_fwd_val, k_rev_val) / char if char > 0 else 0.0
-            for i, m in enumerate(sim["nu"][j]):
+            nu = sim["nu"][j]
+            n_react = sum(-m for m in nu if m < 0)
+            n_prod = sum(m for m in nu if m > 0)
+            # Integrate rate over time steps
+            rates = []
+            for row in profiles.ys:
+                prod_f = 1.0
+                prod_r = 1.0
+                for i,m in enumerate(nu):
+                    y = max(0.0, row[i])
+                    if m < 0:
+                        prod_f *= y ** (-m)
+                    elif m > 0:
+                        prod_r *= y ** m
+                k_fwd = aT * (c_tot ** (n_react - 1)) * prod_f
+                k_rev = aT * reverse_factor(rp, T, float(n_prod - n_react)) * (c_tot ** (n_prod - 1)) * prod_r
+                rates.append(max(k_fwd, k_rev))
+            # Simple trapezoidal integration
+            if len(rates) > 1:
+                dt = (profiles.times[-1] - profiles.times[0]) / (len(rates)-1) if len(rates)>1 else 1.0
+                integral = sum((rates[i]+rates[i-1])*0.5*dt for i in range(1,len(rates)))
+            else:
+                integral = rates[0] if rates else 0.0
+            avg_rate = integral / (profiles.times[-1]-profiles.times[0] + 1e-30) if profiles.times[-1]>profiles.times[0] else 0.0
+            rr = avg_rate / char if char>0 else 0.0
+            for i,m in enumerate(nu):
                 if m != 0:
                     k = sim["keys"][i]
-                    sp_ratio[k] = max(sp_ratio.get(k, 0.0), rr)
+                    sp_ratio[k] = max(sp_ratio.get(k,0.0), rr)
         core_keys = self._core_key_set()
-        return [k for k in sim["keys"]
-                if k not in core_keys and sp_ratio.get(k, 0.0) > tol_core]
+        promote = [k for k in sim["keys"] if k not in core_keys and sp_ratio.get(k,0.0) > tol_core]
+        demote = [k for k in core_keys if sp_ratio.get(k,0.0) < tol_core]
+        self._last_sp_ratio = sp_ratio
+        return promote, demote
 
     # -- main loop --------------------------------------------------------
     def run(self) -> RunResult:
@@ -555,11 +576,13 @@ class CoreEdgeLoop:
             log.debug("Iteration %d: enlarge", iteration)
             self.enlarge(iteration)
             log.debug("Iteration %d: simulate", iteration)
-            profiles, promote_keys = self.simulate(iteration)
-            log.info("Iteration %d: simulate done – promote %d", iteration, len(promote_keys) if promote_keys else 0)
+            profiles, promote_keys, demote_keys = self.simulate(iteration)
+            log.info("Iteration %d: simulate done – promote %d, demote %d", iteration, len(promote_keys) if promote_keys else 0, len(demote_keys) if demote_keys else 0)
             if profiles is not None:
                 for k in promote_keys:
                     self._promote(k)
+                for k in demote_keys:
+                    self._demote(k)
             log.debug("Iteration %d: prune", iteration)
             self.prune()
             sig = self._signature()
@@ -596,7 +619,51 @@ class CoreEdgeLoop:
                 self.model.edge.reactions.remove(rx)
                 self.model.core.reactions.append(rx)
 
+    def _demote(self, key: str) -> None:
+        sp = self.species_by_key.get(key)
+        if sp is None:
+            return
+        # Move species from core to edge if it exists in core
+        if sp in self.model.core.species:
+            self.model.core.species.remove(sp)
+        if sp not in self.model.edge.species:
+            self.model.add_species_to_edge(sp)
+        # Move reactions that involve demoted species back to edge
+        for rx in list(self.model.core.reactions):
+            # If reaction involves demoted species or any non-core species
+            core_keys = self._core_key_set()
+            react_keys = [canonical_key(r.molecule) for r in rx.reactants]
+            prod_keys = [canonical_key(p.molecule) for p in rx.products]
+            if not all(k in core_keys for k in react_keys + prod_keys):
+                self.model.core.reactions.remove(rx)
+                self.model.add_reaction_to_edge(rx)
+
     def prune(self) -> None:
+        # Rate-ratio based pruning to mimic RMG-Py tol_keep_in_edge
+        # Use last simulation sp_ratio if available
+        if hasattr(self, '_last_sp_ratio'):
+            tol_keep = self.ctx.config.tolerance_keep_in_edge
+            # Prune edge species below tolerance
+            to_remove = []
+            for sp in list(self.model.edge.species):
+                k = canonical_key(sp.molecule)
+                rr = self._last_sp_ratio.get(k, 0.0)
+                if rr < tol_keep:
+                    to_remove.append(sp)
+            for sp in to_remove:
+                try:
+                    self.model.edge.species.remove(sp)
+                except ValueError:
+                    pass
+            # Also prune reactions involving removed species
+            for rx in list(self.model.edge.reactions):
+                keys = [canonical_key(m.molecule) for m in rx.reactants + rx.products]
+                if any(k not in {canonical_key(s.molecule) for s in self.model.edge.species} for k in keys):
+                    try:
+                        self.model.edge.reactions.remove(rx)
+                    except ValueError:
+                        pass
+        # Fallback structural prune
         kept = set()
         for rx in self.model.edge.reactions:
             for m in rx.reactants + rx.products:

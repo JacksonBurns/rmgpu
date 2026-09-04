@@ -809,8 +809,9 @@ def main():
               % ("IDENTICAL" if cr["identical"] else "DIVERGENT",
                  len(cr["shared"]), len(cr["only_in_rmgpu"]), len(cr["only_in_reference"])))
     pv = results["physical_validity"]
-    print("physical validity: superminimal=%s c3h4=%s"
-          % (pv["superminimal"]["status"], pv["c3h4"]["status"]))
+    sup_phys = pv["superminimal"]["status"] if pv.get("superminimal") else "UNKNOWN"
+    c3_phys = (pv.get("c3h4") or {}).get("status", "UNKNOWN")
+    print("physical validity: superminimal=%s c3h4=%s" % (sup_phys, c3_phys))
     print("c3h4: %s (core %s spc, seed rxn in artifact %s, seed floor %s)"
           % (c3["status"], c3.get("core_species_count"),
              c3.get("seed_reaction_count_in_artifact"),

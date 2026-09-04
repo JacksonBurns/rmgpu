@@ -50,6 +50,7 @@ from typing import List, Optional
 
 import torch
 import torchdae
+torch.set_default_dtype(torch.float32)
 
 from rmgpu.kinetics.models import R  # 8.314472 (RMG-Py parity)
 
@@ -147,7 +148,7 @@ def simulate_mole_fractions(
         return SimResult(times=[0.0, float(t_end)],
                          ys=[list(y0), list(y0)])
 
-    nu_t = torch.tensor(nu, dtype=torch.float64, device=device)  # (rxn, sp)
+    nu_t = torch.tensor(nu, dtype=torch.float32, device=device)  # (rxn, sp)
     neg_nu = (-nu_t).clamp(min=0).T      # (sp, rxn) forward powers
     pos_nu = nu_t.clamp(min=0).T         # (sp, rxn) reverse powers
     n_react = (-nu_t).clamp(min=0).sum(dim=1)   # (rxn,) reactant count
@@ -156,13 +157,13 @@ def simulate_mole_fractions(
 
     c_tot = P / (R * T)                    # mol/m^3, constant
     A_T = torch.tensor([forward_A_T(rp, T) for rp in rps],
-                       dtype=torch.float64, device=device)
+                       dtype=torch.float32, device=device)
     rev_t = torch.tensor([reverse_factor(rp, T, float(dnu_t[j].item()))
                           for j, rp in enumerate(rps)],
-                         dtype=torch.float64, device=device)
-    cfwd = torch.pow(torch.tensor(c_tot, dtype=torch.float64, device=device),
+                         dtype=torch.float32, device=device)
+    cfwd = torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
                      (n_react - 1.0))
-    crev = torch.pow(torch.tensor(c_tot, dtype=torch.float64, device=device),
+    crev = torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
                      (n_prod - 1.0))
     k_fwd = A_T * cfwd
     k_rev = A_T * rev_t * crev
@@ -184,7 +185,7 @@ def simulate_mole_fractions(
         dnu = net @ dnu_t                  # (batch,) sum_j dnu_j net_j
         return net @ nu_t - y * dnu.unsqueeze(1)
 
-    y0_t = torch.tensor(y0, dtype=torch.float64, device=device)[None, :]
+    y0_t = torch.tensor(y0, dtype=torch.float32, device=device)[None, :]
 
     def F(t, y, yp):
         # torchdae calls F with y/yp 1-D (functorch Jacobian) or 2-D
