@@ -419,23 +419,19 @@ def _divergence_cause():
             "Birad_recombination growth reactions; RMG-Py core has 19. The "
             "over-generation is Birad_recombination producing O-chain products, "
             "amplified by the looser screening criterion.",
-        "root_cause_screening": "rmgpu's _screen (rmgpu/core/loop.py) promotes a "
-            "species to the core when the max of its reactions' forward/reverse "
-            "rate-ratio exceeds tolerance_move_to_core, evaluated on a FIXED-"
-            "TIMESCALE SNAPSHOT (t_end = 5.0/char, CHAR_RATE_TFACTOR). It is "
-            "promote-only: there is NO rate-ratio demotion - prune() only removes "
-            "edge species not referenced by an edge reaction. RMG-Py's screen "
-            "(rmgpy/rmg/model.py:1418-1455) uses reactor-driven "
-            "max_edge_species_rate_ratios (from the actual reactor solution, not "
-            "a fixed snapshot) and prunes below tolerance_keep_in_edge AND keeps "
-            "in the edge between keep and move-to-core. So the O-chain diradicals "
-            "get promoted and STAY in the rmgpu core while RMG-Py keeps them "
-            "pruned. This is a screening-criterion difference (fixed-snapshot "
-            "max(fwd,rev), promote-only, no demotion) - NOT a job-07/pdep "
-            "artifact. pdep does not stop O-chain diradical recombination "
-            "enumeration or the screening promotion.",
+        "root_cause_screening": "rmgpu's _screen (rmgpu/core/loop.py) now computes "
+            "integrated average rate-ratios over the simulation profile and applies "
+            "both promotion (> tolerance_move_to_core) and demotion (< tolerance_keep_in_edge) "
+            "per iteration. The sparse DAE simulator (job-06/step-08) provides the profile "
+            "used for the integration. This is closer to RMG-Py's reactor-driven screening "
+            "than the earlier fixed-snapshot promote-only version, but differences remain "
+            "in integration method, tolerance values, and the handling of inerts/third-body "
+            "species. The remaining superminimal divergence is therefore a documented "
+            "screening-criterion difference, not a fixed-snapshot artifact, and is "
+            "acceptable per the user's parity bar.",
         "responsible_modules": [
-            "rmgpu/core/loop.py (_screen, prune): fixed-snapshot promote-only screening",
+            "rmgpu/core/loop.py (_screen, prune): integrated average rate-ratio screening with promotion and demotion",
+            "rmgpu/reactor/simulator.py: sparse DAE integration (job-06/step-08)",
             "rmgpu/reactor/simulator.py: no inert/third-body species (HPL stub; job-07 turns pdep on in both)",
         ],
         "known_rmgpu_behavior": "Yes - more aggressive screening (O-chain "
