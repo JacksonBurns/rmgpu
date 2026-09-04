@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-07-step-01.md
+NEXT: prompts/steps/job-07-step-02-torsion.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -897,3 +897,9 @@ built: rmgpu/reactor/reactors.py (SimpleReactor, ConstantVReactor, ConstantTPRea
 checks: GREEN - pytest tests/test_reactor_torch.py -q: 4 passed (stiff ODE sub-gate max diff <0.5, mole balance closure, two-reaction shape, conversion termination)
 commits: 49729e1
 next: job-06/step-02-model (read prompts/steps/job-06-step-02-model.md)
+
+### 2026-09-04 - job-07/step-01-modes
+built: rmgpu/statmech/modes.py (Mode base, HarmonicOscillator, LinearRotor, NonlinearRotor, HinderedRotor, FreeRotor, Translation, Conformer with DoS convolution); tests/test_statmech_modes.py (4 basic sanity tests)
+checks: GREEN - pytest tests/test_statmech_modes.py -q: 4 passed (heat capacity sanity, conformer sum, number of states shape, DoS non-negative)
+commits: 9bdfde0
+next: job-07/step-02-torsion (read prompts/steps/job-07-step-02-torsion.md)
