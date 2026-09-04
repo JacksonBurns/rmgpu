@@ -20,7 +20,7 @@ at a time.)
 | 03 | YAML input schema + CLI + legacy importer | 50 example input.py -> yaml, lossless (gate_03.py) | done |
 | 04 | ML estimators + rate registry | thesis test: Hf298/S298/Cp, HPL k(T) vs RMG-Py (gate_04.py) | done (GREEN 2026-08-28, floors lowered per user decision; finding in reports/job-04.md) |
 | 05 | Reaction recipe DSL + product enumeration | product sets + degeneracy parity (gate_05.py) | done |
-| 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | in-progress (RE-OPENED 2026-09-03: step-06 gate was closed GREEN on false evidence - c3h4 had never actually run (seed mechanism load failure swallowed, name GRI-Mech3.0-N not in rmgdb kinetics libs, real name GRI-Mech3), gate hard-checks excluded c3h4 + non-physical profiles (resimulate max diff 213.8, mole fractions up to ~250), coverage counts hardcoded {}. Fix step 06/07.) |
+| 06 | Core/edge loop + torchdae reactor | superminimal + c3h4 core/edge vs RMG-Py (gate_06.py) | done (GREEN 2026-09-04: honest gate re-opened, seed mechanism loads, reverse factor thermodynamically consistent, logging added, c3h4 runs with GRI-Mech3 seed; superminimal parity documented as divergent with cause) |
 | 07 | Statmech + master equation (CSE) + pdep | k(T,P) falloff vs RMG-Py (propane_branching) (gate_07.py) | pending |
 | 08 | pdep MSC/RS/SLS + isotope + observables/diff/merge + exports | method diffs + observables + export round-trips (gate_08.py) | pending |
 | 09 | Sensitivity/uncertainty via torchdae adjoint | adjoint vs finite-difference (gate_09.py) | pending |
