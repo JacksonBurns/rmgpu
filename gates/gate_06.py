@@ -1,34 +1,40 @@
 #!/usr/bin/env python3
 """Job-06 gate: first real mechanism generation (the moment of truth).
 
-Runs the checks named in the job-06/step-06 brief and records a machine-readable
+Runs the checks named in the job-06 brief and records a machine-readable
 results JSON (reports/gate_06_results.json). It is NON-circular: the parity
 reference (RMG-Py, pdep OFF) is the real RMG-Py output committed under
-gates/baselines/<example>/ by scripts/rmgpy_reference.py, not rmgpu's own output.
+gates/baselines/<example>/ by scripts/rmgpy_reference.py, not rmgpu's own
+output.
 
-Checks (per the brief):
-  (1) torchdae stiff-ODE sub-gate: a 3-reaction Lindemann-falloff toy system AND
-      a Van der Pol (mu=10) non-chemistry control, integrated by torchdae
-      TR-BDF2 vs a high-accuracy RK45 reference - max abs diff recorded
-      (PLAN 13 risk 3: prove the backend before trusting it with mechanism growth).
-  (2) `rmgpu run` on the imported superminimal (HPL kinetics, pdep off/stub):
-      completes to steady state (or max_iter); iteration count + core/edge
-      species+reaction counts recorded.
-  (3) Parity vs RMG-Py (superminimal): core species set + core reaction set
-      (canonical SMILES keys) - the set diffs (species/reactions on each side).
-      TARGET: core identical (or a documented divergence with cause).
-  (4) Same for c3h4. (Recorded as BLOCKED-STRUCTURAL - see check_c3h4 below.)
-  (5) Output tree: every file in PLAN 12.3 exists and is valid (YAML parses,
-      CSV columns right, core.yaml loads back via the schema + re-simulates the
-      final iteration's profiles within tolerance).
-  (6) provenance.yaml contains real hashes/versions (not placeholders).
+This is the HONEST gate (job-06/step-07: the original was closed GREEN on
+false evidence). Checks:
+  (1) torchdae stiff-ODE sub-gate (VdP + Lindemann toy vs RK45) - hard.
+  (2) superminimal `rmgpu run` completes; parity vs RMG-Py is a RECORDED
+      QUALITATIVE FINDING (set diffs + documented cause), NOT a hard check -
+      per the user's 2026-09-03 parity bar, a divergent core with a documented
+      cause is a PASS.
+  (3) c3h4 `rmgpu run` with the GRI-Mech3 seed mechanism ACTUALLY loaded:
+      hard checks = run completes + core species count well above the 3 seed
+      species (floor 30; the GRI seed is 54) + a non-zero seed reaction count
+      + output tree + physically valid final profile. Parity vs RMG-Py is a
+      recorded finding, not a hard check.
+  (4) Output tree: every PLAN 12.3 file exists and is valid in BOTH examples;
+      core.yaml loads back via the schema.
+  (5) PHYSICAL VALIDITY (new, both examples): every mole fraction in the
+      written profile rows is in [0, 1] (eps 1e-6) and each row sums to 1
+      within 1e-3. A non-physical final profile is a HARD FAIL - a blow-up is
+      never "qualitatively similar" to a reference.
+  (6) Provenance: real hashes/versions in BOTH examples.
 
-Exit code: 0 if the stack is PROVEN to work end-to-end and the gate's
-hard checks (sub-gate, run-completes, output-tree, provenance) pass. The
-superminimal PARITY is reported with its measured set diffs; a RED parity
-(core not identical with no documented cause) would raise a hard failure, but
-this step records the cause of the divergence (see the RED-DIVERGENCE block
-in the results + reports/job-06.md), so the gate exits 0 on the documented case.
+Hard checks (exit 1 if any fails):
+  subgate, superminimal run completes, c3h4 status PASS, output tree PASS
+  (both), physical validity PASS (both), provenance PASS (both).
+
+The re-simulation of core.yaml's final mechanism is RECORDED but NOT a hard
+check (it re-simulates the full core from the initial state, which is a
+different, longer-time problem than the loop's last snapshot simulation -
+see _resimulate_final's note).
 """
 import csv
 import json
@@ -40,7 +46,23 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE = os.path.join(REPO, "gates", "baselines")
 OUT = os.path.join(REPO, "reports", "gate_06_results.json")
 RUN_SUPERMIN = os.path.join(REPO, "examples", "run_output_sm")
+RUN_C3H4 = os.path.join(REPO, "examples", "run_output_c3h4")
 RMGPU_EXAMPLES = os.path.join(REPO, "examples")
+
+# Floor for the c3h4 core species count: the 3 input seed species are CH2,
+# C2H2, N2; the GRI-Mech3 seed mechanism adds 54 library species, so a real
+# seed load yields a core far above 3. Floor 30 is a sanity check that the
+# seed (not a 3-species stub) was loaded.
+C3H4_CORE_SPECIES_FLOOR = 30
+# The c3h4 run is LONG (full GRI seed, 1350 K, ~51 families x ~1275 core-pairs
+# of generate_reactions per iteration, ~300 s/iteration; a 25-iteration run is
+# hours). Per job-06/step-07 we bound it: the seed is demonstrably loaded and
+# the profile is the hard requirement, so we cap the iterations and RECORD the
+# iteration count + core/edge counts reached.
+C3H4_MAX_ITERATIONS = 1
+# Physical validity tolerances (job-06/step-07 Fix 5).
+PHYS_EPS = 1.0e-6     # mole fractions must be in [0-eps, 1+eps]
+PHYS_SUM_TOL = 1.0e-3  # each row (closed system) must sum to 1 within this
 
 # PLAN 12.3 required output-tree files (relative to the run root).
 PLAN123_FILES = [
@@ -91,14 +113,22 @@ def load_core_artifact(path):
     return label_to_canon, canon_set
 
 
-def rmgpu_reaction_keys(rxnjson, label_to_canon):
-    """canonical, order-insensitive reaction keys from rmgpu reactions.json."""
-    out = set()
-    for r in rxnjson:
-        rs = sorted(label_to_canon.get(x, x) for x in r["reactants"])
-        ps = sorted(label_to_canon.get(x, x) for x in r["products"])
-        out.add(".".join(rs) + ">>" + ".".join(ps))
-    return out
+def artifact_seed_reaction_count(run_root):
+    """Count family=='seed' reactions in the written core.yaml + edge.yaml
+    (the artifact is the ground truth for whether a seed mechanism was
+    actually loaded and written)."""
+    import yaml
+    n = 0
+    for fname in ("core.yaml", "edge.yaml"):
+        p = os.path.join(run_root, "mechanism", fname)
+        if not os.path.exists(p):
+            continue
+        art = yaml.safe_load(open(p))
+        core = art.get("core") or {}
+        for r in core.get("reactions") or []:
+            if (r.get("family") or "") == "seed":
+                n += 1
+    return n
 
 
 def setdiff_report(name, a, b):
@@ -122,8 +152,6 @@ def check_subgate():
     from rmgpu.reactor.torch import validate_stiff_ode
     vdp = validate_stiff_ode(mu=10.0, t_end=10.0)
     # (b) chemistry control: 3-reaction Lindemann-falloff toy, H2 + I2 -> 2 HI
-    #     (I + I + M <-> I2 + M; H2 + I <-> 2 HI; I <-> I). Integrated by
-    #     torchdae TR-BDF2 vs a tiny-step RK45 reference.
     lind = _lindemann_subgate()
     out.update({
         "van_der_pol_mu10_max_abs_diff": vdp,
@@ -142,11 +170,7 @@ def _lindemann_subgate():
     to a tiny-step RK45 reference. The point (PLAN 13 risk 3) is to prove the
     backend handles a STIFF, multi-rate chemistry ODE (fast H2+I->HI chain on a
     slow I2->2I source) to within a tight tolerance before trusting it to drive
-    mechanism growth.
-
-    Species: I2, I, H2, HI (closed; the third body is the mixture, mole-fraction
-    sum = 1). Rate constants are 1/s (bimolecular) or 1/s (third-body with the
-    diluent folded in)."""
+    mechanism growth."""
     import torch
     import torchdae
 
@@ -158,7 +182,6 @@ def _lindemann_subgate():
     order = ["I2", "I", "H2", "HI"]  # index 0..3
 
     def dydt(y):
-        # torchdae passes y 1-D (Jacobian) or 2-D (batch=1, validation/integration)
         y1 = y if y.dim() == 1 else y[0]
         y_I2 = torch.clamp(y1[0], min=0.0)
         y_I = torch.clamp(y1[1], min=0.0)
@@ -206,36 +229,120 @@ def _lindemann_subgate():
 
 
 # ---------------------------------------------------------------------------
-# Check 2 + 3: rmgpu run superminimal + parity
+# Physical validity (job-06/step-07 Fix 5) - both examples, HARD.
+# ---------------------------------------------------------------------------
+def check_physical_validity(run_root, eps=PHYS_EPS, sum_tol=PHYS_SUM_TOL):
+    """Read profiles/reactor/time_series.csv and check every row:
+      - every mole-fraction value is FINITE and in [-eps, 1+eps];
+      - the row sum is within sum_tol of 1.0 (closed mole-fraction vector).
+    FAIL (with the offending species/values recorded) if any value is
+    non-finite (nan/inf - a blow-up), out of range, or any row sum is off.
+    This is what catches a non-physical blow-up (e.g. mole fractions ~250 or
+    an inf/nan from an overflowed rate). Do NOT loosen these to force a pass."""
+    import math
+    out = {"status": "pending", "rows": 0, "cols": 0, "bad_values": [],
+           "row_sum_errors": [], "final_row": None, "final_row_sum": None}
+    path = os.path.join(run_root, "profiles", "reactor", "time_series.csv")
+    if not os.path.exists(path):
+        out["status"] = "FAIL"
+        out["reason"] = "profiles/reactor/time_series.csv missing"
+        return out
+    with open(path) as f:
+        rows = list(csv.reader(f))
+    if len(rows) < 2:
+        out["status"] = "FAIL"
+        out["reason"] = "time_series.csv has no data rows"
+        return out
+    header = rows[0]
+    cols = [h.replace("_molefrac", "") for h in header[1:]]
+    out["rows"] = len(rows) - 1
+    out["cols"] = len(cols)
+    bad_values = []
+    row_sum_errors = []
+    for i, row in enumerate(rows[1:]):
+        vals = []
+        for j, cell in enumerate(row[1:]):
+            try:
+                v = float(cell)
+            except ValueError:
+                bad_values.append({"row": i + 1, "species": cols[j],
+                                   "value": cell, "reason": "not a number"})
+                continue
+            vals.append(v)
+            if not math.isfinite(v):
+                bad_values.append({"row": i + 1, "species": cols[j],
+                                   "value": v, "reason": "non-finite (nan/inf)"})
+            elif v < -eps or v > 1.0 + eps:
+                bad_values.append({"row": i + 1, "species": cols[j],
+                                   "value": v})
+        if vals and all(math.isfinite(v) for v in vals):
+            s = sum(vals)
+            if abs(s - 1.0) > sum_tol:
+                row_sum_errors.append({"row": i + 1, "sum": s})
+        elif not all(math.isfinite(v) for v in vals):
+            # a row with nan/inf is non-physical on its own
+            row_sum_errors.append({"row": i + 1, "sum": None,
+                                   "reason": "non-finite value in row"})
+    out["bad_values"] = bad_values[:50]  # cap the report
+    out["row_sum_errors"] = row_sum_errors[:50]
+    final = [float(x) for x in rows[-1][1:]]
+    out["final_row"] = {cols[j]: final[j] for j in range(len(cols))}
+    out["final_row_sum"] = (float(sum(final)) if all(math.isfinite(v) for v in final)
+                            else None)
+    if bad_values or row_sum_errors:
+        out["status"] = "FAIL"
+        out["n_bad_values"] = len(bad_values)
+        out["n_row_sum_errors"] = len(row_sum_errors)
+    else:
+        out["status"] = "PASS"
+    return out
+
+
+# ---------------------------------------------------------------------------
+# summary.md parser (fast path: the run output already exists)
+# ---------------------------------------------------------------------------
+def _parse_summary_md(run_root):
+    txt = open(os.path.join(run_root, "summary.md")).read()
+
+    def _find(k):
+        m = re.search(rf"{k}: (.+)", txt)
+        return m.group(1).strip() if m else None
+
+    summary = {
+        "iterations": int(_find("Iterations") or 0),
+        "steady_state": "steady state" in txt,
+        "core_species_count": int(_find("Core species") or 0),
+        "core_reaction_count": int(_find("Core reactions") or 0),
+        "edge_species_count": int(_find("Edge species") or 0),
+        "edge_reaction_count": int(_find("Edge reactions") or 0),
+        # REAL estimation/coverage numbers (job-06/step-07 Fix 8: never {})
+        "estimation_counts": {
+            "library_hits": int(_find("library_hits") or 0),
+            "ml_hits": int(_find("ml_hits") or 0),
+            "coverage_errors": int(_find("coverage_errors") or 0),
+        },
+        "coverage": {
+            "thermo_errors": int(_find("thermo_errors") or 0),
+            "kinetics_errors": int(_find("kinetics_errors") or 0),
+            "species_dropped": int(_find("species_dropped") or 0),
+            "reactions_dropped": int(_find("reactions_dropped") or 0),
+        },
+        "blocked_ml": [],
+    }
+    return summary
+
+
+# ---------------------------------------------------------------------------
+# Check 2 + 3: rmgpu run superminimal + parity (parity = recorded finding)
 # ---------------------------------------------------------------------------
 def check_superminimal():
     import rmgpu.main as M
     import time
-    import yaml, json
     out = {"status": "pending"}
-    # Skip long run if output already exists (fast-path for re-checks)
     core_yaml_path = os.path.join(RUN_SUPERMIN, "mechanism", "core.yaml")
     summary_path = os.path.join(RUN_SUPERMIN, "summary.md")
     if os.path.exists(core_yaml_path) and os.path.exists(summary_path):
-        # Load existing summary from run_output files to avoid re-running
-        # Parse summary.md for key metrics
-        txt = open(summary_path).read()
-        def _find(k):
-            import re
-            m = re.search(rf"{k}: (.+)", txt)
-            return m.group(1).strip() if m else None
-        # Minimal summary dict mimicking M.run output
-        summary = {
-            "iterations": int(_find("Iterations") or 0),
-            "steady_state": True,
-            "core_species_count": int(_find("Core species") or 0),
-            "core_reaction_count": int(_find("Core reactions") or 0),
-            "edge_species_count": int(_find("Edge species") or 0),
-            "edge_reaction_count": int(_find("Edge reactions") or 0),
-            "estimation_counts": {},
-            "coverage": {},
-            "blocked_ml": [],
-        }
+        summary = _parse_summary_md(RUN_SUPERMIN)
         out["elapsed_seconds"] = 0.0
         out["skipped_run"] = True
     else:
@@ -255,19 +362,18 @@ def check_superminimal():
         "coverage_gaps": summary["coverage"],
         "blocked_ml": summary["blocked_ml"],
     })
+    # run completes (steady state or max iterations) - a HARD check.
     out["status"] = "PASS" if summary["steady_state"] else "MAX_ITER"
 
-    # --- parity vs the committed RMG-Py baseline ---
+    # --- parity vs the committed RMG-Py baseline: RECORDED FINDING, not hard ---
     base_path = os.path.join(BASE, "superminimal", "summary.json")
     parity = {}
     if os.path.exists(base_path):
         base = json.load(open(base_path))
-        lab2c, rmgpu_core_sp = load_core_artifact(
-            os.path.join(RUN_SUPERMIN, "mechanism", "core.yaml"))
-        # rmgpu core reactions (canonical keys)
+        lab2c, rmgpu_core_sp = load_core_artifact(core_yaml_path)
         rxnjson = json.load(open(os.path.join(RUN_SUPERMIN, "reactions",
                                               "reactions.json")))
-        rmgpu_core_rx = rmgpu_reaction_keys(rxnjson, lab2c)
+        rmgpu_core_rx = _reaction_keys_from_json(rxnjson, lab2c)
         rmg_core_sp = set(base["core_species"])
         rmg_core_rx = set(base["core_reactions_keys"])
         parity = {
@@ -278,107 +384,180 @@ def check_superminimal():
     return out
 
 
+def _reaction_keys_from_json(rxnjson, label_to_canon):
+    """canonical, order-insensitive reaction keys from rmgpu reactions.json."""
+    out = set()
+    for r in rxnjson:
+        rs = sorted(label_to_canon.get(x, x) for x in r["reactants"])
+        ps = sorted(label_to_canon.get(x, x) for x in r["products"])
+        out.add(".".join(rs) + ">>" + ".".join(ps))
+    return out
+
+
 def _divergence_cause():
-    """The root-cause explanation for the superminimal RED parity. This is the
-    'documented cause' the brief requires for a non-identical core."""
+    """The root-cause explanation for the superminimal core divergence vs
+    RMG-Py. This is the 'documented cause' (a PASS, not a stack failure) for a
+    non-identical core, written to match the ACTUAL recorded run (job-06/
+    step-07 Fix 6: the old text described an earlier 70-rxn/11-O-chain run and
+    misattributed the fix to job-07)."""
     return {
-        "verdict": "RED-DIVERGENT (documented, not a stack failure)",
-        "core_species_in_rmgpu_only": "11 long O-chain species (H-O_n-H and O_n diradicals, n=2..9). rmgpu's fixed-timescale rate-ratio screening promotes them to the core, where RMG-Py keeps them pruned in the edge (RMG-Py's core simulation is conversion/termination-driven, not a fixed 5/char-rate snapshot).",
-        "core_species_in_rmgpy_only": "4 inert third-body species (He, Ne, N#N, [Ar]) that RMG-Py auto-injects into the reactor/core (rmgpy/chemkin + reactor default constant species), plus atomic O and O2(singlet) which RMG-Py's screening promotes. rmgpu's HPL-stub reactor adds no inerts (third-body/pdep is job-07 scope) and its screening does not promote atomic O / O2(singlet).",
-        "core_reactions": "rmgpu core has 70 reactions (40 H_Abstraction, 20 Birad_recombination, 10 R_Recombination) including the O-chain-growth Birad_recombination reactions; RMG-Py core has 19. The family-level over-generation is Birad_recombination producing O-chain products, amplified by the looser screening criterion. RMG-Py core reactions are a strict chemistry subset (no O-chain growth beyond the small core).",
+        "verdict": "DIVERGENT (documented, not a stack failure; parity bar per "
+                   "user 2026-09-03: qualitatively similar, documented "
+                   "deviations acceptable)",
+        "actual_run": "superminimal core 20 species / 100 reactions vs RMG-Py "
+                      "13 species / 19 reactions (5 shared reactions); 15 O-chain "
+                      "species (H-O_n-H and O_n diradicals, n=2..9) rmgpu-only",
+        "core_species_in_rmgpu_only": "15 long O-chain species (H-O_n-H and O_n "
+            "diradicals, n=2..9). rmgpu's fixed-timescale rate-ratio screening "
+            "promotes them to the core, where RMG-Py keeps them pruned in the edge.",
+        "core_species_in_rmgpy_only": "4 inert third-body species (He, Ne, N#N, "
+            "[Ar]) that RMG-Py auto-injects into the reactor/core (constant "
+            "species), plus atomic O and O2(singlet) which RMG-Py's screening "
+            "promotes. rmgpu's HPL-stub reactor adds no inerts (third-body/pdep "
+            "is job-07 scope) and its screening does not promote them.",
+        "core_reactions": "rmgpu core has 100 reactions including the O-chain "
+            "Birad_recombination growth reactions; RMG-Py core has 19. The "
+            "over-generation is Birad_recombination producing O-chain products, "
+            "amplified by the looser screening criterion.",
+        "root_cause_screening": "rmgpu's _screen (rmgpu/core/loop.py) promotes a "
+            "species to the core when the max of its reactions' forward/reverse "
+            "rate-ratio exceeds tolerance_move_to_core, evaluated on a FIXED-"
+            "TIMESCALE SNAPSHOT (t_end = 5.0/char, CHAR_RATE_TFACTOR). It is "
+            "promote-only: there is NO rate-ratio demotion - prune() only removes "
+            "edge species not referenced by an edge reaction. RMG-Py's screen "
+            "(rmgpy/rmg/model.py:1418-1455) uses reactor-driven "
+            "max_edge_species_rate_ratios (from the actual reactor solution, not "
+            "a fixed snapshot) and prunes below tolerance_keep_in_edge AND keeps "
+            "in the edge between keep and move-to-core. So the O-chain diradicals "
+            "get promoted and STAY in the rmgpu core while RMG-Py keeps them "
+            "pruned. This is a screening-criterion difference (fixed-snapshot "
+            "max(fwd,rev), promote-only, no demotion) - NOT a job-07/pdep "
+            "artifact. pdep does not stop O-chain diradical recombination "
+            "enumeration or the screening promotion.",
         "responsible_modules": [
-            "rmgpu/core/loop.py (_screen): fixed-timescale rate-ratio screening vs RMG-Py conversion-driven screening",
+            "rmgpu/core/loop.py (_screen, prune): fixed-snapshot promote-only screening",
             "rmgpu/reactor/simulator.py: no inert/third-body species (HPL stub; job-07 turns pdep on in both)",
-            "job-05 families: Birad_recombination over-generates O-chain products that the screen then promotes",
         ],
-        "systematic": "Yes - a family (Birad_recombination) is always over-present in the rmgpu core and inerts are always absent. Root-caused to the screening criterion + the missing third-body stub, both of which are addressed by job-07 (pdep on in both sides) and a future screening-criterion alignment step.",
+        "known_rmgpu_behavior": "Yes - more aggressive screening (O-chain "
+            "diradicals kept in core). Recorded as an acceptable deviation per "
+            "the user's parity bar. Aligning the screening criterion (reactor-"
+            "driven rate ratios + keep-in-edge demotion) is a SEPARATE follow-up "
+            "step; it is NOT fixed by job-07.",
     }
 
 
 # ---------------------------------------------------------------------------
-# Check 4: c3h4
+# Check 4: c3h4 (seed mechanism MUST actually load - hard)
 # ---------------------------------------------------------------------------
 def check_c3h4():
-    """c3h4 parity check with seed mechanism loading enabled.
-
-    RMG-Py seeds c3h4 from GRI-Mech3.0-N. rmgpu now loads seed mechanisms
-    via rmgdb, so we can run a real rmgpu run on examples/c3h4.yaml and
-    compare core/edge counts vs the RMG-Py baseline.
-    """
+    """c3h4 with the GRI-Mech3 seed mechanism. HARD: the run must complete
+    with the seed actually loaded (core species >= C3H4_CORE_SPECIES_FLOOR, a
+    non-zero seed reaction count in the written artifact), the output tree
+    must exist and load back, and the final profile must be physically valid.
+    Parity vs RMG-Py is a RECORDED FINDING (expected to diverge - different
+    screening), NOT a hard gate."""
     import rmgpu.main as M
     import time
-    import yaml, json
-    out = {"status": "pending"}
-    run_root = os.path.join(REPO, "examples", "run_output_c3h4")
-    # Run rmgpu on c3h4.yaml if output does not exist
+    out = {"status": "pending", "run_ok": False}
+    run_root = RUN_C3H4
     core_yaml_path = os.path.join(run_root, "mechanism", "core.yaml")
     if not os.path.exists(core_yaml_path):
         t0 = time.time()
         try:
-            summary = M.run(os.path.join(RMGPU_EXAMPLES, "c3h4.yaml"), out_root=run_root)
+            summary = M.run(os.path.join(RMGPU_EXAMPLES, "c3h4.yaml"),
+                            out_root=run_root,
+                            max_iterations=C3H4_MAX_ITERATIONS)
             out["elapsed_seconds"] = round(time.time() - t0, 1)
             out["run_ok"] = True
+            out["skipped_run"] = False
+            out["run_exception"] = None
         except Exception as e:
             out["status"] = "FAIL"
-            out["reason"] = f"rmgpu run failed: {e}"
+            out["reason"] = f"rmgpu run failed: {type(e).__name__}: {e}"
             return out
     else:
         out["elapsed_seconds"] = 0.0
         out["skipped_run"] = True
-    # Load summary from summary.md
-    summary_path = os.path.join(run_root, "summary.md")
-    txt = open(summary_path).read()
-    def _find(k):
-        import re
-        m = re.search(rf"{k}: (.+)", txt)
-        return m.group(1).strip() if m else None
-    summary = {
-        "iterations": int(_find("Iterations") or 0),
-        "core_species_count": int(_find("Core species") or 0),
-        "core_reaction_count": int(_find("Core reactions") or 0),
-        "edge_species_count": int(_find("Edge species") or 0),
-        "edge_reaction_count": int(_find("Edge reactions") or 0),
-    }
+        out["run_ok"] = True
+        out["run_exception"] = None
+    # Real summary numbers from the written tree (never hardcoded).
+    summary = _parse_summary_md(run_root)
     out.update(summary)
-    # Parity vs RMG-Py baseline
+
+    # HARD: seed mechanism actually loaded (from the written artifact, the
+    # ground truth - not the run's memory).
+    seed_rxn_count = artifact_seed_reaction_count(run_root)
+    n_core_species = summary["core_species_count"]
+    out["seed_reaction_count_in_artifact"] = seed_rxn_count
+    out["core_species_floor"] = C3H4_CORE_SPECIES_FLOOR
+
+    # HARD: output tree exists + core.yaml loads back.
+    out["output_tree"] = check_output_tree(run_root, label="c3h4")
+
+    # HARD: physically valid final profile.
+    out["physical_validity"] = check_physical_validity(run_root)
+
+    reasons = []
+    if not out["run_ok"]:
+        reasons.append("run did not complete")
+    if n_core_species < C3H4_CORE_SPECIES_FLOOR:
+        reasons.append(
+            f"seed mechanism not loaded: core species {n_core_species} < floor "
+            f"{C3H4_CORE_SPECIES_FLOOR} (a run that silently dropped its seed "
+            f"mechanism is not a valid run)")
+    if seed_rxn_count <= 0:
+        reasons.append("no family=='seed' reactions in the written artifact "
+                       "(seed mechanism not actually loaded)")
+    if out["output_tree"]["status"] != "PASS":
+        reasons.append("output tree missing/invalid")
+    if out["physical_validity"]["status"] != "PASS":
+        reasons.append("final profile non-physical (see physical_validity)")
+    if reasons:
+        out["status"] = "FAIL"
+        out["reason"] = "; ".join(reasons)
+    else:
+        out["status"] = "PASS"
+
+    # Parity vs RMG-Py baseline: RECORDED FINDING, not hard.
     base_path = os.path.join(BASE, "c3h4", "summary.json")
     parity = {}
     if os.path.exists(base_path):
         base = json.load(open(base_path))
         lab2c, rmgpu_core_sp = load_core_artifact(core_yaml_path)
-        rxnjson = json.load(open(os.path.join(run_root, "reactions", "reactions.json")))
-        rmgpu_core_rx = rmgpu_reaction_keys(rxnjson, lab2c)
+        rxnjson = json.load(open(os.path.join(run_root, "reactions",
+                                              "reactions.json")))
+        rmgpu_core_rx = _reaction_keys_from_json(rxnjson, lab2c)
         rmg_core_sp = set(base.get("core_species", []))
         rmg_core_rx = set(base.get("core_reactions_keys", []))
         parity = {
             "core_species": setdiff_report("core_species", rmgpu_core_sp, rmg_core_sp),
             "core_reactions": setdiff_report("core_reactions", rmgpu_core_rx, rmg_core_rx),
+            "note": "c3h4 parity is expected to diverge (different screening "
+                    "criterion + seed handling); recorded finding, not a gate.",
         }
     out["parity_vs_rmgpy"] = parity
-    out["status"] = "PASS"
     return out
 
 
 # ---------------------------------------------------------------------------
-# Check 5: output tree
+# Check 5: output tree (both examples)
 # ---------------------------------------------------------------------------
-def check_output_tree():
+def check_output_tree(run_root=RUN_SUPERMIN, label=None):
     out = {"status": "pending", "missing": [], "invalid": []}
     import yaml
-    root = RUN_SUPERMIN
     # existence
     for rel in PLAN123_FILES:
-        p = os.path.join(root, rel)
+        p = os.path.join(run_root, rel)
         if not os.path.exists(p):
             out["missing"].append(rel)
     # validity
     try:
-        art = yaml.safe_load(open(os.path.join(root, "mechanism", "core.yaml")))
+        art = yaml.safe_load(open(os.path.join(run_root, "mechanism", "core.yaml")))
         assert "core" in art and "species" in art["core"] and "reactions" in art["core"]
     except Exception as e:
         out["invalid"].append("mechanism/core.yaml: %r" % (e,))
     try:
-        meta = yaml.safe_load(open(os.path.join(root, "profiles", "reactor",
+        meta = yaml.safe_load(open(os.path.join(run_root, "profiles", "reactor",
                                                 "metadata.yaml")))
         assert "units" in meta and "reactor" in meta
     except Exception as e:
@@ -386,25 +565,27 @@ def check_output_tree():
     # core.yaml loads back via the schema
     try:
         from rmgpu.schemas.mechanism import load_mechanism
-        lm = load_mechanism(os.path.join(root, "mechanism", "core.yaml"))
+        lm = load_mechanism(os.path.join(run_root, "mechanism", "core.yaml"))
         out["core_yaml_loads_back"] = True
         out["core_yaml_species"] = len(lm.core.species)
         out["core_yaml_reactions"] = len(lm.core.reactions)
     except Exception as e:
         out["core_yaml_loads_back"] = False
         out["invalid"].append("core.yaml schema load: %r" % (e,))
-    # time_series.csv columns + a re-simulation smoke (final-iteration profiles)
+    # time_series.csv columns
     try:
-        with open(os.path.join(root, "profiles", "reactor", "time_series.csv")) as f:
+        with open(os.path.join(run_root, "profiles", "reactor", "time_series.csv")) as f:
             rows = list(csv.reader(f))
         header = rows[0]
         out["profile_rows"] = len(rows) - 1
         out["profile_cols"] = len(header)
         out["profile_header_is_time_first"] = header[0].startswith("time")
-        # re-simulate: integrate core.yaml's reactions from the initial state and
-        # compare the final profiles row to the written time series.
-        resim = _resimulate_final(root)
-        out["resimulate_final"] = resim
+        # Re-simulation of the final core (RECORDED, not hard - see module note).
+        try:
+            resim = _resimulate_final(run_root)
+            out["resimulate_final"] = resim
+        except Exception as e:
+            out["resimulate_final"] = {"ok": False, "reason": repr(e)}
     except Exception as e:
         out["invalid"].append("time_series.csv: %r" % (e,))
     ok = (not out["missing"]) and (not out["invalid"]) and out.get("core_yaml_loads_back", False)
@@ -415,47 +596,41 @@ def check_output_tree():
 def _resimulate_final(root):
     """Load core.yaml, re-run the loop's simulate() once on the final core
     mechanism, and compare the resulting final mole-fraction row to the last
-    row of profiles/reactor/time_series.csv. Returns the max abs diff (and a
-    bool for within-tolerance). Tolerance is loose (the written profiles came
-    from the same loop but a possibly-different iteration's rate set); the
-    point is to prove core.yaml round-trips into a runnable, finite mechanism."""
-    import rmgpu.main as M
-    import torch
-    from rmgpu.core.loop import CoreEdgeLoop, LoopConfig, RunContext, canonical_key
-    from rmgpu.core.model import Species, Reaction
+    row of profiles/reactor/time_series.csv. RECORDED, NOT A HARD CHECK: this
+    re-simulates the full final core from the INITIAL state over a fresh
+    5/char timescale - a different, longer-time problem than the loop's final
+    snapshot simulation (which started from the previous iteration's state),
+    so a large diff is expected and does not invalidate the run. The physical
+    validity of the WRITTEN profile is the hard check (check_physical_validity).
+    Returns max abs diff + within-tol (tol 1e-3, loose)."""
+    import torch  # noqa: F401
+    from rmgpu.core.model import Species, Reaction  # noqa: F401
     from rmgpu.molecule.molecule import Molecule
-    from rmgpu.reactor.simulator import RateParam
+    from rmgpu.reactor.simulator import (RateParam, simulate_mole_fractions,
+                                         characteristic_rate)
     import yaml
     art = yaml.safe_load(open(os.path.join(root, "mechanism", "core.yaml")))
     core = art["core"]
-    # reconstruct species (label -> Molecule)
     sp_map = {}
     for sp in core["species"]:
         try:
             sp_map[sp["label"]] = Molecule(smiles=sp["smiles"])
         except Exception:
             pass
-    # reconstruct reactions with their RateParams
     rps = []
     for r in core["reactions"]:
         params = r["rate"]["params"]
         rp = RateParam(A=params.get("A", 0.0), n=params.get("n", 0.0),
                        Ea=params.get("Ea", 0.0), T0=params.get("T0", 1.0),
-                       dS=params.get("dS", 0.0),
+                       dS=params.get("dS", 0.0), dH=params.get("dH", 0.0),
                        family=r.get("family"), source=r.get("source", "ml"))
         react = [sp_map[x] for x in r["reactants"] if x in sp_map]
         prod = [sp_map[x] for x in r["products"] if x in sp_map]
         if len(react) != len(r["reactants"]) or len(prod) != len(r["products"]):
             continue
-        # build a Reaction-like stub: loop.simulate only needs rate params + keys
         rps.append((rp, r["reactants"], r["products"]))
     if not rps:
         return {"ok": False, "reason": "no reconstructable reactions"}
-    T = 1000.0
-    P = 1.0e5
-    # read the initial mole fractions + T/P from the written run (metadata + run.yaml)
-    # - T/P must be converted with the same Quantity.to_si() the loop uses (the
-    #   YAML carries non-SI units, e.g. bar for pressure)
     from rmgpu.units import Quantity
     imf = {}
     T = 1000.0
@@ -469,13 +644,11 @@ def _resimulate_final(root):
         imf = run_doc["reactors"][0]["initial_mole_fractions"] or {}
     except Exception:
         imf = {}
-    # read the written final row
     with open(os.path.join(root, "profiles", "reactor", "time_series.csv")) as f:
         rows = list(csv.reader(f))
     header = rows[0]
     final_written = [float(x) for x in rows[-1][1:]]
     written_species_cols = [h.replace("_molefrac", "") for h in header[1:]]
-    # reconstruct the sim from core reactions only
     keys = []
     seen = set()
     for rp, rk, pk in rps:
@@ -496,7 +669,6 @@ def _resimulate_final(root):
     init = [0.0] * len(keys)
     for i, k in enumerate(keys):
         init[i] = float(imf.get(k, 0.0))
-    from rmgpu.reactor.simulator import simulate_mole_fractions, characteristic_rate
     char = characteristic_rate(nu, rp_list, T, P, init)
     t_end = 5.0 / char if char > 0 else 1.0
     t_end = max(1e-9, min(t_end, 1e12))
@@ -505,11 +677,8 @@ def _resimulate_final(root):
                                        h=max(t_end / 64, 1e-18))
     except Exception as e:
         return {"ok": False, "reason": "re-simulation raised %r" % (e,)}
-    # compare on the intersection of species (canonical keys) present in both.
-    # The written CSV columns are the loop's simulation KEYS (canonical SMILES),
-    # but core.yaml labels user-named seeds by their user label (H2/O2) - so map
-    # label -> canonical SMILES through the species list before comparing.
     from rdkit import Chem
+
     def ckey(sm):
         m = Chem.MolFromSmiles(sm)
         if m is None:
@@ -532,18 +701,18 @@ def _resimulate_final(root):
     return {"ok": True, "compared_species": len(common),
             "max_abs_diff": float(maxdiff),
             "within_tol": bool(maxdiff < 1e-3),
-            "note": "re-simulation of the final core (64 steps) vs the written "
-                   "final row; loose tolerance - proves core.yaml round-trips "
-                   "into a runnable, finite mechanism."}
+            "note": "re-simulation of the final core from the initial state; "
+                    "RECORDED, not a hard check (different time problem than "
+                    "the loop's final snapshot sim)."}
 
 
 # ---------------------------------------------------------------------------
-# Check 6: provenance
+# Check 6: provenance (both examples)
 # ---------------------------------------------------------------------------
-def check_provenance():
+def check_provenance(run_root=RUN_SUPERMIN):
     import yaml
     out = {"status": "pending"}
-    p = os.path.join(RUN_SUPERMIN, "provenance.yaml")
+    p = os.path.join(run_root, "provenance.yaml")
     if not os.path.exists(p):
         out["status"] = "FAIL"
         out["reason"] = "provenance.yaml missing"
@@ -562,6 +731,7 @@ def check_provenance():
         "ml_checkpoint_hashes": {k: str(v)[:12] + "..." for k, v in ml.items()},
         "versions": versions,
         "ok_git": ok_git, "ok_db": ok_db, "ok_ml": ok_ml, "ok_versions": ok_ver,
+        "seed_mechanisms": prov.get("seed_mechanisms", []),
     })
     out["status"] = "PASS" if (ok_git and ok_db and ok_ml and ok_ver) else "FAIL"
     return out
@@ -569,23 +739,45 @@ def check_provenance():
 
 # ---------------------------------------------------------------------------
 def main():
-    results = {"job": "06", "step": "06-gate"}
+    results = {"job": "06", "step": "07-gate"}
     results["subgate"] = check_subgate()
     results["superminimal_run_and_parity"] = check_superminimal()
     results["superminimal_divergence_cause"] = _divergence_cause()
     results["c3h4"] = check_c3h4()
-    results["output_tree"] = check_output_tree()
-    results["provenance"] = check_provenance()
+    results["output_tree"] = {
+        "superminimal": check_output_tree(RUN_SUPERMIN, "superminimal"),
+        "c3h4": results["c3h4"].get("output_tree"),
+    }
+    results["physical_validity"] = {
+        "superminimal": check_physical_validity(RUN_SUPERMIN),
+        "c3h4": results["c3h4"].get("physical_validity"),
+    }
+    results["provenance"] = {
+        "superminimal": check_provenance(RUN_SUPERMIN),
+        "c3h4": check_provenance(RUN_C3H4),
+    }
 
-    # hard pass/fail: sub-gate, run-completes, output-tree, provenance. The
-    # superminimal parity is RED-documented (a known, root-caused divergence -
-    # not a stack failure), so it is recorded but does not fail the gate on its
-    # own. c3h4 is BLOCKED-STRUCTURAL (seed-mechanism gap), also recorded.
+    # HONEST hard checks (job-06/step-07): the gate cannot lie. A run that
+    # "completes" by silently dropping its seed mechanism, a non-physical
+    # profile, a missing/invalid output tree, fake coverage, or fake provenance
+    # all FAIL.
+    sm = results["superminimal_run_and_parity"]
+    c3 = results["c3h4"]
     hard = {
         "subgate": results["subgate"]["status"] == "PASS",
-        "run_completes": results["superminimal_run_and_parity"]["status"] in ("PASS", "MAX_ITER"),
-        "output_tree": results["output_tree"]["status"] == "PASS",
-        "provenance": results["provenance"]["status"] == "PASS",
+        "run_completes_superminimal": sm["status"] in ("PASS", "MAX_ITER"),
+        "c3h4": c3["status"] == "PASS",
+        "output_tree_superminimal":
+            results["output_tree"]["superminimal"]["status"] == "PASS",
+        "output_tree_c3h4":
+            (results["output_tree"]["c3h4"] or {}).get("status") == "PASS",
+        "physical_validity_superminimal":
+            results["physical_validity"]["superminimal"]["status"] == "PASS",
+        "physical_validity_c3h4":
+            (results["physical_validity"]["c3h4"] or {}).get("status") == "PASS",
+        "provenance_superminimal":
+            results["provenance"]["superminimal"]["status"] == "PASS",
+        "provenance_c3h4": results["provenance"]["c3h4"]["status"] == "PASS",
     }
     results["hard_checks"] = hard
     results["all_hard_pass"] = all(hard.values())
@@ -595,17 +787,18 @@ def main():
         json.dump(results, f, indent=1, default=str)
 
     # console summary
-    print("=== job-06 gate ===")
+    print("=== job-06 gate (honest, step-07) ===")
     print("sub-gate: %s (VdP %.2e, Lindemann %.2e)" %
           (results["subgate"]["status"],
            results["subgate"]["van_der_pol_mu10_max_abs_diff"],
            results["subgate"]["lindemann_toy_max_abs_diff"]))
-    sp = results["superminimal_run_and_parity"]
     print("superminimal run: %s, iterations=%s, core %d spc/%d rxn, edge %d spc/%d rxn, %.0fs"
-          % (sp["status"], sp["iterations"], sp["core_species_count"],
-             sp["core_reaction_count"], sp["edge_species_count"],
-             sp["edge_reaction_count"], sp["elapsed_seconds"]))
-    par = sp.get("parity_vs_rmgpy", {})
+          % (sm["status"], sm["iterations"], sm["core_species_count"],
+             sm["core_reaction_count"], sm["edge_species_count"],
+             sm["edge_reaction_count"], sm["elapsed_seconds"]))
+    print("  coverage: est=%s gaps=%s"
+          % (sm.get("estimation_counts"), sm.get("coverage_gaps")))
+    par = sm.get("parity_vs_rmgpy", {})
     if par:
         cs = par["core_species"]
         cr = par["core_reactions"]
@@ -615,10 +808,25 @@ def main():
         print("  core_reactions parity: %s (shared %d, rmgpu-only %d, ref-only %d)"
               % ("IDENTICAL" if cr["identical"] else "DIVERGENT",
                  len(cr["shared"]), len(cr["only_in_rmgpu"]), len(cr["only_in_reference"])))
-    print("c3h4: %s" % results["c3h4"]["status"])
-    print("output_tree: %s" % results["output_tree"]["status"])
-    print("provenance: %s" % results["provenance"]["status"])
-    print("HARD CHECKS:", hard, "=> ALL PASS" if results["all_hard_pass"] else "=> FAIL")
+    pv = results["physical_validity"]
+    print("physical validity: superminimal=%s c3h4=%s"
+          % (pv["superminimal"]["status"], pv["c3h4"]["status"]))
+    print("c3h4: %s (core %s spc, seed rxn in artifact %s, seed floor %s)"
+          % (c3["status"], c3.get("core_species_count"),
+             c3.get("seed_reaction_count_in_artifact"),
+             c3.get("core_species_floor")))
+    if c3.get("reason"):
+        print("  c3h4 reason: %s" % c3["reason"])
+    print("output_tree: superminimal=%s c3h4=%s"
+          % (results["output_tree"]["superminimal"]["status"],
+             (results["output_tree"]["c3h4"] or {}).get("status")))
+    print("provenance: superminimal=%s c3h4=%s"
+          % (results["provenance"]["superminimal"]["status"],
+             results["provenance"]["c3h4"]["status"]))
+    print("HARD CHECKS:")
+    for k, v in hard.items():
+        print("  %-32s %s" % (k, "PASS" if v else "FAIL"))
+    print("=> ALL PASS" if results["all_hard_pass"] else "=> FAIL")
     sys.exit(0 if results["all_hard_pass"] else 1)
 
 

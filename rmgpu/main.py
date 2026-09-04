@@ -90,45 +90,45 @@ def _build_seed_species(model_input: Input) -> list[Species]:
 
 
 def _build_seed_mechanisms(model_input: Input, databases):
-    from rmgpu.core.model import Reaction
+    """Load the requested seed mechanisms from rmgdb.
+
+    A load failure is LAUD, not swallowed: a run that asked for a seed
+    mechanism and got none is not a valid run, so the exception propagates
+    and the run FAILs (job-06/step-07, Fix 3). Per-mechanism loud summaries
+    (resolution, drops) are returned for the run summary.
+    """
     from rmgpu.db.seed_loader import load_seed_mechanism
     db_block = getattr(model_input, "database", None)
     seed_names = []
     if db_block is not None:
         seed_names = list(db_block.seed_mechanisms or [])
-    # Map RMG-Py library names to rmgdb names
-    name_map = {
-        "GRI-Mech3.0-N": "GRI-Mech3",
-        "GRI-Mech3.0": "GRI-Mech3",
-    }
     all_species = []
     all_reactions = []
     seen_species_keys = set()
     seen_reaction_keys = set()
+    summaries = []
     for name in seed_names:
-        db_name = name_map.get(name, name)
-        try:
-            species, reactions = load_seed_mechanism(db_name, databases)
-            # Deduplicate by canonical SMILES
-            for sp in species:
-                from rmgpu.core.loop import canonical_key
-                key = canonical_key(sp.molecule)
-                if key not in seen_species_keys:
-                    seen_species_keys.add(key)
-                    all_species.append(sp)
-            for rx in reactions:
-                # Build a simple key from reactant/product labels
-                r_labels = tuple(sorted(s.label for s in rx.reactants))
-                p_labels = tuple(sorted(s.label for s in rx.products))
-                key = (r_labels, p_labels)
-                if key not in seen_reaction_keys:
-                    seen_reaction_keys.add(key)
-                    all_reactions.append(rx)
-        except Exception as e:
-            # Seed mechanism load failure is non-fatal: log and continue
-            # (the gate will record BLOCKED-STRUCTURAL if this is critical)
-            print(f"warning: seed mechanism {name!r} load failed: {e}")
-    return all_species, all_reactions
+        # Name resolution (RMG-Py name -> rmgdb library name) lives inside the
+        # loader and is loud (alias table + controlled normalization).
+        species, reactions, summary = load_seed_mechanism(name, databases)
+        summary["requested"] = name
+        summaries.append(summary)
+        # Deduplicate by canonical SMILES
+        for sp in species:
+            from rmgpu.core.loop import canonical_key
+            key = canonical_key(sp.molecule)
+            if key not in seen_species_keys:
+                seen_species_keys.add(key)
+                all_species.append(sp)
+        for rx in reactions:
+            # Build a simple key from reactant/product labels
+            r_labels = tuple(sorted(s.label for s in rx.reactants))
+            p_labels = tuple(sorted(s.label for s in rx.products))
+            key = (r_labels, p_labels)
+            if key not in seen_reaction_keys:
+                seen_reaction_keys.add(key)
+                all_reactions.append(rx)
+    return all_species, all_reactions, summaries
 
 
 def _build_databases(model_input: Input):
@@ -224,7 +224,8 @@ def _build_reactor(model_input: Input):
 # The run
 # ---------------------------------------------------------------------------
 
-def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
+def run(input_path: str, out_root: str | None = None,
+        max_iterations: int | None = None) -> Dict[str, Any]:
     model_input = load_input(input_path)
     databases = _build_databases(model_input)
     ml = _build_ml()
@@ -232,7 +233,8 @@ def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
     fam_sel = fam_sel.kinetics_families if fam_sel is not None else "default"
     families = _build_families(fam_sel)
     seed_species = _build_seed_species(model_input)
-    seed_mech_species, seed_mech_reactions = _build_seed_mechanisms(model_input, databases)
+    seed_mech_species, seed_mech_reactions, seed_mech_summaries = _build_seed_mechanisms(
+        model_input, databases)
     T, P, imf, t_term, conv = _build_reactor(model_input)
 
     # Model-block tolerances
@@ -257,6 +259,7 @@ def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
         config=LoopConfig(
             tolerance_move_to_core=tol_move if tol_move is not None else 0.01,
             tolerance_keep_in_edge=tol_keep if tol_keep is not None else 0.0,
+            **({"max_iterations": max_iterations} if max_iterations is not None else {}),
         ),
         thermo_libraries=list(db_block.thermo_libraries or []) if db_block else None,
         reaction_libraries=list(db_block.reaction_libraries or []) if db_block else None,
@@ -267,6 +270,7 @@ def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
     # (RunContext is a dataclass; we extend it dynamically for job-06 seed support)
     ctx.seed_mechanisms_species = seed_mech_species
     ctx.seed_mechanisms_reactions = seed_mech_reactions
+    ctx.seed_mechanisms_summaries = seed_mech_summaries
 
     loop = CoreEdgeLoop(ctx)
     result = loop.run()
@@ -277,7 +281,7 @@ def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
     _write_output_tree(root, input_path, model_input, result,
                        blocked_ml=ml.blocked, families=families,
                        reactor_name="reactor", temperature=T, pressure=P,
-                       loop=loop)
+                       loop=loop, seed_summaries=seed_mech_summaries)
 
     summary = {
         "iterations": result.iterations,
@@ -287,6 +291,25 @@ def run(input_path: str, out_root: str | None = None) -> Dict[str, Any]:
         "edge_reaction_count": len(result.core_model.edge.reactions),
         "core_species_labels": sorted(sp.label for sp in
                                       result.core_model.core.species),
+        "seed_mechanisms": [
+            {
+                "requested": s.get("requested"),
+                "resolved_library_name": s.get("resolved_library_name"),
+                "resolution": s.get("resolution"),
+                "n_species_loaded": s.get("n_species"),
+                "n_reactions_loaded": s.get("n_reactions"),
+                "n_reactions_dropped_missing_species":
+                    s.get("n_reactions_dropped_missing_species", 0),
+                "n_reactions_dropped_no_rate":
+                    s.get("n_reactions_dropped_no_rate", 0),
+                "n_reactions_dropped_multiband":
+                    s.get("n_reactions_dropped_multiband", 0),
+                "n_thermo_hits": s.get("n_thermo_hits", 0),
+            }
+            for s in seed_mech_summaries
+        ],
+        "seed_reaction_count": len(seed_mech_reactions),
+        "seed_species_count": len(seed_mech_species),
         "estimation_counts": result.counts.as_dict(),
         "coverage": result.coverage,
         "blocked_ml": ml.blocked,
@@ -306,6 +329,14 @@ def _print_summary(summary: Dict[str, Any]) -> None:
           f"Core reactions: {summary['core_reaction_count']}")
     print(f"Edge species: {summary['edge_species_count']}, "
           f"Edge reactions: {summary['edge_reaction_count']}")
+    for s in summary.get("seed_mechanisms", []):
+        print(f"Seed mechanism {s['requested']!r}: resolved to "
+              f"{s['resolved_library_name']!r} ({s['resolution']}), "
+              f"{s['n_species_loaded']} species / {s['n_reactions_loaded']} "
+              f"reactions loaded (dropped: missing-species "
+              f"{s['n_reactions_dropped_missing_species']}, no-rate "
+              f"{s['n_reactions_dropped_no_rate']}, multiband "
+              f"{s['n_reactions_dropped_multiband']})")
     print(f"Estimation: {summary['estimation_counts']}")
     print(f"Coverage gaps: {summary['coverage']}")
 
@@ -356,7 +387,8 @@ def _rmgdb_hash():
 
 def _write_output_tree(root: str, input_path: str, model_input: Input,
                        result, blocked_ml, families, reactor_name,
-                       temperature: float, pressure: float, loop=None) -> None:
+                       temperature: float, pressure: float, loop=None,
+                       seed_summaries=None) -> None:
     import json
     from datetime import datetime, timezone
     from rmgpu.schemas.mechanism import (MechanismArtifact, MechanismCore,
@@ -398,6 +430,22 @@ def _write_output_tree(root: str, input_path: str, model_input: Input,
         "input_path": os.path.abspath(input_path),
         "blocked_ml": list(blocked_ml or []),
         "blocked_families": sorted(getattr(families, "blocked", {})),
+        "seed_mechanisms": [
+            {
+                "requested": s.get("requested"),
+                "resolved_library_name": s.get("resolved_library_name"),
+                "resolution": s.get("resolution"),
+                "species_loaded": s.get("n_species"),
+                "reactions_loaded": s.get("n_reactions"),
+                "reactions_dropped_missing_species":
+                    s.get("n_reactions_dropped_missing_species", 0),
+                "reactions_dropped_no_rate": s.get("n_reactions_dropped_no_rate", 0),
+                "reactions_dropped_multiband":
+                    s.get("n_reactions_dropped_multiband", 0),
+                "thermo_hits": s.get("n_thermo_hits", 0),
+            }
+            for s in (seed_summaries or [])
+        ],
     }
     with open(os.path.join(root, "provenance.yaml"), "w") as f:
         yaml.safe_dump(prov, f)
@@ -533,7 +581,8 @@ def _reaction_entry(r):
     rtype = "Arrhenius"
     if rp is not None:
         params = {"A": float(rp.A), "n": float(rp.n), "Ea": float(rp.Ea),
-                  "T0": float(rp.T0), "dS": float(rp.dS)}
+                  "T0": float(rp.T0), "dS": float(rp.dS),
+                  "dH": float(getattr(rp, "dH", 0.0))}
         rtype = "Arrhenius"
     rate = RateParams(type=rtype, params=params,
                       method="ml" if rp is None or rp.source == "ml" else "library")

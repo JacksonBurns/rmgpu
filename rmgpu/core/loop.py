@@ -258,15 +258,22 @@ class CoreEdgeLoop:
                     return None
                 n, Ea, T0 = 0.0, 0.0, 1.0
 
-        # dS from participant thermo (H298/S298).
+        # dS / dH from participant thermo (H298/S298, Hf298). job-06/step-07:
+        # dH is required by the thermodynamically consistent reverse factor
+        # (1/K_c); the old entropy-only factor was off by up to 30 orders of
+        # magnitude for exothermic reactions (root cause of the non-physical
+        # c3h4 profile).
         dS = 0.0
+        dH = 0.0
         for m in prod_mols:
             sp = self._species_for_piece(m, iteration)
             dS += sp.thermo.S298
+            dH += sp.thermo.Hf298
         for m in react_mols:
             sp = self._species_for_piece(m, iteration)
             dS -= sp.thermo.S298
-        return RateParam(A=A, n=n, Ea=Ea, T0=T0, dS=dS,
+            dH -= sp.thermo.Hf298
+        return RateParam(A=A, n=n, Ea=Ea, T0=T0, dS=dS, dH=dH,
                          reversible=True, family=family, template=template,
                          degeneracy=float(deg), source=source)
 
@@ -454,7 +461,8 @@ class CoreEdgeLoop:
                     prod_r *= max(0.0, ylast[i]) ** m
             from rmgpu.reactor.simulator import reverse_factor
             k_fwd_val = aT * (c_tot ** (n_react - 1)) * prod_f
-            k_rev_val = aT * reverse_factor(rp) * (c_tot ** (n_prod - 1)) * prod_r
+            k_rev_val = aT * reverse_factor(rp, T, float(n_prod - n_react)) \
+                        * (c_tot ** (n_prod - 1)) * prod_r
             rr = max(k_fwd_val, k_rev_val) / char if char > 0 else 0.0
             for i, m in enumerate(sim["nu"][j]):
                 if m != 0:
@@ -501,6 +509,17 @@ class CoreEdgeLoop:
                 for s in rx.reactants + rx.products:
                     if canonical_key(s.molecule) not in core_keys:
                         self.model.add_species_to_edge(s)
+            # Register the seed reaction in self.reactions so the REACTOR
+            # SIMULATION integrates it (job-06/step-07: c3h4 must actually RUN
+            # its seed mechanism, not just carry it in the artifact). This is
+            # what makes the run a real GRI-Mech3-seeded mechanism growth.
+            rp = getattr(rx, "rate_model", None)
+            if rp is not None:
+                rxn_key = ".".join(sorted(react_keys)) + ">>" + ".".join(sorted(prod_keys))
+                if rxn_key not in self.reactions:
+                    self.reactions[rxn_key] = {"rp": rp, "react_keys": react_keys,
+                                               "prod_keys": prod_keys,
+                                               "family": "seed"}
         self.log.append("seed core: %d species" % len(self.model.core.species))
 
         prev_sig = None

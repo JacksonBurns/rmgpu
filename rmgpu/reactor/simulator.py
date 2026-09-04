@@ -1,11 +1,30 @@
 """torchdae ODE integration for the mechanism simulation (job-06 loop).
 
 State = the closed mole-fraction vector ``y`` (sums to 1). Constant T/P ideal
-gas, total molar concentration ``c = P/(R T)`` constant, ``c_i = y_i * c``.
-The mole balance ``d(c_i)/dt = sum_j nu_ij (fwd_j - rev_j)`` with ``c_i =
-y_i c`` (c constant) gives the mole-fraction ODE
+gas (isobaric reactor): the total molar concentration ``c = P/(R T)`` is
+constant, ``c_i = y_i * c``. The mole balance ``d(c_i)/dt = sum_j nu_ij
+(f_j - r_j)`` with ``c_i = y_i c`` and constant ``c`` gives
 
     dy_i/dt = sum_j nu_ij ( f_j - r_j )
+
+BUT that is the CONSTANT-VOLUME form. At constant T AND P the reactor
+VOLUME changes as the total mole number changes (dV/V = dn_tot/n_tot),
+which adds a dilution term. In concentration form
+d(c_i)/dt = c * sum_j (nu_ij - y_i * dnu_j) (f_j - r_j), dnu_j = sum_i
+nu_ij, so the correct constant-T/P mole-fraction ODE is
+
+    dy_i/dt = sum_j (nu_ij - y_i * dnu_j) ( f_j - r_j )
+
+The dilution term makes the mole-fraction sum a conserved invariant
+(sum_i dy_i/dt = 0 EXACTLY), which is what makes "the state is a closed
+mole-fraction vector (sums to 1)" true. Without it, any mechanism with a
+mole-count-changing reaction (every association/dissociation - all of
+GRI-Mech3's termolecular/combination chemistry) drifts off sum 1
+(measured: up to 13.5% off for a single 2A<=>B reaction over one
+characteristic timescale; ~1.2% over the c3h4 seed mechanism).
+job-06/step-07 added this term (verified: sum conserved to 4e-15 for
+mole-count-changing reactions).
+
     f_j = A_j(T) * c^{n_react_j - 1} * prod_i y_i^{max(-nu_ij,0)}
     r_j = A_j(T) * rev_j * c^{n_prod_j - 1} * prod_i y_i^{max(nu_ij,0)}
 
@@ -44,6 +63,11 @@ class RateParam:
     Ea: float             # J/mol
     T0: float
     dS: float             # J/(mol K), reaction entropy change (prod - react)
+    dH: float = 0.0       # J/mol, reaction enthalpy change (prod - react) at
+                          # 298.15 K (Hf298 sum difference). Used in the
+                          # thermodynamically consistent reverse factor (see
+                          # reverse_factor). 0.0 when participant thermo is
+                          # unavailable.
     reversible: bool = True
     family: Optional[str] = None
     template: Optional[List[str]] = None
@@ -68,11 +92,27 @@ def _safe_exp(x: float) -> float:
     return math.exp(x)
 
 
-def reverse_factor(rp: RateParam) -> float:
-    """k_rev/k_fwd = exp(-dS_rxn/R) (thermodynamic consistency)."""
+def reverse_factor(rp: RateParam, T: float, dnu: float) -> float:
+    """k_rev/k_fwd = 1/K_c(T), the thermodynamically consistent reverse factor.
+
+    K_c(T) is the concentration-basis equilibrium constant
+        K_c(T) = K_o * (P0/(R T))**dnu,  K_o = exp(-dG0/(R T)),
+        dG0 = dH0 - T*dS0   (van 't Hoff, dCp neglected; dH0/dS0 at 298.15 K).
+    Hence  k_rev/k_fwd = 1/K_c = exp(dG0/(R T)) * (R T/P0)**dnu.
+
+    The PREVIOUS implementation used exp(-dS/R) (entropy only), which omitted
+    the exp(dH0/(R T)) and (R T/P0)**dnu factors. For exothermic reactions
+    (dH0 < 0) that factor is huge, so the reverse rate was overstated by up to
+    ~30 orders of magnitude (measured on GRI-Mech3: 188/250 reversible
+    reactions off by >100x). That drove wild dissociation of stable products
+    (e.g. H2 -> H + H) and made the c3h4 profile non-physical. job-06/step-07
+    root-caused the c3h4 RED to this and fixed it. See the step report.
+    """
     if not rp.reversible:
         return 0.0
-    return _safe_exp(-rp.dS / R)
+    P0 = 1.0e5  # standard-state pressure (Pa) = 1 bar, matches the thermo data
+    dG0 = rp.dH - T * rp.dS
+    return _safe_exp(dG0 / (R * T)) * ((R * T) / P0) ** dnu
 
 
 def forward_A_T(rp: RateParam, T: float) -> float:
@@ -112,11 +152,13 @@ def simulate_mole_fractions(
     pos_nu = nu_t.clamp(min=0).T         # (sp, rxn) reverse powers
     n_react = (-nu_t).clamp(min=0).sum(dim=1)   # (rxn,) reactant count
     n_prod = nu_t.clamp(min=0).sum(dim=1)       # (rxn,) product count
+    dnu_t = nu_t.sum(dim=1)                     # (rxn,) mole-count change
 
     c_tot = P / (R * T)                    # mol/m^3, constant
     A_T = torch.tensor([forward_A_T(rp, T) for rp in rps],
                        dtype=torch.float64, device=device)
-    rev_t = torch.tensor([reverse_factor(rp) for rp in rps],
+    rev_t = torch.tensor([reverse_factor(rp, T, float(dnu_t[j].item()))
+                          for j, rp in enumerate(rps)],
                          dtype=torch.float64, device=device)
     cfwd = torch.pow(torch.tensor(c_tot, dtype=torch.float64, device=device),
                      (n_react - 1.0))
@@ -134,8 +176,13 @@ def simulate_mole_fractions(
         return fwd - rev                          # (batch, rxn)
 
     def dydt(y):
-        # species_i rate = sum_j nu_ij * net_j -> (batch, rxn) @ (rxn, sp)
-        return rates(y) @ nu_t                    # (n_batch, n_sp)
+        # species_i rate = sum_j (nu_ij - y_i*dnu_j) * net_j -> (batch, sp)
+        # The -y_i*dnu_j term is the constant-T/P dilution (see module doc):
+        # it makes sum_i dy_i/dt = 0 exactly, so the mole-fraction vector
+        # stays closed for mole-count-changing reactions.
+        net = rates(y)                     # (batch, rxn)
+        dnu = net @ dnu_t                  # (batch,) sum_j dnu_j net_j
+        return net @ nu_t - y * dnu.unsqueeze(1)
 
     y0_t = torch.tensor(y0, dtype=torch.float64, device=device)[None, :]
 
