@@ -148,49 +148,124 @@ def simulate_mole_fractions(
         return SimResult(times=[0.0, float(t_end)],
                          ys=[list(y0), list(y0)])
 
-    nu_t = torch.tensor(nu, dtype=torch.float32, device=device)  # (rxn, sp)
-    neg_nu = (-nu_t).clamp(min=0).T      # (sp, rxn) forward powers
-    pos_nu = nu_t.clamp(min=0).T         # (sp, rxn) reverse powers
-    n_react = (-nu_t).clamp(min=0).sum(dim=1)   # (rxn,) reactant count
-    n_prod = nu_t.clamp(min=0).sum(dim=1)       # (rxn,) product count
-    dnu_t = nu_t.sum(dim=1)                     # (rxn,) mole-count change
+    # Build sparse per-reaction species index lists to avoid dense (n_sp, n_rx) tensors
+    reactant_idx_list = []
+    reactant_coeff_list = []
+    product_idx_list = []
+    product_coeff_list = []
+    nu_idx_list = []
+    nu_coeff_list = []
+    n_react_list = []
+    n_prod_list = []
+    dnu_list = []
 
-    c_tot = P / (R * T)                    # mol/m^3, constant
+    for j in range(n_rx):
+        nu_j = nu[j]
+        r_idx = []
+        r_coeff = []
+        p_idx = []
+        p_coeff = []
+        nu_idx = []
+        nu_coeff = []
+        n_react = 0
+        n_prod = 0
+        dnu = 0.0
+        for i, c in enumerate(nu_j):
+            if c < 0:
+                r_idx.append(i)
+                coeff = -c
+                r_coeff.append(coeff)
+                n_react += coeff
+                dnu += c
+                nu_idx.append(i)
+                nu_coeff.append(c)
+            elif c > 0:
+                p_idx.append(i)
+                p_coeff.append(c)
+                n_prod += c
+                dnu += c
+                nu_idx.append(i)
+                nu_coeff.append(c)
+        reactant_idx_list.append(torch.tensor(r_idx, dtype=torch.long, device=device))
+        reactant_coeff_list.append(torch.tensor(r_coeff, dtype=torch.float32, device=device))
+        product_idx_list.append(torch.tensor(p_idx, dtype=torch.long, device=device))
+        product_coeff_list.append(torch.tensor(p_coeff, dtype=torch.float32, device=device))
+        nu_idx_list.append(torch.tensor(nu_idx, dtype=torch.long, device=device))
+        nu_coeff_list.append(torch.tensor(nu_coeff, dtype=torch.float32, device=device))
+        n_react_list.append(n_react)
+        n_prod_list.append(n_prod)
+        dnu_list.append(dnu)
+
+    n_react_t = torch.tensor(n_react_list, dtype=torch.float32, device=device)
+    n_prod_t = torch.tensor(n_prod_list, dtype=torch.float32, device=device)
+    dnu_t = torch.tensor(dnu_list, dtype=torch.float32, device=device)
+
+    c_tot = P / (R * T)
     A_T = torch.tensor([forward_A_T(rp, T) for rp in rps],
                        dtype=torch.float32, device=device)
-    rev_t = torch.tensor([reverse_factor(rp, T, float(dnu_t[j].item()))
+    rev_t = torch.tensor([reverse_factor(rp, T, float(dnu_list[j]))
                           for j, rp in enumerate(rps)],
                          dtype=torch.float32, device=device)
-    cfwd = torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
-                     (n_react - 1.0))
-    crev = torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
-                     (n_prod - 1.0))
-    k_fwd = A_T * cfwd
-    k_rev = A_T * rev_t * crev
+
+    k_fwd = A_T * torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
+                             n_react_t - 1.0)
+    k_rev = A_T * rev_t * torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
+                                     n_prod_t - 1.0)
+
+    eps = 1e-30
 
     def rates(yv):
-        # yv: (n_batch, n_sp). neg_nu/pos_nu: (sp, rxn). k_*: (rxn,).
-        # Returns (n_batch, n_rx) net rates.
-        yb = yv.unsqueeze(2)                     # (batch, sp, 1)
-        fwd = yb.pow(neg_nu.unsqueeze(0)).prod(dim=1) * k_fwd
-        rev = yb.pow(pos_nu.unsqueeze(0)).prod(dim=1) * k_rev
-        return fwd - rev                          # (batch, rxn)
+        # yv: (batch, n_sp)
+        batch = yv.shape[0]
+        net = []
+        for j in range(n_rx):
+            # forward
+            idx_r = reactant_idx_list[j]
+            coeff_r = reactant_coeff_list[j]
+            if len(idx_r) > 0:
+                y_r = torch.clamp(yv[:, idx_r], min=eps)
+                fwd_factor = torch.ones(batch, device=device)
+                for k in range(len(idx_r)):
+                    fwd_factor = fwd_factor * (y_r[:, k] ** coeff_r[k])
+            else:
+                fwd_factor = torch.ones(batch, device=device)
+            fwd = k_fwd[j] * fwd_factor
+
+            # reverse
+            idx_p = product_idx_list[j]
+            coeff_p = product_coeff_list[j]
+            if len(idx_p) > 0:
+                y_p = torch.clamp(yv[:, idx_p], min=eps)
+                rev_factor = torch.ones(batch, device=device)
+                for k in range(len(idx_p)):
+                    rev_factor = rev_factor * (y_p[:, k] ** coeff_p[k])
+            else:
+                rev_factor = torch.ones(batch, device=device)
+            rev = k_rev[j] * rev_factor
+
+            net_j = fwd - rev
+            net.append(net_j)
+        return torch.stack(net, dim=1)
 
     def dydt(y):
-        # species_i rate = sum_j (nu_ij - y_i*dnu_j) * net_j -> (batch, sp)
-        # The -y_i*dnu_j term is the constant-T/P dilution (see module doc):
-        # it makes sum_i dy_i/dt = 0 exactly, so the mole-fraction vector
-        # stays closed for mole-count-changing reactions.
-        net = rates(y)                     # (batch, rxn)
-        dnu = net @ dnu_t                  # (batch,) sum_j dnu_j net_j
-        return net @ nu_t - y * dnu.unsqueeze(1)
+        net = rates(y)  # (batch, n_rx)
+        # sparse scatter-add for net @ nu
+        dydt_vals = torch.zeros_like(y)
+        for j in range(n_rx):
+            net_j = net[:, j]
+            idxs = nu_idx_list[j]
+            coeffs = nu_coeff_list[j]
+            if len(idxs) > 0:
+                for k in range(len(idxs)):
+                    dydt_vals[:, idxs[k]] += net_j * coeffs[k]
+        # dilution term
+        dnu_sum = (net * dnu_t.unsqueeze(0)).sum(dim=1, keepdim=True)
+        dydt_vals = dydt_vals - y * dnu_sum
+        return dydt_vals
 
     y0_t = torch.tensor(y0, dtype=torch.float32, device=device)[None, :]
 
     def F(t, y, yp):
-        # torchdae calls F with y/yp 1-D (functorch Jacobian) or 2-D
-        # (batch=1, IC validation + integration). Normalize to the state
-        # vector and keep the output matching yp's dimensionality.
         y1 = y if y.dim() == 1 else y[0]
         return yp - dydt(y1[None, :])[0]
 
