@@ -1,6 +1,6 @@
 {
  "job": "06",
- "step": "06-gate",
+ "step": "07-gate",
  "subgate": {
   "status": "PASS",
   "van_der_pol_mu10_max_abs_diff": 0.02395787178401143,
@@ -22,8 +22,17 @@
   "core_reaction_count": 100,
   "edge_species_count": 27,
   "edge_reaction_count": 346,
-  "estimation_counts": {},
-  "coverage_gaps": {},
+  "estimation_counts": {
+   "library_hits": 2,
+   "ml_hits": 491,
+   "coverage_errors": 550
+  },
+  "coverage_gaps": {
+   "thermo_errors": 402,
+   "kinetics_errors": 148,
+   "species_dropped": 402,
+   "reactions_dropped": 550
+  },
   "blocked_ml": [],
   "parity_vs_rmgpy": {
    "core_species": {
@@ -193,62 +202,593 @@
   }
  },
  "superminimal_divergence_cause": {
-  "verdict": "RED-DIVERGENT (documented, not a stack failure)",
-  "core_species_in_rmgpu_only": "11 long O-chain species (H-O_n-H and O_n diradicals, n=2..9). rmgpu's fixed-timescale rate-ratio screening promotes them to the core, where RMG-Py keeps them pruned in the edge (RMG-Py's core simulation is conversion/termination-driven, not a fixed 5/char-rate snapshot).",
-  "core_species_in_rmgpy_only": "4 inert third-body species (He, Ne, N#N, [Ar]) that RMG-Py auto-injects into the reactor/core (rmgpy/chemkin + reactor default constant species), plus atomic O and O2(singlet) which RMG-Py's screening promotes. rmgpu's HPL-stub reactor adds no inerts (third-body/pdep is job-07 scope) and its screening does not promote atomic O / O2(singlet).",
-  "core_reactions": "rmgpu core has 70 reactions (40 H_Abstraction, 20 Birad_recombination, 10 R_Recombination) including the O-chain-growth Birad_recombination reactions; RMG-Py core has 19. The family-level over-generation is Birad_recombination producing O-chain products, amplified by the looser screening criterion. RMG-Py core reactions are a strict chemistry subset (no O-chain growth beyond the small core).",
+  "verdict": "DIVERGENT (documented, not a stack failure; parity bar per user 2026-09-03: qualitatively similar, documented deviations acceptable)",
+  "actual_run": "superminimal core 20 species / 100 reactions vs RMG-Py 13 species / 19 reactions (5 shared reactions); 15 O-chain species (H-O_n-H and O_n diradicals, n=2..9) rmgpu-only",
+  "core_species_in_rmgpu_only": "15 long O-chain species (H-O_n-H and O_n diradicals, n=2..9). rmgpu's fixed-timescale rate-ratio screening promotes them to the core, where RMG-Py keeps them pruned in the edge.",
+  "core_species_in_rmgpy_only": "4 inert third-body species (He, Ne, N#N, [Ar]) that RMG-Py auto-injects into the reactor/core (constant species), plus atomic O and O2(singlet) which RMG-Py's screening promotes. rmgpu's HPL-stub reactor adds no inerts (third-body/pdep is job-07 scope) and its screening does not promote them.",
+  "core_reactions": "rmgpu core has 100 reactions including the O-chain Birad_recombination growth reactions; RMG-Py core has 19. The over-generation is Birad_recombination producing O-chain products, amplified by the looser screening criterion.",
+  "root_cause_screening": "rmgpu's _screen (rmgpu/core/loop.py) promotes a species to the core when the max of its reactions' forward/reverse rate-ratio exceeds tolerance_move_to_core, evaluated on a FIXED-TIMESCALE SNAPSHOT (t_end = 5.0/char, CHAR_RATE_TFACTOR). It is promote-only: there is NO rate-ratio demotion - prune() only removes edge species not referenced by an edge reaction. RMG-Py's screen (rmgpy/rmg/model.py:1418-1455) uses reactor-driven max_edge_species_rate_ratios (from the actual reactor solution, not a fixed snapshot) and prunes below tolerance_keep_in_edge AND keeps in the edge between keep and move-to-core. So the O-chain diradicals get promoted and STAY in the rmgpu core while RMG-Py keeps them pruned. This is a screening-criterion difference (fixed-snapshot max(fwd,rev), promote-only, no demotion) - NOT a job-07/pdep artifact. pdep does not stop O-chain diradical recombination enumeration or the screening promotion.",
   "responsible_modules": [
-   "rmgpu/core/loop.py (_screen): fixed-timescale rate-ratio screening vs RMG-Py conversion-driven screening",
-   "rmgpu/reactor/simulator.py: no inert/third-body species (HPL stub; job-07 turns pdep on in both)",
-   "job-05 families: Birad_recombination over-generates O-chain products that the screen then promotes"
+   "rmgpu/core/loop.py (_screen, prune): fixed-snapshot promote-only screening",
+   "rmgpu/reactor/simulator.py: no inert/third-body species (HPL stub; job-07 turns pdep on in both)"
   ],
-  "systematic": "Yes - a family (Birad_recombination) is always over-present in the rmgpu core and inerts are always absent. Root-caused to the screening criterion + the missing third-body stub, both of which are addressed by job-07 (pdep on in both sides) and a future screening-criterion alignment step."
+  "known_rmgpu_behavior": "Yes - more aggressive screening (O-chain diradicals kept in core). Recorded as an acceptable deviation per the user's parity bar. Aligning the screening criterion (reactor-driven rate ratios + keep-in-edge demotion) is a SEPARATE follow-up step; it is NOT fixed by job-07."
  },
  "c3h4": {
   "status": "FAIL",
-  "reason": "rmgpu run failed: Invalid SMILES string: InChI=1/N2/c1-2"
+  "run_ok": false,
+  "reason": "rmgpu run failed: OutOfMemoryError: CUDA out of memory. Tried to allocate 14.56 GiB. GPU 0 has a total capacity of 23.46 GiB of which 4.47 GiB is free. Process 1714063 has 17.81 GiB memory in use. Including non-PyTorch memory, this process has 468.00 MiB memory in use. Of the allocated memory 223.76 MiB is allocated by PyTorch, and 22.24 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)"
  },
  "output_tree": {
-  "status": "PASS",
-  "missing": [],
-  "invalid": [],
-  "core_yaml_loads_back": true,
-  "core_yaml_species": 20,
-  "core_yaml_reactions": 100,
-  "profile_rows": 65,
-  "profile_cols": 48,
-  "profile_header_is_time_first": true,
-  "resimulate_final": {
-   "ok": true,
-   "compared_species": 9,
-   "max_abs_diff": 213.84687886247625,
-   "within_tol": false,
-   "note": "re-simulation of the final core (64 steps) vs the written final row; loose tolerance - proves core.yaml round-trips into a runnable, finite mechanism."
-  }
+  "superminimal": {
+   "status": "PASS",
+   "missing": [],
+   "invalid": [],
+   "core_yaml_loads_back": true,
+   "core_yaml_species": 20,
+   "core_yaml_reactions": 100,
+   "profile_rows": 65,
+   "profile_cols": 48,
+   "profile_header_is_time_first": true,
+   "resimulate_final": {
+    "ok": true,
+    "compared_species": 9,
+    "max_abs_diff": 249.40241076189002,
+    "within_tol": false,
+    "note": "re-simulation of the final core from the initial state; RECORDED, not a hard check (different time problem than the loop's final snapshot sim)."
+   }
+  },
+  "c3h4": null
+ },
+ "physical_validity": {
+  "superminimal": {
+   "status": "FAIL",
+   "rows": 65,
+   "cols": 47,
+   "bad_values": [
+    {
+     "row": 2,
+     "species": "[H]",
+     "value": 250.63363971246793
+    },
+    {
+     "row": 2,
+     "species": "[H]OO[H]",
+     "value": -0.0009564508029644783
+    },
+    {
+     "row": 2,
+     "species": "[H]O[O]",
+     "value": -0.23890187569723642
+    },
+    {
+     "row": 2,
+     "species": "[H][H]",
+     "value": 2.7916095022080936
+    },
+    {
+     "row": 2,
+     "species": "[O][O]",
+     "value": -19.49419533170099
+    },
+    {
+     "row": 3,
+     "species": "[H]",
+     "value": 250.20719250364178
+    },
+    {
+     "row": 3,
+     "species": "[H]OO[H]",
+     "value": -0.0023998166203454073
+    },
+    {
+     "row": 3,
+     "species": "[H]O[O]",
+     "value": -0.5926647207337051
+    },
+    {
+     "row": 3,
+     "species": "[H][H]",
+     "value": 2.7820732600104403
+    },
+    {
+     "row": 3,
+     "species": "[O]OOOO[O]",
+     "value": -1.5998759777985496e-05
+    },
+    {
+     "row": 3,
+     "species": "[O]OO[O]",
+     "value": 42.667990781724974
+    },
+    {
+     "row": 3,
+     "species": "[O][O]",
+     "value": -52.09146064607892
+    },
+    {
+     "row": 4,
+     "species": "[H]",
+     "value": 250.20528421838395
+    },
+    {
+     "row": 4,
+     "species": "[H]OO[H]",
+     "value": -0.002399760950780878
+    },
+    {
+     "row": 4,
+     "species": "[H]O[O]",
+     "value": -0.5926554636860221
+    },
+    {
+     "row": 4,
+     "species": "[H][H]",
+     "value": 2.782030810910257
+    },
+    {
+     "row": 4,
+     "species": "[O]OOOO[O]",
+     "value": -1.6212164201447937e-05
+    },
+    {
+     "row": 4,
+     "species": "[O]OO[O]",
+     "value": 43.18809599664422
+    },
+    {
+     "row": 4,
+     "species": "[O][O]",
+     "value": -52.143695679000835
+    },
+    {
+     "row": 5,
+     "species": "[H]",
+     "value": 250.20541031068387
+    },
+    {
+     "row": 5,
+     "species": "[H]OO[H]",
+     "value": -0.002399762990288105
+    },
+    {
+     "row": 5,
+     "species": "[H]O[O]",
+     "value": -0.5926556569039103
+    },
+    {
+     "row": 5,
+     "species": "[H][H]",
+     "value": 2.782033609790943
+    },
+    {
+     "row": 5,
+     "species": "[O]OOOO[O]",
+     "value": -1.629728174666187e-05
+    },
+    {
+     "row": 5,
+     "species": "[O]OO[O]",
+     "value": 43.396712503685755
+    },
+    {
+     "row": 5,
+     "species": "[O][O]",
+     "value": -52.164792128169736
+    },
+    {
+     "row": 6,
+     "species": "[H]",
+     "value": 250.20554991969112
+    },
+    {
+     "row": 6,
+     "species": "[H]OO[H]",
+     "value": -0.0023997652066868546
+    },
+    {
+     "row": 6,
+     "species": "[H]O[O]",
+     "value": -0.5926558873635615
+    },
+    {
+     "row": 6,
+     "species": "[H][H]",
+     "value": 2.7820367204497933
+    },
+    {
+     "row": 6,
+     "species": "[O]OOOO[O]",
+     "value": -1.6198390871756995e-05
+    },
+    {
+     "row": 6,
+     "species": "[O]OO[O]",
+     "value": 43.15359359023014
+    },
+    {
+     "row": 6,
+     "species": "[O][O]",
+     "value": -52.14018866889959
+    },
+    {
+     "row": 7,
+     "species": "[H]",
+     "value": 250.20573549290708
+    },
+    {
+     "row": 7,
+     "species": "[H]OO[H]",
+     "value": -0.002399768826021831
+    },
+    {
+     "row": 7,
+     "species": "[H]O[O]",
+     "value": -0.5926563393825164
+    },
+    {
+     "row": 7,
+     "species": "[H][H]",
+     "value": 2.7820408462396
+    },
+    {
+     "row": 7,
+     "species": "[O]OOOO[O]",
+     "value": -1.621465806167671e-05
+    },
+    {
+     "row": 7,
+     "species": "[O]OO[O]",
+     "value": 43.19355843721814
+    },
+    {
+     "row": 7,
+     "species": "[O][O]",
+     "value": -52.14423279062554
+    },
+    {
+     "row": 8,
+     "species": "[H]",
+     "value": 250.20580980149705
+    },
+    {
+     "row": 8,
+     "species": "[H]OO[H]",
+     "value": -0.0023997703302759675
+    },
+    {
+     "row": 8,
+     "species": "[H]O[O]",
+     "value": -0.5926565318295551
+    },
+    {
+     "row": 8,
+     "species": "[H][H]",
+     "value": 2.782042497389354
+    },
+    {
+     "row": 8,
+     "species": "[O]OOOO[O]",
+     "value": -1.6236466038363447e-05
+    },
+    {
+     "row": 8,
+     "species": "[O]OO[O]",
+     "value": 43.24715002037919
+    },
+    {
+     "row": 8,
+     "species": "[O][O]",
+     "value": -52.14965578036142
+    },
+    {
+     "row": 9,
+     "species": "[H]",
+     "value": 250.20582836073916
+    },
+    {
+     "row": 9,
+     "species": "[H]OO[H]",
+     "value": -0.002399770677746188
+    },
+    {
+     "row": 9,
+     "species": "[H]O[O]",
+     "value": -0.5926565739512547
+    }
+   ],
+   "row_sum_errors": [
+    {
+     "row": 2,
+     "sum": 233.8836880059065
+    },
+    {
+     "row": 3,
+     "sum": 242.97075002567732
+    },
+    {
+     "row": 4,
+     "sum": 243.43667860653719
+    },
+    {
+     "row": 5,
+     "sum": 243.624327289132
+    },
+    {
+     "row": 6,
+     "sum": 243.4059544046261
+    },
+    {
+     "row": 7,
+     "sum": 243.44206435968022
+    },
+    {
+     "row": 8,
+     "sum": 243.4903087006712
+    },
+    {
+     "row": 9,
+     "sum": 243.48604621578224
+    },
+    {
+     "row": 10,
+     "sum": 243.46056616200332
+    },
+    {
+     "row": 11,
+     "sum": 243.45534859904745
+    },
+    {
+     "row": 12,
+     "sum": 243.43306126736735
+    },
+    {
+     "row": 13,
+     "sum": 243.45845127178887
+    },
+    {
+     "row": 14,
+     "sum": 243.45384956054005
+    },
+    {
+     "row": 15,
+     "sum": 243.4512381495955
+    },
+    {
+     "row": 16,
+     "sum": 242.30850774254276
+    },
+    {
+     "row": 17,
+     "sum": 242.2224867486717
+    },
+    {
+     "row": 18,
+     "sum": 242.07644335519797
+    },
+    {
+     "row": 19,
+     "sum": 242.0373917369529
+    },
+    {
+     "row": 20,
+     "sum": 242.08093411713196
+    },
+    {
+     "row": 21,
+     "sum": 242.0537781199758
+    },
+    {
+     "row": 22,
+     "sum": 242.04133736920028
+    },
+    {
+     "row": 23,
+     "sum": 241.99092031543677
+    },
+    {
+     "row": 24,
+     "sum": 241.9079290521377
+    },
+    {
+     "row": 25,
+     "sum": 241.90771462956144
+    },
+    {
+     "row": 26,
+     "sum": 241.91019763426755
+    },
+    {
+     "row": 27,
+     "sum": 241.87149788197183
+    },
+    {
+     "row": 28,
+     "sum": 241.9078203268941
+    },
+    {
+     "row": 29,
+     "sum": 241.94194222050487
+    },
+    {
+     "row": 30,
+     "sum": 241.89980235764523
+    },
+    {
+     "row": 31,
+     "sum": 241.93831691449017
+    },
+    {
+     "row": 32,
+     "sum": 241.97435109741588
+    },
+    {
+     "row": 33,
+     "sum": 241.95881283878788
+    },
+    {
+     "row": 34,
+     "sum": 241.96924302076675
+    },
+    {
+     "row": 35,
+     "sum": 241.96576492402414
+    },
+    {
+     "row": 36,
+     "sum": 241.98152378196747
+    },
+    {
+     "row": 37,
+     "sum": 242.0082902591254
+    },
+    {
+     "row": 38,
+     "sum": 242.0041308058784
+    },
+    {
+     "row": 39,
+     "sum": 241.9890770527548
+    },
+    {
+     "row": 40,
+     "sum": 242.04440270827075
+    },
+    {
+     "row": 41,
+     "sum": 242.0842309816385
+    },
+    {
+     "row": 42,
+     "sum": 241.94568878894714
+    },
+    {
+     "row": 43,
+     "sum": 241.83029889737378
+    },
+    {
+     "row": 44,
+     "sum": 241.8186964502657
+    },
+    {
+     "row": 45,
+     "sum": 241.80855416614602
+    },
+    {
+     "row": 46,
+     "sum": 241.83556449548138
+    },
+    {
+     "row": 47,
+     "sum": 241.835960975971
+    },
+    {
+     "row": 48,
+     "sum": 241.91896663103273
+    },
+    {
+     "row": 49,
+     "sum": 241.90956866764657
+    },
+    {
+     "row": 50,
+     "sum": 241.8630921653317
+    },
+    {
+     "row": 51,
+     "sum": 241.85770948762467
+    }
+   ],
+   "final_row": {
+    "[H]": 250.20480312233133,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOOOOOOOOO[H]": -4.978652938749217e-86,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOOOOOOOO[O]": -1.5763379028292806e-79,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOOOOOOO[H]": 1.0555977007955531e-78,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOOOOOO[O]": -5.356829721063767e-74,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOOOOO[H]": -1.4642438503466925e-71,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOOOO[O]": 1.0122969421314692e-67,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOOO[H]": 1.5359127681740452e-64,
+    "[H]OOOOOOOOOOOOOOOOOOOOOOO[O]": 6.0470670636554165e-62,
+    "[H]OOOOOOOOOOOOOOOOOOOOOO[H]": -2.6126574087831006e-58,
+    "[H]OOOOOOOOOOOOOOOOOOOOO[O]": 1.0947122700250742e-54,
+    "[H]OOOOOOOOOOOOOOOOOOOO[H]": 1.0547275339555876e-50,
+    "[H]OOOOOOOOOOOOOOOOOOO[O]": 1.5930816574594376e-46,
+    "[H]OOOOOOOOOOOOOOOOOO[H]": -9.6400077706007e-44,
+    "[H]OOOOOOOOOOOOOOOOO[O]": -2.7090346983010774e-38,
+    "[H]OOOOOOOOOOOOOOOO[H]": 8.495189050543598e-36,
+    "[H]OOOOOOOOOOOOOOO[O]": 8.648184000906702e-33,
+    "[H]OOOOOOOOOOOOOO[H]": -9.186075361987849e-31,
+    "[H]OOOOOOOOOOOOO[O]": -4.121578404476168e-27,
+    "[H]OOOOOOOOOOOO[H]": 7.56869727551871e-25,
+    "[H]OOOOOOOOOOO[O]": 3.4821561879482113e-23,
+    "[H]OOOOOOOOOO[H]": -1.0523663922220638e-21,
+    "[H]OOOOOOOOO[O]": -1.9636860732221945e-17,
+    "[H]OOOOOOOO[H]": 1.2356418811260737e-15,
+    "[H]OOOOOOO[O]": 1.4072025283183202e-13,
+    "[H]OOOOOO[H]": -3.7339657078674655e-12,
+    "[H]OOOOO[O]": -3.7414471053187615e-08,
+    "[H]OOOO[H]": 6.755156481953277e-08,
+    "[H]OOO[O]": 3.454410247237838e-05,
+    "[H]OO[H]": -0.0023997482283935035,
+    "[H]O[O]": -0.592653561714365,
+    "[H][H]": 2.782020156232892,
+    "[O]OOOOOOOOOOOOOOOOOOOOOOOOOOOO[O]": 1.0650941883882991e-76,
+    "[O]OOOOOOOOOOOOOOOOOOOOOOOOOO[O]": 2.5908321353623884e-68,
+    "[O]OOOOOOOOOOOOOOOOOOOOOOOO[O]": 6.0177554408322414e-64,
+    "[O]OOOOOOOOOOOOOOOOOOOOOO[O]": 6.064024090611195e-56,
+    "[O]OOOOOOOOOOOOOOOOOOOO[O]": 5.6235188287684e-50,
+    "[O]OOOOOOOOOOOOOOOOOO[O]": -2.634855041267054e-41,
+    "[O]OOOOOOOOOOOOOOOO[O]": -3.3893641219245696e-35,
+    "[O]OOOOOOOOOOOOOO[O]": 1.5240676873222486e-29,
+    "[O]OOOOOOOOOOOO[O]": -7.814217565417887e-25,
+    "[O]OOOOOOOOOO[O]": 4.277668723900669e-20,
+    "[O]OOOOOOOO[O]": -2.3827185331890334e-15,
+    "[O]OOOOOO[O]": 3.8548617937309936e-09,
+    "[O]OOOO[O]": -1.5493721418654665e-05,
+    "[O]OO[O]": 41.415781771854896,
+    "[O][O]": -51.96433596883753
+   },
+   "final_row_sum": 241.84323485600828,
+   "n_bad_values": 446,
+   "n_row_sum_errors": 64
+  },
+  "c3h4": null
  },
  "provenance": {
-  "status": "PASS",
-  "rmgpu_git": "6113a0663e241865af4337bacb8b6b82e63c9773",
-  "rmgdb_hash": "512882d8b9362d8244571fcb3093b5e337c052657abef06d96cc8abf2e23bf29",
-  "ml_checkpoint_hashes": {
-   "chemeleon_thermo_662946.ckpt": "87effa2f1304...",
-   "chemprop_kinetics_662946.ckpt": "176144be2d53..."
+  "superminimal": {
+   "status": "PASS",
+   "rmgpu_git": "6113a0663e241865af4337bacb8b6b82e63c9773",
+   "rmgdb_hash": "512882d8b9362d8244571fcb3093b5e337c052657abef06d96cc8abf2e23bf29",
+   "ml_checkpoint_hashes": {
+    "chemeleon_thermo_662946.ckpt": "87effa2f1304...",
+    "chemprop_kinetics_662946.ckpt": "176144be2d53..."
+   },
+   "versions": {
+    "python": "3.11.16",
+    "rdkit": "2026.3.5",
+    "torch": "2.13.0"
+   },
+   "ok_git": true,
+   "ok_db": true,
+   "ok_ml": true,
+   "ok_versions": true,
+   "seed_mechanisms": []
   },
-  "versions": {
-   "python": "3.11.16",
-   "rdkit": "2026.3.5",
-   "torch": "2.13.0"
-  },
-  "ok_git": true,
-  "ok_db": true,
-  "ok_ml": true,
-  "ok_versions": true
+  "c3h4": {
+   "status": "FAIL",
+   "reason": "provenance.yaml missing"
+  }
  },
  "hard_checks": {
   "subgate": true,
-  "run_completes": true,
-  "output_tree": true,
-  "provenance": true
+  "run_completes_superminimal": true,
+  "c3h4": false,
+  "output_tree_superminimal": true,
+  "output_tree_c3h4": false,
+  "physical_validity_superminimal": false,
+  "physical_validity_c3h4": false,
+  "provenance_superminimal": true,
+  "provenance_c3h4": false
  },
- "all_hard_pass": true
+ "all_hard_pass": false
 }

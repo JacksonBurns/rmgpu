@@ -28,6 +28,7 @@ from rmgpu.units import Quantity
 from rmgpu.core.model import Species
 from rmgpu.core.loop import CoreEdgeLoop, LoopConfig, RunContext
 from rmgpu.molecule.molecule import Molecule
+from rmgpu.logging import log, setup_logging
 
 # Quantity YAML representer (mirrors cli.py)
 class _QDumper(yaml.SafeDumper):
@@ -47,6 +48,7 @@ _QDumper.add_representer(Quantity, _rep_q)
 def load_input(path: str) -> Input:
     path = os.path.abspath(path)
     base_dir = os.path.dirname(path)
+    log.info("Loading input %s", path)
     with open(path) as f:
         doc = yaml.safe_load(f)
     doc = resolve_extends(doc, base_dir)
@@ -74,6 +76,7 @@ def _smiles_of(struct) -> str:
 
 
 def _build_seed_species(model_input: Input) -> list[Species]:
+    log.info("Building seed species from input")
     out = []
     for sp in model_input.species or []:
         val = _smiles_of(sp.structure)
@@ -108,11 +111,15 @@ def _build_seed_mechanisms(model_input: Input, databases):
     seen_reaction_keys = set()
     summaries = []
     for name in seed_names:
+        log.info("Loading seed mechanism %r", name)
         # Name resolution (RMG-Py name -> rmgdb library name) lives inside the
         # loader and is loud (alias table + controlled normalization).
         species, reactions, summary = load_seed_mechanism(name, databases)
         summary["requested"] = name
         summaries.append(summary)
+        log.info("Seed %r resolved to %r (%s): %d species / %d reactions loaded",
+                 name, summary.get("resolved_library_name"), summary.get("resolution"),
+                 summary.get("n_species", 0), summary.get("n_reactions", 0))
         # Deduplicate by canonical SMILES
         for sp in species:
             from rmgpu.core.loop import canonical_key
@@ -133,8 +140,10 @@ def _build_seed_mechanisms(model_input: Input, databases):
 
 def _build_databases(model_input: Input):
     from rmgpu.db import Databases
+    log.info("Building databases from input")
     db_block = getattr(model_input, "database", None)
     if db_block is None:
+        log.info("No database block in input – using empty Databases")
         return Databases.from_config({})
     cfg = {
         "thermo_libraries": list(db_block.thermo_libraries or []),
@@ -142,7 +151,10 @@ def _build_databases(model_input: Input):
         "kinetics_families": db_block.kinetics_families,
         "seed_mechanisms": list(db_block.seed_mechanisms or []),
     }
-    return Databases.from_config(cfg)
+    log.debug("Database config: %s", cfg)
+    db = Databases.from_config(cfg)
+    log.info("Databases built")
+    return db
 
 
 def _build_ml():
@@ -154,6 +166,7 @@ def _build_ml():
     from rmgpu.ml.thermo_estimator import ThermoML
     from rmgpu.ml.kinetics_estimator import KineticsML
 
+    log.info("Building ML estimators")
     class _ML:
         thermo = None
         kinetics = None
@@ -164,24 +177,34 @@ def _build_ml():
     kin_ckpt = Path(MODELS_DIR) / "chemprop_kinetics_662946.ckpt"
     if thermo_ckpt.exists():
         try:
+            log.debug("Loading ThermoML from %s", MODELS_DIR)
             ml.thermo = ThermoML(MODELS_DIR)
-        except Exception:  # noqa: BLE001
+            log.info("ThermoML loaded")
+        except Exception:
+            log.exception("ThermoML load failed")
             blocked.append("thermo")
     else:
+        log.warning("Thermo checkpoint missing")
         blocked.append("thermo")
     if kin_ckpt.exists():
         try:
+            log.debug("Loading KineticsML from %s", MODELS_DIR)
             ml.kinetics = KineticsML(MODELS_DIR)
-        except Exception:  # noqa: BLE001
+            log.info("KineticsML loaded")
+        except Exception:
+            log.exception("KineticsML load failed")
             blocked.append("kinetics")
     else:
+        log.warning("Kinetics checkpoint missing")
         blocked.append("kinetics")
     ml.blocked = blocked
+    log.info("ML estimators built – blocked: %s", blocked)
     return ml
 
 
 def _build_families(families_sel):
     from rmgpu.core.family import KineticsFamilies
+    log.info("Building families – selection=%s", families_sel)
     kf = KineticsFamilies()
     if families_sel in ("default", "all"):
         kf.load(families_sel)
@@ -191,6 +214,7 @@ def _build_families(families_sel):
         kf.load(list(families_sel))
     else:
         kf.load("default")
+    log.info("Families loaded")
     return kf
 
 
@@ -225,17 +249,26 @@ def _build_reactor(model_input: Input):
 # ---------------------------------------------------------------------------
 
 def run(input_path: str, out_root: str | None = None,
-        max_iterations: int | None = None) -> Dict[str, Any]:
+        max_iterations: int | None = None, log_level: int | str = "INFO", log_file: str | None = None) -> Dict[str, Any]:
+    setup_logging(level=log_level, log_file=log_file)
+    log.info("rmgpu run starting – input=%s out_root=%s", input_path, out_root)
     model_input = load_input(input_path)
+    log.info("Input loaded")
     databases = _build_databases(model_input)
+    log.info("Databases built")
     ml = _build_ml()
+    log.info("ML estimators ready")
     fam_sel = getattr(model_input, "database", None)
     fam_sel = fam_sel.kinetics_families if fam_sel is not None else "default"
     families = _build_families(fam_sel)
+    log.info("Families built")
     seed_species = _build_seed_species(model_input)
+    log.info("Seed species built: %d", len(seed_species))
     seed_mech_species, seed_mech_reactions, seed_mech_summaries = _build_seed_mechanisms(
         model_input, databases)
+    log.info("Seed mechanisms built: %d species / %d reactions", len(seed_mech_species), len(seed_mech_reactions))
     T, P, imf, t_term, conv = _build_reactor(model_input)
+    log.info("Reactor built: T=%.1f K, P=%.3e Pa", T, P)
 
     # Model-block tolerances
     tol_move = tol_keep = tol_int = None
@@ -272,8 +305,11 @@ def run(input_path: str, out_root: str | None = None,
     ctx.seed_mechanisms_reactions = seed_mech_reactions
     ctx.seed_mechanisms_summaries = seed_mech_summaries
 
+    log.info("Starting CoreEdgeLoop")
     loop = CoreEdgeLoop(ctx)
+    log.info("CoreEdgeLoop instantiated")
     result = loop.run()
+    log.info("CoreEdgeLoop finished – iterations=%d", result.iterations)
 
     # ---- output tree -----------------------------------------------------
     root = out_root or os.path.join(os.path.dirname(os.path.abspath(input_path)),
@@ -323,22 +359,18 @@ def run(input_path: str, out_root: str | None = None,
 
 
 def _print_summary(summary: Dict[str, Any]) -> None:
-    print(f"Iterations: {summary['iterations']} "
-          f"(steady state: {summary['steady_state']})")
-    print(f"Core species: {summary['core_species_count']}, "
-          f"Core reactions: {summary['core_reaction_count']}")
-    print(f"Edge species: {summary['edge_species_count']}, "
-          f"Edge reactions: {summary['edge_reaction_count']}")
+    log.info("Iterations: %d (steady state: %s)", summary['iterations'], summary['steady_state'])
+    log.info("Core species: %d, Core reactions: %d", summary['core_species_count'], summary['core_reaction_count'])
+    log.info("Edge species: %d, Edge reactions: %d", summary['edge_species_count'], summary['edge_reaction_count'])
     for s in summary.get("seed_mechanisms", []):
-        print(f"Seed mechanism {s['requested']!r}: resolved to "
-              f"{s['resolved_library_name']!r} ({s['resolution']}), "
-              f"{s['n_species_loaded']} species / {s['n_reactions_loaded']} "
-              f"reactions loaded (dropped: missing-species "
-              f"{s['n_reactions_dropped_missing_species']}, no-rate "
-              f"{s['n_reactions_dropped_no_rate']}, multiband "
-              f"{s['n_reactions_dropped_multiband']})")
-    print(f"Estimation: {summary['estimation_counts']}")
-    print(f"Coverage gaps: {summary['coverage']}")
+        log.info("Seed mechanism %r: resolved to %r (%s), %d species / %d reactions loaded (dropped: missing-species %d, no-rate %d, multiband %d)",
+                 s['requested'], s['resolved_library_name'], s['resolution'],
+                 s['n_species_loaded'], s['n_reactions_loaded'],
+                 s['n_reactions_dropped_missing_species'],
+                 s['n_reactions_dropped_no_rate'],
+                 s['n_reactions_dropped_multiband'])
+    log.info("Estimation: %s", summary['estimation_counts'])
+    log.info("Coverage gaps: %s", summary['coverage'])
 
 
 # ---------------------------------------------------------------------------
@@ -471,7 +503,7 @@ def _write_output_tree(root: str, input_path: str, model_input: Input,
         from rmgpu.io.chemkin import write_chemkin
         write_chemkin(artifact, os.path.join(root, "mechanism"))
     except Exception as e:  # noqa: BLE001
-        print("warning: chemkin export failed: %s" % e, file=sys.stderr)
+        log.warning("chemkin export failed: %s", e)
 
     # species/*.json
     for s in cm.core.species:
@@ -612,6 +644,6 @@ def _pkg_version(name: str) -> str:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python -m rmgpu.main <input.yaml>", file=sys.stderr)
+        log.error("Usage: python -m rmgpu.main <input.yaml>")
         sys.exit(1)
     run(sys.argv[1])

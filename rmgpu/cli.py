@@ -85,22 +85,36 @@ def main():
 @click.argument("path", type=click.Path(exists=True, dir_okay=False))
 @click.option("--out", type=click.Path(dir_okay=True),
               help="Output tree root (default: <input dir>/run_output).")
-def run(path: str, out: Optional[str]) -> None:
+@click.option("--log-level", type=click.Choice(["DEBUG","INFO","WARNING","ERROR","CRITICAL"], case_sensitive=False),
+              default="INFO", help="Logging level.")
+@click.option("--log-file", type=click.Path(dir_okay=False), default=None, help="Write logs to file.")
+@click.option("--quiet", is_flag=True, help="Suppress INFO output to console (logs go to file if set).")
+@click.option("--max-iter", type=int, default=None, help="Maximum CoreEdgeLoop iterations.")
+def run(path: str, out: Optional[str], log_level: str, log_file: Optional[str], quiet: bool, max_iter: Optional[int]) -> None:
     """Run the full mechanism generation (job-06 driver): load, build,
     enlarge/simulate/screen to steady state, write the output tree."""
+    from rmgpu.logging import setup_logging
+    import logging
+    level = getattr(logging, log_level.upper(), logging.INFO)
+    if quiet:
+        level = max(level, logging.WARNING)
+    setup_logging(level=level, log_file=log_file)
     try:
         from rmgpu.main import run as run_driver
-        summary = run_driver(path, out_root=out)
+        from rmgpu.logging import log
+        summary = run_driver(path, out_root=out, log_level=level, log_file=log_file, max_iterations=max_iter)
     except Exception as e:
+        log.exception("Run failed")
         click.echo(f"Run failed: {e}", err=True)
         sys.exit(1)
-    click.echo(f"Done. iterations={summary['iterations']} "
-               f"steady_state={summary['steady_state']} "
-               f"core={summary['core_species_count']}spc/"
-               f"{summary['core_reaction_count']}rxn "
-               f"edge={summary['edge_species_count']}spc/"
-               f"{summary['edge_reaction_count']}rxn")
-    click.echo(f"Output tree: {summary['out_root']}")
+    if not quiet:
+        click.echo(f"Done. iterations={summary['iterations']} "
+                  f"steady_state={summary['steady_state']} "
+                  f"core={summary['core_species_count']}spc/"
+                  f"{summary['core_reaction_count']}rxn "
+                  f"edge={summary['edge_species_count']}spc/"
+                  f"{summary['edge_reaction_count']}rxn")
+        click.echo(f"Output tree: {summary['out_root']}")
 
 
 @main.command()

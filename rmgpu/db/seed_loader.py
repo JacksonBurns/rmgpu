@@ -50,6 +50,9 @@ from rmgpu.data.kinetics import convert_A, convert_Ea
 from rmgpu.molecule.molecule import Molecule
 from rmgpu.reactor.simulator import RateParam
 from rmgpu.db import Databases
+from rmgpu.logging import get_logger
+
+log = get_logger("db.seed_loader")
 
 
 # ---------------------------------------------------------------------------
@@ -212,9 +215,11 @@ def load_seed_mechanism(name: str, databases: Databases) -> Tuple[List[Species],
         carry a flat SI RateParam. ``summary`` is a loud record of the
         resolution and every drop (see the module docstring).
     """
+    log.info("seed_loader: opening kinetics DB")
     kinetics_path = Path(databases.kinetics.db_path)
     conn = sqlite3.connect(str(kinetics_path))
     try:
+        log.debug("seed_loader: resolving library name %r", name)
         lib_id, resolved_name, how = _library_id_by_name(conn, name)
         if lib_id is None:
             raise ValueError(
@@ -233,8 +238,11 @@ def load_seed_mechanism(name: str, databases: Databases) -> Tuple[List[Species],
             "n_reactions_dropped_multiband": 0,
             "n_thermo_hits": 0,
         }
+        log.info("seed_loader: resolved %r -> %r via %s (id=%s)", name, resolved_name, how, lib_id)
         # -- species ---------------------------------------------------------
+        log.debug("seed_loader: loading species for library_id=%s", lib_id)
         lib_species_rows = _load_library_species(conn, lib_id)
+        log.info("seed_loader: loaded %d species rows", len(lib_species_rows))
         species_map: dict[str, Species] = {}
         species_list: List[Species] = []
         label_to_species: dict[str, Species] = {}
@@ -261,7 +269,9 @@ def load_seed_mechanism(name: str, databases: Databases) -> Tuple[List[Species],
         summary["n_species"] = len(species_list)
 
         # -- reactions -------------------------------------------------------
+        log.debug("seed_loader: loading reactions for library_id=%s", lib_id)
         lib_reactions = _load_library_reactions(conn, lib_id)
+        log.info("seed_loader: loaded %d reaction rows", len(lib_reactions))
         reaction_list: List[Reaction] = []
         for rrow in lib_reactions:
             reaction_id = rrow["id"]
@@ -316,5 +326,7 @@ def load_seed_mechanism(name: str, databases: Databases) -> Tuple[List[Species],
             reaction_list.append(rxn)
         summary["n_reactions"] = len(reaction_list)
     finally:
+        log.info("seed_loader: closing DB connection")
         conn.close()
+    log.info("seed_loader: done – %d species, %d reactions", len(species_list), len(reaction_list))
     return species_list, reaction_list, summary

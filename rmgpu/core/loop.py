@@ -41,6 +41,9 @@ from rmgpu.molecule.molecule import Molecule
 from rmgpu.reactor.simulator import (RateParam, SimResult,
                                      characteristic_rate,
                                      simulate_mole_fractions)
+from rmgpu.logging import get_logger
+
+log = get_logger("core.loop")
 
 # CGS -> SI pre-exponential for the ML branch (PLAN 3b boundary conversion):
 # the checkpoint emits A in cm^3/(mol*s); SI is m^3/(mol*s).
@@ -301,8 +304,10 @@ class CoreEdgeLoop:
 
     # -- enlarge ----------------------------------------------------------
     def enlarge(self, iteration: int) -> None:
+        log.info("enlarge: start iteration %d", iteration)
         core = list(self.model.core.species)
         edge = list(self.model.edge.species)
+        log.debug("enlarge: core species %d, edge species %d", len(core), len(edge))
         pairs: List[Tuple] = []
         for i, a in enumerate(core):
             pairs.append((a,))
@@ -312,18 +317,22 @@ class CoreEdgeLoop:
             for a in core:
                 for b in edge:
                     pairs.append((a, b))
+        log.info("enlarge: total pairs %d, families %d", len(pairs), len(self.ctx.families.families))
         for loaded in sorted(self.ctx.families.families, key=lambda f: f.label):
             efam = self._family_enumeration(loaded)
             if efam is None:
+                log.debug("enlarge: family %s skipped", loaded.label)
                 continue
+            log.debug("enlarge: family %s with %d pairs", loaded.label, len(pairs))
             for pair in pairs:
                 mols = [sp.molecule for sp in pair]
                 try:
                     rxns = enum.generate_reactions(efam, mols)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     continue
                 for tr in rxns:
                     self._add_generated_reaction(tr, efam, iteration)
+        log.info("enlarge: done iteration %d", iteration)
 
     def _add_generated_reaction(self, tr, efam: enum.Family, iteration: int) -> None:
         try:
@@ -474,6 +483,7 @@ class CoreEdgeLoop:
 
     # -- main loop --------------------------------------------------------
     def run(self) -> RunResult:
+        log.info("CoreEdgeLoop.run() starting")
         ctx = self.ctx
         cfg = ctx.config
         # Seed species from input species block
@@ -482,6 +492,7 @@ class CoreEdgeLoop:
             self.species_by_key[canonical_key(sp.molecule)] = sp
             self._thermo(sp, 0)
         # Load seed mechanisms (rmgdb libraries) into core
+        log.info("CoreEdgeLoop: seeding from mechanisms – %d species / %d reactions", len(ctx.seed_mechanisms_species), len(ctx.seed_mechanisms_reactions))
         self.log.append("seed mechanisms: %d species / %d reactions" % (len(ctx.seed_mechanisms_species), len(ctx.seed_mechanisms_reactions)))
         for sp in ctx.seed_mechanisms_species:
             key = canonical_key(sp.molecule)
@@ -525,26 +536,39 @@ class CoreEdgeLoop:
         prev_sig = None
         iteration = 0
         done = False
+        log.info("CoreEdgeLoop: starting iteration loop")
         while not done and iteration < cfg.max_iterations:
             iteration += 1
             self.model.iteration_num = iteration
+            log.info("Iteration %d start – core %d spc/%d rxn, edge %d spc/%d rxn",
+                     iteration,
+                     len(self.model.core.species),
+                     len(self.model.core.reactions),
+                     len(self.model.edge.species),
+                     len(self.model.edge.reactions))
             self.log.append(
                 "iteration %d: core=%d spc/%d rxn, edge=%d spc/%d rxn"
                 % (iteration, len(self.model.core.species),
                    len(self.model.core.reactions),
                    len(self.model.edge.species),
                    len(self.model.edge.reactions)))
+            log.debug("Iteration %d: enlarge", iteration)
             self.enlarge(iteration)
+            log.debug("Iteration %d: simulate", iteration)
             profiles, promote_keys = self.simulate(iteration)
+            log.info("Iteration %d: simulate done – promote %d", iteration, len(promote_keys) if promote_keys else 0)
             if profiles is not None:
                 for k in promote_keys:
                     self._promote(k)
+            log.debug("Iteration %d: prune", iteration)
             self.prune()
             sig = self._signature()
             if prev_sig is not None and sig == prev_sig:
                 self.log.append("steady state at iteration %d" % iteration)
+                log.info("Steady state reached at iteration %d", iteration)
                 done = True
             prev_sig = sig
+        log.info("CoreEdgeLoop: loop finished after %d iterations", iteration)
         self.model.iteration_num = iteration
         core_keys = sorted(self._core_key_set())
         edge_keys = sorted(set(canonical_key(s.molecule)
