@@ -423,12 +423,16 @@ class CoreEdgeLoop:
                 "order": order}
 
     def simulate(self, iteration: int):
+        log.info("simulate: start iteration %d", iteration)
         sim = self._build_sim()
+        log.info("simulate: _build_sim done, sim is %s", "None" if sim is None else "ok")
         if sim is None:
+            log.warning("simulate: _build_sim returned None")
             return None, [], []
         self._last_sim = sim
         T, P = self.ctx.temperature, self.ctx.pressure
         char = characteristic_rate(sim["nu"], sim["rps"], T, P, sim["init"])
+        log.info("simulate: characteristic_rate = %g", char)
         if char <= 0.0:
             t_end = 1.0
         else:
@@ -437,14 +441,20 @@ class CoreEdgeLoop:
             t_end = min(t_end, self.ctx.termination_time)
         t_end = max(self.ctx.config.min_t, min(t_end, self.ctx.config.max_t))
         h = max(t_end / self.ctx.config.simulate_steps, 1e-18)
+        log.info("simulate: t_end=%g, h=%g, steps=%d", t_end, h, self.ctx.config.simulate_steps)
+        log.info("simulate: calling simulate_mole_fractions with %d species, %d reactions", len(sim["keys"]), len(sim["rps"]))
         profiles = simulate_mole_fractions(
             sim["keys"], sim["nu"], sim["rps"], T, P, sim["init"], t_end, h)
+        log.info("simulate: simulate_mole_fractions done, profiles has %d steps", len(profiles.ys) if profiles else 0)
         self._last_profiles = profiles
+        log.info("simulate: calling _screen")
         promote, demote = self._screen(sim, char, T, P, profiles)
+        log.info("simulate: _screen done, promote %d, demote %d", len(promote), len(demote))
         return profiles, promote, demote
 
     def _screen(self, sim: Dict, char: float, T: float, P: float,
                 profiles: SimResult):
+        log.info("_screen: start, char=%g, profiles steps=%d", char, len(profiles.ys) if profiles else 0)
         """Screen species by reaction rate-ratio vs the characteristic rate
         using integrated fluxes from the simulation profiles. Species are promoted
         to core when max integrated rate-ratio > tolerance_move_to_core, demoted
@@ -456,6 +466,7 @@ class CoreEdgeLoop:
         tol_keep = self.ctx.config.tolerance_keep_in_edge
         n_sp = len(sim["keys"])
         n_steps = len(profiles.ys)
+        log.info("_screen: n_sp=%d, n_steps=%d", n_sp, n_steps)
         # Build per-step rate matrix
         c_tot = P / (8.314472 * T)
         # Precompute reaction rates for each step
@@ -463,8 +474,10 @@ class CoreEdgeLoop:
         # Initialize max integrated ratio per species
         for i in range(n_sp):
             sp_ratio[sim["keys"][i]] = 0.0
-        # For each reaction, compute integrated rate over time
+        log.info("_screen: starting reaction loop over %d reactions", len(sim["rps"]))
         for j in range(len(sim["rps"])):
+            if j % 100 == 0:
+                log.info("_screen: reaction %d/%d", j, len(sim["rps"]))
             rp = sim["rps"][j]
             aT = forward_A_T(rp, T)
             nu = sim["nu"][j]
@@ -500,6 +513,7 @@ class CoreEdgeLoop:
         promote = [k for k in sim["keys"] if k not in core_keys and sp_ratio.get(k,0.0) > tol_core]
         demote = [k for k in core_keys if sp_ratio.get(k,0.0) < tol_core]
         self._last_sp_ratio = sp_ratio
+        log.info("_screen: done, promote %d, demote %d", len(promote), len(demote))
         return promote, demote
 
     # -- main loop --------------------------------------------------------
