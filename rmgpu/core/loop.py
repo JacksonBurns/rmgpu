@@ -172,6 +172,7 @@ class CoreEdgeLoop:
         self._canon_cache: Dict[int, str] = {}
         self._ml_batch: List[dict] = []
         self._ml_batch_size: int = 64
+        self._thermo_batch: List[Species] = []
 
     # -- species ----------------------------------------------------------
     def _register_species(self, mol: Molecule, label_hint: Optional[str],
@@ -355,6 +356,17 @@ class CoreEdgeLoop:
             forbidden=loaded.forbidden,
         )
         efam.matcher = TemplateMatcher(loaded)
+        # Cache required elements for pre-filtering
+        try:
+            import re
+            elems = set()
+            for tmpl in loaded.forward_template:
+                # crude element extraction from template SMILES
+                for s in getattr(tmpl, 'smiles', []):
+                    elems.update(re.findall(r'[A-Z][a-z]?', s))
+            efam._required_elements = elems
+        except Exception:
+            efam._required_elements = set()
         self._family_cache[id(loaded)] = efam
         return efam
 
@@ -367,12 +379,13 @@ class CoreEdgeLoop:
         # Pre-filter families by element presence to avoid useless work
         core_elements = set()
         for sp in core:
-            # quick heuristic: use molecule formula elements
             try:
-                core_elements.update(sp.molecule.formula.split())
+                # molecule.formula is a string like 'C2H6' – extract element symbols
+                import re
+                core_elements.update(re.findall(r'[A-Z][a-z]?', sp.molecule.formula))
             except Exception:
                 pass
-        # pairs
+        # Build pairs
         pairs: List[Tuple] = []
         for i, a in enumerate(core):
             pairs.append((a,))
@@ -387,6 +400,11 @@ class CoreEdgeLoop:
             efam = self._family_enumeration(loaded)
             if efam is None:
                 log.debug("enlarge: family %s skipped", loaded.label)
+                continue
+            # Pre-filter by elements
+            req = getattr(efam, '_required_elements', set())
+            if req and not req.issubset(core_elements):
+                log.debug("enlarge: family %s skipped (missing elements)", loaded.label)
                 continue
             log.info("enlarge: processing family %s with %d pairs", loaded.label, len(pairs))
             for idx, pair in enumerate(pairs):
@@ -463,8 +481,11 @@ class CoreEdgeLoop:
         matrices when possible. None when there are no reactions."""
         if not self.reactions:
             return None
-        # Simple reuse: if reaction set unchanged, return previous sim
-        # (placeholder for full incremental update)
+        # Reuse previous sim if reaction set unchanged
+        if hasattr(self, '_last_sim_keys') and self._last_sim_keys == set(self.reactions.keys()):
+            # Reuse previous matrices
+            return self._last_sim
+        # Build fresh
         sp_keys: List[str] = []
         seen = set()
         for rec in self.reactions.values():
@@ -488,8 +509,11 @@ class CoreEdgeLoop:
         for i, k in enumerate(sp_keys):
             sp = self.species_by_key[k]
             init[i] = float(self.ctx.initial_mole_fractions.get(sp.label, 0.0))
-        return {"keys": sp_keys, "nu": nu, "rps": rps, "init": init,
+        sim = {"keys": sp_keys, "nu": nu, "rps": rps, "init": init,
                 "order": order}
+        self._last_sim_keys = set(self.reactions.keys())
+        self._last_sim = sim
+        return sim
 
     def simulate(self, iteration: int):
         log.info("simulate: start iteration %d", iteration)
