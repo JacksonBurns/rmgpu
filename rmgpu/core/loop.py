@@ -323,8 +323,10 @@ class CoreEdgeLoop:
             if efam is None:
                 log.debug("enlarge: family %s skipped", loaded.label)
                 continue
-            log.debug("enlarge: family %s with %d pairs", loaded.label, len(pairs))
-            for pair in pairs:
+            log.info("enlarge: processing family %s with %d pairs", loaded.label, len(pairs))
+            for idx, pair in enumerate(pairs):
+                if idx % 200 == 0:
+                    log.info("enlarge: family %s pair %d/%d", loaded.label, idx, len(pairs))
                 mols = [sp.molecule for sp in pair]
                 try:
                     rxns = enum.generate_reactions(efam, mols)

@@ -30,6 +30,14 @@ pytest tests/test_reactor_sparse.py -q
 pytest tests/test_ml_batch_cache.py -q
 Run a short c3h4 dry-run with max_iterations=1 to ensure enlarge + simulate completes without OOM and finishes in < 5 min on CPU.
 
+Progress
+--------
+- Sparse DAE refactor committed.
+- ML batch/cache committed.
+- Added detailed logging to CoreEdgeLoop.enlarge, simulate, _screen, and reactor.simulator.simulate_mole_fractions to diagnose hangs.
+- Seed loader rewritten to bulk-load reaction species and Arrhenius rows (eliminated N+1 SQLite queries) – committed.
+- c3h4 dry-run still hangs in enlarge/simulate phase; logging shows progress through enlarge families/pairs but simulate has not completed. Investigation ongoing.
+
 Done protocol
 -------------
 1. Commit code: git commit -am "job-06/step-08: sparse DAE + ML batch/cache"
