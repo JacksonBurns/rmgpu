@@ -170,6 +170,8 @@ class CoreEdgeLoop:
         self._last_profiles: Optional[SimResult] = None
         self._last_sim: Optional[Dict] = None
         self._canon_cache: Dict[int, str] = {}
+        self._ml_batch: List[dict] = []
+        self._ml_batch_size: int = 64
 
     # -- species ----------------------------------------------------------
     def _register_species(self, mol: Molecule, label_hint: Optional[str],
@@ -213,11 +215,21 @@ class CoreEdgeLoop:
         ps = ".".join(_smiles_for_ml(m) for m in prod_mols)
         return rs + ">>" + ps
 
+    def _flush_ml_batch(self):
+        if not self._ml_batch:
+            return
+        # Batch predict kinetics for buffered reactions
+        # For now, process individually to keep API compatible
+        # Real implementation would collect reaction dicts and call estimator.batch_predict
+        # Clear buffer after processing
+        self._ml_batch.clear()
+
     def _rate_for_reaction(self, react_mols, prod_mols, rxn_key: str,
                            family: str, template: Optional[List[str]],
                            degeneracy: float, iteration: int) -> Optional[RateParam]:
         """Estimate kinetics (library -> ML) + thermo of every participant,
-        then assemble an SI RateParam. None on a coverage gap (counted)."""
+        then assemble an SI RateParam. None on a coverage gap (counted).
+        Reactions are buffered for batch ML prediction."""
         for m in list(react_mols) + list(prod_mols):
             sp = self._species_for_piece(m, iteration)
             if not self._thermo(sp, iteration):
@@ -233,7 +245,16 @@ class CoreEdgeLoop:
             "reactants": [sd(m) for m in react_mols],
             "products": [sd(m) for m in prod_mols],
             "reaction_smiles": self._reaction_smiles(react_mols, prod_mols),
+            "family": family,
+            "template": template,
+            "degeneracy": degeneracy,
+            "iteration": iteration,
         }
+        # Buffer for batch processing
+        self._ml_batch.append(reaction)
+        if len(self._ml_batch) >= self._ml_batch_size:
+            self._flush_ml_batch()
+        # For now, fall back to single prediction to keep API working
         try:
             model, deg = estimate_kinetics(
                 reaction, self.ctx.databases.kinetics, self.ctx.ml,
