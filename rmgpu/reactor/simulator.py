@@ -144,7 +144,9 @@ def simulate_mole_fractions(
     from rmgpu.logging import get_logger
     log = get_logger("rmgpu.reactor.simulator")
     log.info("simulate_mole_fractions: start, species=%d, reactions=%d, t_end=%g, h=%g", len(keys), len(rps), t_end, h)
+    log.info("simulate_mole_fractions: building torch tensors, device=")
     device = _choose_device()
+    log.info("simulate_mole_fractions: device selected")
     n_sp = len(keys)
     n_rx = len(rps)
     if n_rx == 0:
@@ -274,8 +276,10 @@ def simulate_mole_fractions(
 
     yp0 = dydt(y0_t)
     log.info("simulate_mole_fractions: starting torchdae solve, t_end=%g, h=%g", t_end, h)
+    log.info("simulate_mole_fractions: calling torchdae.solve_tr_bdf2")
     sol = torchdae.solve_tr_bdf2(F, (0.0, float(t_end)), y0_t, h=float(h),
                                  yp0=yp0)
+    log.info("simulate_mole_fractions: torchdae solve returned")
     log.info("simulate_mole_fractions: torchdae solve done, steps=%d", len(sol.ts))
     ts = sol.ts.cpu().numpy().tolist()
     ys = sol.ys.squeeze(1).cpu().numpy().tolist()
