@@ -498,40 +498,48 @@ class CoreEdgeLoop:
         # Precompute reaction rates for each step using numpy
         sp_ratio = {k: 0.0 for k in sim["keys"]}
         log.info("_screen: starting vectorized reaction loop over %d reactions", len(sim["rps"]))
-        for j in range(len(sim["rps"])):
+        import numpy as np
+        ys = np.array(profiles.ys, dtype=float)
+        times = np.array(profiles.times, dtype=float)
+        # Precompute c_tot
+        c_tot = P / (8.314472 * T)
+        # Vectorized loop over reactions
+        for j, rp in enumerate(sim["rps"]):
             if j % 100 == 0:
                 log.info("_screen: reaction %d/%d", j, len(sim["rps"]))
-            rp = sim["rps"][j]
+            nu = np.array(sim["nu"][j], dtype=float)
+            n_react = int(np.sum(-nu[nu < 0]))
+            n_prod = int(np.sum(nu[nu > 0]))
             aT = forward_A_T(rp, T)
-            nu = sim["nu"][j]
-            n_react = sum(-m for m in nu if m < 0)
-            n_prod = sum(m for m in nu if m > 0)
-            # Integrate rate over time steps
-            rates = []
-            for row in profiles.ys:
-                prod_f = 1.0
-                prod_r = 1.0
-                for i,m in enumerate(nu):
-                    y = max(0.0, row[i])
-                    if m < 0:
-                        prod_f *= y ** (-m)
-                    elif m > 0:
-                        prod_r *= y ** m
-                k_fwd = aT * (c_tot ** (n_react - 1)) * prod_f
-                k_rev = aT * reverse_factor(rp, T, float(n_prod - n_react)) * (c_tot ** (n_prod - 1)) * prod_r
-                rates.append(max(k_fwd, k_rev))
-            # Simple trapezoidal integration
-            if len(rates) > 1:
-                dt = (profiles.times[-1] - profiles.times[0]) / (len(rates)-1) if len(rates)>1 else 1.0
-                integral = sum((rates[i]+rates[i-1])*0.5*dt for i in range(1,len(rates)))
+            # Mass-action terms: y^nu
+            # Avoid zeros
+            y_safe = np.maximum(ys, 1e-30)
+            # Compute reactant and product monomials
+            # log space to avoid underflow
+            log_prod_f = np.sum(-nu[nu < 0, None] * np.log(y_safe), axis=1)
+            log_prod_r = np.sum(nu[nu > 0, None] * np.log(y_safe), axis=1)
+            # Actually vectorize correctly
+            # Simpler: compute per step using broadcasting
+            # For clarity keep a compact vectorized version
+            # Compute forward rate
+            fwd = aT * (c_tot ** (n_react - 1)) * np.exp(np.sum(-nu * np.log(y_safe), axis=1))
+            rev_factor = reverse_factor(rp, T, float(n_prod - n_react))
+            rev = aT * rev_factor * (c_tot ** (n_prod - 1)) * np.exp(np.sum(nu * np.log(y_safe), axis=1))
+            rates = np.maximum(fwd, rev)
+            # Trapezoidal integration
+            if len(times) > 1:
+                dt = np.diff(times)
+                integral = np.sum(0.5 * (rates[:-1] + rates[1:]) * dt)
+                avg_rate = integral / (times[-1] - times[0] + 1e-30)
             else:
-                integral = rates[0] if rates else 0.0
-            avg_rate = integral / (profiles.times[-1]-profiles.times[0] + 1e-30) if profiles.times[-1]>profiles.times[0] else 0.0
-            rr = avg_rate / char if char>0 else 0.0
-            for i,m in enumerate(nu):
-                if m != 0:
-                    k = sim["keys"][i]
-                    sp_ratio[k] = max(sp_ratio.get(k,0.0), rr)
+                avg_rate = rates[0] if len(rates) else 0.0
+            rr = avg_rate / char if char > 0 else 0.0
+            # Update sp_ratio for participating species
+            idx = np.where(nu != 0)[0]
+            for i in idx:
+                k = sim["keys"][i]
+                if rr > sp_ratio[k]:
+                    sp_ratio[k] = rr
         core_keys = self._core_key_set()
         promote = [k for k in sim["keys"] if k not in core_keys and sp_ratio.get(k,0.0) > tol_core]
         demote = [k for k in core_keys if sp_ratio.get(k,0.0) < tol_keep and not self._is_seed_key(k)]
