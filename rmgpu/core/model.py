@@ -45,6 +45,7 @@ class Species:
     kinetics: Optional[object] = None
     creation_iteration: int = 0
     index: int = -1
+    is_seed: bool = False
 
 
 @dataclass

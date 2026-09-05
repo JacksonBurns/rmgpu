@@ -435,12 +435,15 @@ class CoreEdgeLoop:
         T, P = self.ctx.temperature, self.ctx.pressure
         char = characteristic_rate(sim["nu"], sim["rps"], T, P, sim["init"])
         log.info("simulate: characteristic_rate = %g", char)
-        if char <= 0.0:
-            t_end = 1.0
-        else:
-            t_end = CHAR_RATE_TFACTOR / char
         if self.ctx.termination_time is not None:
-            t_end = min(t_end, self.ctx.termination_time)
+            # RMG-Py style: use user-specified termination time for screening
+            t_end = float(self.ctx.termination_time)
+            log.info("simulate: using user termination_time = %g s", t_end)
+        else:
+            if char <= 0.0:
+                t_end = 1.0
+            else:
+                t_end = CHAR_RATE_TFACTOR / char
         t_end = max(self.ctx.config.min_t, min(t_end, self.ctx.config.max_t))
         h = max(t_end / self.ctx.config.simulate_steps, 1e-18)
         log.info("simulate: t_end=%g, h=%g, steps=%d", t_end, h, self.ctx.config.simulate_steps)
@@ -513,7 +516,7 @@ class CoreEdgeLoop:
                     sp_ratio[k] = max(sp_ratio.get(k,0.0), rr)
         core_keys = self._core_key_set()
         promote = [k for k in sim["keys"] if k not in core_keys and sp_ratio.get(k,0.0) > tol_core]
-        demote = [k for k in core_keys if sp_ratio.get(k,0.0) < tol_core]
+        demote = [k for k in core_keys if sp_ratio.get(k,0.0) < tol_keep and not self._is_seed_key(k)]
         self._last_sp_ratio = sp_ratio
         log.info("_screen: done, promote %d, demote %d", len(promote), len(demote))
         return promote, demote
@@ -534,6 +537,7 @@ class CoreEdgeLoop:
         for sp in ctx.seed_mechanisms_species:
             key = canonical_key(sp.molecule)
             if key not in self.species_by_key:
+                sp.is_seed = True
                 self.species_by_key[key] = sp
                 self.model.add_species_to_core(sp)
                 self._thermo(sp, 0)
@@ -638,6 +642,9 @@ class CoreEdgeLoop:
     def _demote(self, key: str) -> None:
         sp = self.species_by_key.get(key)
         if sp is None:
+            return
+        # Never demote seed species
+        if getattr(sp, 'is_seed', False):
             return
         # Move species from core to edge if it exists in core
         if sp in self.model.core.species:
