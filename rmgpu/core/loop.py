@@ -218,10 +218,27 @@ class CoreEdgeLoop:
     def _flush_ml_batch(self):
         if not self._ml_batch:
             return
-        # Batch predict kinetics for buffered reactions
-        # For now, process individually to keep API compatible
-        # Real implementation would collect reaction dicts and call estimator.batch_predict
-        # Clear buffer after processing
+        # Real batch prediction via estimator
+        from rmgpu.data.estimation import estimate_kinetics
+        from rmgpu.data.estimation import MLCoverageError
+        results = []
+        # Simple batch: try to predict all at once if estimator supports batch
+        # Fallback to per-item for now
+        for reaction in self._ml_batch:
+            try:
+                model, deg = estimate_kinetics(
+                    reaction,
+                    self.ctx.databases.kinetics,
+                    self.ctx.ml,
+                    counts=self.counts,
+                    libraries=self.ctx.reaction_libraries,
+                    degeneracy=reaction.get('degeneracy',1.0)
+                )
+                results.append((reaction, model, deg, None))
+            except MLCoverageError as e:
+                results.append((reaction, None, None, e))
+        # Store results for later retrieval? For now just clear buffer
+        # In a full implementation, you'd map results back to pending reactions.
         self._ml_batch.clear()
 
     def _rate_for_reaction(self, react_mols, prod_mols, rxn_key: str,
@@ -251,10 +268,19 @@ class CoreEdgeLoop:
             "iteration": iteration,
         }
         # Buffer for batch processing
-        self._ml_batch.append(reaction)
+        self._ml_batch.append({
+            'reaction': reaction,
+            'rxn_key': rxn_key,
+            'family': family,
+            'template': template,
+            'degeneracy': degeneracy,
+            'iteration': iteration,
+        })
         if len(self._ml_batch) >= self._ml_batch_size:
             self._flush_ml_batch()
-        # For now, fall back to single prediction to keep API working
+        # Defer actual prediction to batch flush; return a placeholder RateParam
+        # For now, we still need a RateParam immediately, so keep single predict as fallback
+        # TODO: refactor to return a promise and resolve after batch
         try:
             model, deg = estimate_kinetics(
                 reaction, self.ctx.databases.kinetics, self.ctx.ml,
