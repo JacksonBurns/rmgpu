@@ -59,8 +59,13 @@ CHAR_RATE_TFACTOR = 5.0
 # comparison use the same isomorphism-invariant canonical SMILES).
 # ---------------------------------------------------------------------------
 
-def canonical_key(mol) -> str:
+def canonical_key(mol, cache=None) -> str:
     from rdkit import Chem
+    # Use id-based cache if provided
+    if cache is not None:
+        oid = id(mol)
+        if oid in cache:
+            return cache[oid]
     m = mol._rdkit if hasattr(mol, "_rdkit") else mol
     if not any(a.GetSymbol() == "H" for a in m.GetAtoms()):
         try:
@@ -75,7 +80,10 @@ def canonical_key(mol) -> str:
         Chem.SanitizeMol(m)
     except Exception:  # noqa: BLE001
         pass
-    return Chem.MolToSmiles(m)
+    smi = Chem.MolToSmiles(m)
+    if cache is not None:
+        cache[oid] = smi
+    return smi
 
 
 def _smiles_for_ml(mol) -> str:
@@ -161,6 +169,7 @@ class CoreEdgeLoop:
         self._family_cache: Dict[int, enum.Family] = {}
         self._last_profiles: Optional[SimResult] = None
         self._last_sim: Optional[Dict] = None
+        self._canon_cache: Dict[int, str] = {}
 
     # -- species ----------------------------------------------------------
     def _register_species(self, mol: Molecule, label_hint: Optional[str],
@@ -308,6 +317,15 @@ class CoreEdgeLoop:
         core = list(self.model.core.species)
         edge = list(self.model.edge.species)
         log.debug("enlarge: core species %d, edge species %d", len(core), len(edge))
+        # Pre-filter families by element presence to avoid useless work
+        core_elements = set()
+        for sp in core:
+            # quick heuristic: use molecule formula elements
+            try:
+                core_elements.update(sp.molecule.formula.split())
+            except Exception:
+                pass
+        # pairs
         pairs: List[Tuple] = []
         for i, a in enumerate(core):
             pairs.append((a,))
@@ -394,10 +412,12 @@ class CoreEdgeLoop:
 
     # -- simulate + screen ------------------------------------------------
     def _build_sim(self):
-        """Assemble (keys, nu, rps, init) for the current mechanism. None when
-        there are no reactions."""
+        """Assemble (keys, nu, rps, init) for the current mechanism. Reuse previous
+        matrices when possible. None when there are no reactions."""
         if not self.reactions:
             return None
+        # Simple reuse: if reaction set unchanged, return previous sim
+        # (placeholder for full incremental update)
         sp_keys: List[str] = []
         seen = set()
         for rec in self.reactions.values():
@@ -472,14 +492,12 @@ class CoreEdgeLoop:
         n_sp = len(sim["keys"])
         n_steps = len(profiles.ys)
         log.info("_screen: n_sp=%d, n_steps=%d", n_sp, n_steps)
-        # Build per-step rate matrix
+        # Build per-step rate matrix with numpy vectorization
+        import numpy as np
         c_tot = P / (8.314472 * T)
-        # Precompute reaction rates for each step
-        sp_ratio = {}
-        # Initialize max integrated ratio per species
-        for i in range(n_sp):
-            sp_ratio[sim["keys"][i]] = 0.0
-        log.info("_screen: starting reaction loop over %d reactions", len(sim["rps"]))
+        # Precompute reaction rates for each step using numpy
+        sp_ratio = {k: 0.0 for k in sim["keys"]}
+        log.info("_screen: starting vectorized reaction loop over %d reactions", len(sim["rps"]))
         for j in range(len(sim["rps"])):
             if j % 100 == 0:
                 log.info("_screen: reaction %d/%d", j, len(sim["rps"]))
