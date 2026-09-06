@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-07-step-02-torsion.md
+NEXT: prompts/steps/job-07-step-03-assembly.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -79,7 +79,7 @@ documented finding) and the session log has the evidence.
 || 06/07 | Fix the job-06 gate (re-opened): honest hard checks + c3h4 seed-mechanism path | gate_06.py honest hard checks (c3h4 run + physical validity), seed_loader real GRI-Mech3 load, coverage from real summary | done (2026-09-05: seed loader alias, reverse factor thermodynamically consistent, physical validity checks added, screening math fixed; c3h4 seed loads, superminimal profile physically valid; gate honest) |
 || 06/08 | Sparse DAE + ML batch/cache | test_reactor_sparse.py + test_ml_batch_cache.py | done |
 || 07/01 | Statmech modes: conformer, vibration, rotation | test_statmech_modes.py | done |
-| 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | pending |
+| 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | done |
 | 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | pending |
 | 07/04 | The pdep network + master equation (CSE) + TS-E0 | test_pdep_network.py (Lindemann case) | pending |
 | 07/05 | Collision models: CSE + collision frequency | test_collision_cse.py | pending |
