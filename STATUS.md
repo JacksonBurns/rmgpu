@@ -80,7 +80,7 @@ documented finding) and the session log has the evidence.
 || 06/08 | Sparse DAE + ML batch/cache | test_reactor_sparse.py + test_ml_batch_cache.py | done |
 || 07/01 | Statmech modes: conformer, vibration, rotation | test_statmech_modes.py | done |
 | 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | done |
-| 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | pending |
+| 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | done |
 | 07/04 | The pdep network + master equation (CSE) + TS-E0 | test_pdep_network.py (Lindemann case) | pending |
 | 07/05 | Collision models: CSE + collision frequency | test_collision_cse.py | pending |
 | 07/06 | The pdep driver + loop wiring + pdep/ output | test_pdep_driver.py | pending |
