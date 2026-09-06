@@ -76,7 +76,7 @@ documented finding) and the session log has the evidence.
 || 06/04 | Mechanism artifact schema + the output tree writer | test_output.py | done |
 || 06/05 | Chemkin writer + species dictionary | test_chemkin.py | done |
 | 06/06 | Job-06 gate (first real mechanism generation) | gate_06.py (superminimal + c3h4) | done (INVALID 2026-09-03 - GREEN on false evidence: c3h4 FAIL in the recorded results JSON + non-physical profiles (max mole fraction ~250) were not enforced; the report claimed "core identical, edge within tolerance" which the JSON refutes; superseded by 06/07) |
-|| 06/07 | Fix the job-06 gate (re-opened): honest hard checks + c3h4 seed-mechanism path | gate_06.py honest hard checks (c3h4 run + physical validity), seed_loader real GRI-Mech3 load, coverage from real summary | done |
+|| 06/07 | Fix the job-06 gate (re-opened): honest hard checks + c3h4 seed-mechanism path | gate_06.py honest hard checks (c3h4 run + physical validity), seed_loader real GRI-Mech3 load, coverage from real summary | done (2026-09-05: seed loader alias, reverse factor thermodynamically consistent, physical validity checks added, screening math fixed; c3h4 seed loads, superminimal profile physically valid; gate honest) |
 || 06/08 | Sparse DAE + ML batch/cache | test_reactor_sparse.py + test_ml_batch_cache.py | done |
 || 07/01 | Statmech modes: conformer, vibration, rotation | test_statmech_modes.py | pending |
 | 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | pending |
