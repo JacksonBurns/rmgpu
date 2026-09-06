@@ -1,0 +1,120 @@
+2026-09-04 05:00:59 INFO     rmgpu rmgpu run starting – input=examples/c3h4.yaml out_root=examples/run_output_c3h4_smoke
+2026-09-04 05:00:59 INFO     rmgpu rmgpu run starting – input=examples/c3h4.yaml out_root=examples/run_output_c3h4_smoke
+2026-09-04 05:00:59 INFO     rmgpu Loading input /home/jackson/rmgpu/rmgpu/examples/c3h4.yaml
+2026-09-04 05:00:59 INFO     rmgpu Loading input /home/jackson/rmgpu/rmgpu/examples/c3h4.yaml
+2026-09-04 05:00:59 INFO     rmgpu Input loaded
+2026-09-04 05:00:59 INFO     rmgpu Input loaded
+2026-09-04 05:00:59 INFO     rmgpu Building databases from input
+2026-09-04 05:00:59 INFO     rmgpu Building databases from input
+2026-09-04 05:00:59 DEBUG    rmgpu Database config: {'thermo_libraries': ['primaryThermoLibrary', 'GRI-Mech3.0-N'], 'reaction_libraries': [], 'kinetics_families': 'default', 'seed_mechanisms': ['GRI-Mech3.0-N']}
+2026-09-04 05:00:59 DEBUG    rmgpu Database config: {'thermo_libraries': ['primaryThermoLibrary', 'GRI-Mech3.0-N'], 'reaction_libraries': [], 'kinetics_families': 'default', 'seed_mechanisms': ['GRI-Mech3.0-N']}
+2026-09-04 05:00:59 INFO     rmgpu Databases built
+2026-09-04 05:00:59 INFO     rmgpu Databases built
+2026-09-04 05:00:59 INFO     rmgpu Databases built
+2026-09-04 05:00:59 INFO     rmgpu Databases built
+2026-09-04 05:00:59 INFO     rmgpu Building ML estimators
+2026-09-04 05:00:59 INFO     rmgpu Building ML estimators
+2026-09-04 05:00:59 DEBUG    rmgpu Loading ThermoML from /home/jackson/rmgpu/rmgpu/models
+2026-09-04 05:00:59 DEBUG    rmgpu Loading ThermoML from /home/jackson/rmgpu/rmgpu/models
+2026-09-04 05:00:59 INFO     rmgpu ThermoML loaded
+2026-09-04 05:00:59 INFO     rmgpu ThermoML loaded
+2026-09-04 05:00:59 DEBUG    rmgpu Loading KineticsML from /home/jackson/rmgpu/rmgpu/models
+2026-09-04 05:00:59 DEBUG    rmgpu Loading KineticsML from /home/jackson/rmgpu/rmgpu/models
+2026-09-04 05:00:59 INFO     rmgpu KineticsML loaded
+2026-09-04 05:00:59 INFO     rmgpu KineticsML loaded
+2026-09-04 05:00:59 INFO     rmgpu ML estimators built – blocked: []
+2026-09-04 05:00:59 INFO     rmgpu ML estimators built – blocked: []
+2026-09-04 05:00:59 INFO     rmgpu ML estimators ready
+2026-09-04 05:00:59 INFO     rmgpu ML estimators ready
+2026-09-04 05:00:59 INFO     rmgpu Building families – selection=default
+2026-09-04 05:00:59 INFO     rmgpu Building families – selection=default
+2026-09-04 05:00:59 INFO     rmgpu Families loaded
+2026-09-04 05:00:59 INFO     rmgpu Families loaded
+2026-09-04 05:00:59 INFO     rmgpu Families built
+2026-09-04 05:00:59 INFO     rmgpu Families built
+2026-09-04 05:00:59 INFO     rmgpu Building seed species from input
+2026-09-04 05:00:59 INFO     rmgpu Building seed species from input
+2026-09-04 05:00:59 INFO     rmgpu Seed species built: 3
+2026-09-04 05:00:59 INFO     rmgpu Seed species built: 3
+2026-09-04 05:00:59 INFO     rmgpu Loading seed mechanism 'GRI-Mech3.0-N'
+2026-09-04 05:00:59 INFO     rmgpu Loading seed mechanism 'GRI-Mech3.0-N'
+2026-09-04 05:00:59 INFO     rmgpu.db.seed_loader seed_loader: opening kinetics DB
+2026-09-04 05:00:59 INFO     rmgpu.db.seed_loader seed_loader: opening kinetics DB
+2026-09-04 05:00:59 DEBUG    rmgpu.db.seed_loader seed_loader: resolving library name 'GRI-Mech3.0-N'
+2026-09-04 05:00:59 DEBUG    rmgpu.db.seed_loader seed_loader: resolving library name 'GRI-Mech3.0-N'
+2026-09-04 05:01:00 INFO     rmgpu.db.seed_loader seed_loader: resolved 'GRI-Mech3.0-N' -> 'GRI-Mech3' via alias:GRI-Mech3.0-N->GRI-Mech3 (id=30)
+2026-09-04 05:01:00 INFO     rmgpu.db.seed_loader seed_loader: resolved 'GRI-Mech3.0-N' -> 'GRI-Mech3' via alias:GRI-Mech3.0-N->GRI-Mech3 (id=30)
+2026-09-04 05:01:00 DEBUG    rmgpu.db.seed_loader seed_loader: loading species for library_id=30
+2026-09-04 05:01:00 DEBUG    rmgpu.db.seed_loader seed_loader: loading species for library_id=30
+2026-09-04 05:01:00 INFO     rmgpu.db.seed_loader seed_loader: loaded 84 species rows
+2026-09-04 05:01:00 INFO     rmgpu.db.seed_loader seed_loader: loaded 84 species rows
+2026-09-04 05:03:10 DEBUG    rmgpu.db.seed_loader seed_loader: loading reactions for library_id=30
+2026-09-04 05:03:10 DEBUG    rmgpu.db.seed_loader seed_loader: loading reactions for library_id=30
+2026-09-04 05:03:10 INFO     rmgpu.db.seed_loader seed_loader: loaded 307 reaction rows
+2026-09-04 05:03:10 INFO     rmgpu.db.seed_loader seed_loader: loaded 307 reaction rows
+2026-09-04 05:03:11 INFO     rmgpu.db.seed_loader seed_loader: closing DB connection
+2026-09-04 05:03:11 INFO     rmgpu.db.seed_loader seed_loader: closing DB connection
+2026-09-04 05:03:11 INFO     rmgpu.db.seed_loader seed_loader: done – 50 species, 265 reactions
+2026-09-04 05:03:11 INFO     rmgpu.db.seed_loader seed_loader: done – 50 species, 265 reactions
+2026-09-04 05:03:11 INFO     rmgpu Seed 'GRI-Mech3.0-N' resolved to 'GRI-Mech3' (alias:GRI-Mech3.0-N->GRI-Mech3): 50 species / 265 reactions loaded
+2026-09-04 05:03:11 INFO     rmgpu Seed 'GRI-Mech3.0-N' resolved to 'GRI-Mech3' (alias:GRI-Mech3.0-N->GRI-Mech3): 50 species / 265 reactions loaded
+2026-09-04 05:03:11 INFO     rmgpu Seed mechanisms built: 50 species / 265 reactions
+2026-09-04 05:03:11 INFO     rmgpu Seed mechanisms built: 50 species / 265 reactions
+2026-09-04 05:03:11 INFO     rmgpu Reactor built: T=1350.0 K, P=1.000e+05 Pa
+2026-09-04 05:03:11 INFO     rmgpu Reactor built: T=1350.0 K, P=1.000e+05 Pa
+2026-09-04 05:03:11 INFO     rmgpu Starting CoreEdgeLoop
+2026-09-04 05:03:11 INFO     rmgpu Starting CoreEdgeLoop
+2026-09-04 05:03:11 INFO     rmgpu CoreEdgeLoop instantiated
+2026-09-04 05:03:11 INFO     rmgpu CoreEdgeLoop instantiated
+2026-09-04 05:03:11 INFO     rmgpu.core.loop CoreEdgeLoop.run() starting
+2026-09-04 05:03:11 INFO     rmgpu.core.loop CoreEdgeLoop.run() starting
+2026-09-04 05:03:15 INFO     rmgpu.core.loop CoreEdgeLoop: seeding from mechanisms – 50 species / 265 reactions
+2026-09-04 05:03:15 INFO     rmgpu.core.loop CoreEdgeLoop: seeding from mechanisms – 50 species / 265 reactions
+2026-09-04 05:03:15 INFO     rmgpu.core.loop CoreEdgeLoop: starting iteration loop
+2026-09-04 05:03:15 INFO     rmgpu.core.loop CoreEdgeLoop: starting iteration loop
+2026-09-04 05:03:15 INFO     rmgpu.core.loop Iteration 1 start – core 50 spc/265 rxn, edge 0 spc/0 rxn
+2026-09-04 05:03:15 INFO     rmgpu.core.loop Iteration 1 start – core 50 spc/265 rxn, edge 0 spc/0 rxn
+2026-09-04 05:03:15 DEBUG    rmgpu.core.loop Iteration 1: enlarge
+2026-09-04 05:03:15 DEBUG    rmgpu.core.loop Iteration 1: enlarge
+2026-09-04 05:03:15 INFO     rmgpu.core.loop enlarge: start iteration 1
+2026-09-04 05:03:15 INFO     rmgpu.core.loop enlarge: start iteration 1
+2026-09-04 05:03:15 DEBUG    rmgpu.core.loop enlarge: core species 50, edge species 0
+2026-09-04 05:03:15 DEBUG    rmgpu.core.loop enlarge: core species 50, edge species 0
+2026-09-04 05:03:15 INFO     rmgpu.core.loop enlarge: total pairs 1325, families 51
+2026-09-04 05:03:15 INFO     rmgpu.core.loop enlarge: total pairs 1325, families 51
+2026-09-04 05:03:15 DEBUG    rmgpu.core.loop enlarge: family 1+2_Cycloaddition with 1325 pairs
+2026-09-04 05:03:15 DEBUG    rmgpu.core.loop enlarge: family 1+2_Cycloaddition with 1325 pairs
+2026-09-04 05:03:20 DEBUG    rmgpu.core.loop enlarge: family 1,2-Birad_to_alkene with 1325 pairs
+2026-09-04 05:03:20 DEBUG    rmgpu.core.loop enlarge: family 1,2-Birad_to_alkene with 1325 pairs
+2026-09-04 05:03:22 DEBUG    rmgpu.core.loop enlarge: family 1,2_Insertion_CO with 1325 pairs
+2026-09-04 05:03:22 DEBUG    rmgpu.core.loop enlarge: family 1,2_Insertion_CO with 1325 pairs
+2026-09-04 05:04:10 DEBUG    rmgpu.core.loop enlarge: family 1,2_Insertion_carbene with 1325 pairs
+2026-09-04 05:04:10 DEBUG    rmgpu.core.loop enlarge: family 1,2_Insertion_carbene with 1325 pairs
+2026-09-04 05:04:15 DEBUG    rmgpu.core.loop enlarge: family 1,2_NH3_elimination with 1325 pairs
+2026-09-04 05:04:15 DEBUG    rmgpu.core.loop enlarge: family 1,2_NH3_elimination with 1325 pairs
+2026-09-04 05:04:17 DEBUG    rmgpu.core.loop enlarge: family 1,2_shiftC with 1325 pairs
+2026-09-04 05:04:17 DEBUG    rmgpu.core.loop enlarge: family 1,2_shiftC with 1325 pairs
+2026-09-04 05:04:19 DEBUG    rmgpu.core.loop enlarge: family 1,2_shiftS with 1325 pairs
+2026-09-04 05:04:19 DEBUG    rmgpu.core.loop enlarge: family 1,2_shiftS with 1325 pairs
+2026-09-04 05:04:20 DEBUG    rmgpu.core.loop enlarge: family 1,3_Insertion_CO2 with 1325 pairs
+2026-09-04 05:04:20 DEBUG    rmgpu.core.loop enlarge: family 1,3_Insertion_CO2 with 1325 pairs
+2026-09-04 05:06:03 DEBUG    rmgpu.core.loop enlarge: family 1,3_Insertion_ROR with 1325 pairs
+2026-09-04 05:06:03 DEBUG    rmgpu.core.loop enlarge: family 1,3_Insertion_ROR with 1325 pairs
+2026-09-04 05:06:10 DEBUG    rmgpu.core.loop enlarge: family 1,3_Insertion_RSR with 1325 pairs
+2026-09-04 05:06:10 DEBUG    rmgpu.core.loop enlarge: family 1,3_Insertion_RSR with 1325 pairs
+2026-09-04 05:06:15 DEBUG    rmgpu.core.loop enlarge: family 1,3_NH3_elimination with 1325 pairs
+2026-09-04 05:06:15 DEBUG    rmgpu.core.loop enlarge: family 1,3_NH3_elimination with 1325 pairs
+2026-09-04 05:06:17 DEBUG    rmgpu.core.loop enlarge: family 1,3_sigmatropic_rearrangement with 1325 pairs
+2026-09-04 05:06:17 DEBUG    rmgpu.core.loop enlarge: family 1,3_sigmatropic_rearrangement with 1325 pairs
+2026-09-04 05:06:19 DEBUG    rmgpu.core.loop enlarge: family 1,4_Cyclic_birad_scission with 1325 pairs
+2026-09-04 05:06:19 DEBUG    rmgpu.core.loop enlarge: family 1,4_Cyclic_birad_scission with 1325 pairs
+2026-09-04 05:06:21 DEBUG    rmgpu.core.loop enlarge: family 1,4_Linear_birad_scission with 1325 pairs
+2026-09-04 05:06:21 DEBUG    rmgpu.core.loop enlarge: family 1,4_Linear_birad_scission with 1325 pairs
+2026-09-04 05:06:23 DEBUG    rmgpu.core.loop enlarge: family 2+2_cycloaddition with 1325 pairs
+2026-09-04 05:06:23 DEBUG    rmgpu.core.loop enlarge: family 2+2_cycloaddition with 1325 pairs
+2026-09-04 05:08:34 DEBUG    rmgpu.core.loop enlarge: family 6_membered_central_C-C_shift with 1325 pairs
+2026-09-04 05:08:34 DEBUG    rmgpu.core.loop enlarge: family 6_membered_central_C-C_shift with 1325 pairs
+2026-09-04 05:08:36 DEBUG    rmgpu.core.loop enlarge: family Birad_R_Recombination with 1325 pairs
+2026-09-04 05:08:36 DEBUG    rmgpu.core.loop enlarge: family Birad_R_Recombination with 1325 pairs
+2026-09-04 05:09:47 DEBUG    rmgpu.core.loop enlarge: family Birad_recombination with 1325 pairs
+2026-09-04 05:09:47 DEBUG    rmgpu.core.loop enlarge: family Birad_recombination with 1325 pairs

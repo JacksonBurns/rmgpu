@@ -339,18 +339,15 @@ def check_superminimal():
     import rmgpu.main as M
     import time
     out = {"status": "pending"}
-    core_yaml_path = os.path.join(RUN_SUPERMIN, "mechanism", "core.yaml")
-    summary_path = os.path.join(RUN_SUPERMIN, "summary.md")
-    if os.path.exists(core_yaml_path) and os.path.exists(summary_path):
-        summary = _parse_summary_md(RUN_SUPERMIN)
-        out["elapsed_seconds"] = 0.0
-        out["skipped_run"] = True
-    else:
-        t0 = time.time()
-        summary = M.run(os.path.join(RMGPU_EXAMPLES, "superminimal.yaml"),
-                        out_root=RUN_SUPERMIN)
-        out["elapsed_seconds"] = round(time.time() - t0, 1)
-        out["skipped_run"] = False
+    # ALWAYS re-run (no fast path): the stale-output skip is how the previous
+    # gate recorded c3h4 as skipped while the tree held a crashed run - a gate
+    # that can reuse old output can lie about the current code. The runs are
+    # short (superminimal ~1 min; c3h4 is capped at C3H4_MAX_ITERATIONS).
+    t0 = time.time()
+    summary = M.run(os.path.join(RMGPU_EXAMPLES, "superminimal.yaml"),
+                    out_root=RUN_SUPERMIN)
+    out["elapsed_seconds"] = round(time.time() - t0, 1)
+    out["skipped_run"] = False
     out.update({
         "iterations": summary["iterations"],
         "steady_state": summary["steady_state"],
@@ -370,6 +367,7 @@ def check_superminimal():
     parity = {}
     if os.path.exists(base_path):
         base = json.load(open(base_path))
+        core_yaml_path = os.path.join(RUN_SUPERMIN, "mechanism", "core.yaml")
         lab2c, rmgpu_core_sp = load_core_artifact(core_yaml_path)
         rxnjson = json.load(open(os.path.join(RUN_SUPERMIN, "reactions",
                                               "reactions.json")))
@@ -456,26 +454,22 @@ def check_c3h4():
     import time
     out = {"status": "pending", "run_ok": False}
     run_root = RUN_C3H4
-    core_yaml_path = os.path.join(run_root, "mechanism", "core.yaml")
-    if not os.path.exists(core_yaml_path):
-        t0 = time.time()
-        try:
-            summary = M.run(os.path.join(RMGPU_EXAMPLES, "c3h4.yaml"),
-                            out_root=run_root,
-                            max_iterations=C3H4_MAX_ITERATIONS)
-            out["elapsed_seconds"] = round(time.time() - t0, 1)
-            out["run_ok"] = True
-            out["skipped_run"] = False
-            out["run_exception"] = None
-        except Exception as e:
-            out["status"] = "FAIL"
-            out["reason"] = f"rmgpu run failed: {type(e).__name__}: {e}"
-            return out
-    else:
-        out["elapsed_seconds"] = 0.0
-        out["skipped_run"] = True
+    # ALWAYS re-run (no fast path, same reason as check_superminimal): the
+    # previous gate skipped the run because core.yaml existed from a CRASHED
+    # run (core 5 / 986-col NaN profile) and recorded that as evidence.
+    t0 = time.time()
+    try:
+        summary = M.run(os.path.join(RMGPU_EXAMPLES, "c3h4.yaml"),
+                        out_root=run_root,
+                        max_iterations=C3H4_MAX_ITERATIONS)
+        out["elapsed_seconds"] = round(time.time() - t0, 1)
         out["run_ok"] = True
+        out["skipped_run"] = False
         out["run_exception"] = None
+    except Exception as e:
+        out["status"] = "FAIL"
+        out["reason"] = f"rmgpu run failed: {type(e).__name__}: {e}"
+        return out
     # Real summary numbers from the written tree (never hardcoded).
     summary = _parse_summary_md(run_root)
     out.update(summary)
@@ -519,6 +513,7 @@ def check_c3h4():
     parity = {}
     if os.path.exists(base_path):
         base = json.load(open(base_path))
+        core_yaml_path = os.path.join(run_root, "mechanism", "core.yaml")
         lab2c, rmgpu_core_sp = load_core_artifact(core_yaml_path)
         rxnjson = json.load(open(os.path.join(run_root, "reactions",
                                               "reactions.json")))

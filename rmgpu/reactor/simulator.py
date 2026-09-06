@@ -191,30 +191,34 @@ def simulate_mole_fractions(
                 dnu += c
                 nu_idx.append(i)
                 nu_coeff.append(c)
+        # float64 throughout the integration: a stiff chemistry ODE with mole
+        # fractions spanning many orders of magnitude needs double precision
+        # to stay finite (float32 accumulates NaN/overflow on the GRI-Mech3
+        # seed; the torchdae subgate already integrates in float64).
         reactant_idx_list.append(torch.tensor(r_idx, dtype=torch.long, device=device))
-        reactant_coeff_list.append(torch.tensor(r_coeff, dtype=torch.float32, device=device))
+        reactant_coeff_list.append(torch.tensor(r_coeff, dtype=torch.float64, device=device))
         product_idx_list.append(torch.tensor(p_idx, dtype=torch.long, device=device))
-        product_coeff_list.append(torch.tensor(p_coeff, dtype=torch.float32, device=device))
+        product_coeff_list.append(torch.tensor(p_coeff, dtype=torch.float64, device=device))
         nu_idx_list.append(torch.tensor(nu_idx, dtype=torch.long, device=device))
-        nu_coeff_list.append(torch.tensor(nu_coeff, dtype=torch.float32, device=device))
+        nu_coeff_list.append(torch.tensor(nu_coeff, dtype=torch.float64, device=device))
         n_react_list.append(n_react)
         n_prod_list.append(n_prod)
         dnu_list.append(dnu)
 
-    n_react_t = torch.tensor(n_react_list, dtype=torch.float32, device=device)
-    n_prod_t = torch.tensor(n_prod_list, dtype=torch.float32, device=device)
-    dnu_t = torch.tensor(dnu_list, dtype=torch.float32, device=device)
+    n_react_t = torch.tensor(n_react_list, dtype=torch.float64, device=device)
+    n_prod_t = torch.tensor(n_prod_list, dtype=torch.float64, device=device)
+    dnu_t = torch.tensor(dnu_list, dtype=torch.float64, device=device)
 
     c_tot = P / (R * T)
     A_T = torch.tensor([forward_A_T(rp, T) for rp in rps],
-                       dtype=torch.float32, device=device)
+                       dtype=torch.float64, device=device)
     rev_t = torch.tensor([reverse_factor(rp, T, float(dnu_list[j]))
                           for j, rp in enumerate(rps)],
-                         dtype=torch.float32, device=device)
+                         dtype=torch.float64, device=device)
 
-    k_fwd = A_T * torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
+    k_fwd = A_T * torch.pow(torch.tensor(c_tot, dtype=torch.float64, device=device),
                              n_react_t - 1.0)
-    k_rev = A_T * rev_t * torch.pow(torch.tensor(c_tot, dtype=torch.float32, device=device),
+    k_rev = A_T * rev_t * torch.pow(torch.tensor(c_tot, dtype=torch.float64, device=device),
                                      n_prod_t - 1.0)
 
     eps = 1e-30
@@ -268,7 +272,7 @@ def simulate_mole_fractions(
         dydt_vals = dydt_vals - y * dnu_sum
         return dydt_vals
 
-    y0_t = torch.tensor(y0, dtype=torch.float32, device=device)[None, :]
+    y0_t = torch.tensor(y0, dtype=torch.float64, device=device)[None, :]
 
     def F(t, y, yp):
         y1 = y if y.dim() == 1 else y[0]

@@ -65,7 +65,7 @@ SEED_LIBRARY_ALIASES: dict[str, str] = {
 
 def _normalize_library_name(name: str) -> str:
     n = name.strip()
-    n = re.sub(r"\\.0+(-N?)?$", "", n)
+    n = re.sub(r"\.0+(-N?)?$", "", n)
     n = re.sub(r"-N$", "", n)
     return n
 

@@ -1,0 +1,16 @@
+{
+  "label": "[H]",
+  "formula": "H",
+  "smiles": "[H]",
+  "adjlist": "multiplicity 2\n1 H u1 p0 c0\n",
+  "source": "ml",
+  "symmetry": null,
+  "thermo": {
+    "model": "ml",
+    "Hf298": 222474.875,
+    "S298": 117.3404541015625,
+    "Cp": null,
+    "method": "ml",
+    "uncertainty": null
+  }
+}

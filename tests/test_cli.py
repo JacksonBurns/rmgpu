@@ -95,7 +95,8 @@ def test_run_invokes_driver(minimal_yaml, monkeypatch):
     import rmgpu.main
     calls = []
 
-    def fake_run(path, out_root=None):
+    def fake_run(path, out_root=None, log_level=None, log_file=None,
+                 max_iterations=None):
         calls.append((path, out_root))
         return {"iterations": 3, "steady_state": True,
                 "core_species_count": 2, "core_reaction_count": 1,

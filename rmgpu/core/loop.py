@@ -526,15 +526,21 @@ class CoreEdgeLoop:
         T, P = self.ctx.temperature, self.ctx.pressure
         char = characteristic_rate(sim["nu"], sim["rps"], T, P, sim["init"])
         log.info("simulate: characteristic_rate = %g", char)
-        if self.ctx.termination_time is not None:
-            # RMG-Py style: use user-specified termination time for screening
-            t_end = float(self.ctx.termination_time)
-            log.info("simulate: using user termination_time = %g s", t_end)
+        if char <= 0.0:
+            t_end = 1.0
         else:
-            if char <= 0.0:
-                t_end = 1.0
-            else:
-                t_end = CHAR_RATE_TFACTOR / char
+            # RMG-Py screening timescale: simulate ~O(1) characteristic-rate
+            # times so the rate ratios used by _screen are meaningful.
+            # (The user's reactor termination_time is the PHYSICS horizon;
+            # the screening simulation is NOT. Job-06/step-07's
+            # "adaptive termination time" set t_end = termination_time here,
+            # which for c3h4 is 1e12 s: a stiff GRI-Mech3-seeded mechanism
+            # integrated over that span with h = t_end/32 blew up to NaN.
+            # Restored to the char-based scale, clamped below the
+            # termination time like the pre-step-08 code did.)
+            t_end = CHAR_RATE_TFACTOR / char
+            if self.ctx.termination_time is not None:
+                t_end = min(t_end, float(self.ctx.termination_time))
         t_end = max(self.ctx.config.min_t, min(t_end, self.ctx.config.max_t))
         h = max(t_end / self.ctx.config.simulate_steps, 1e-18)
         log.info("simulate: t_end=%g, h=%g, steps=%d", t_end, h, self.ctx.config.simulate_steps)
@@ -552,9 +558,21 @@ class CoreEdgeLoop:
                 profiles: SimResult):
         log.info("_screen: start, char=%g, profiles steps=%d", char, len(profiles.ys) if profiles else 0)
         """Screen species by reaction rate-ratio vs the characteristic rate
-        using integrated fluxes from the simulation profiles. Species are promoted
-        to core when max integrated rate-ratio > tolerance_move_to_core, demoted
-        when < tolerance_move_to_core. Mirrors RMG-Py reactor-driven screening.
+        using integrated fluxes from the simulation profiles. A species is
+        promoted to core when its max integrated rate-ratio exceeds
+        tolerance_move_to_core; a core species is demoted when its rate-ratio
+        drops below tolerance_keep_in_edge (never a seed species). Mirrors
+        RMG-Py's reactor-driven rate-ratio screening (rmgpy/rmg/model.py
+        prune/max_edge_species_rate_ratios).
+
+        NOTE (bug fix, gate re-run 2026-09-05): the numpy "vectorized" rewrite
+        (perf commit 552690d) used advanced indexing on a 1-D nu array,
+        ``nu[nu < 0, None]`` - with a 1-D operand numpy treats that as a
+        2-D mask of shape (n_neg, 1), so ``np.sum(mask * log(y_safe), axis=1)``
+        raised ValueError: operands could not be broadcast together with
+        shapes (n_neg, 1) (n_steps, n_sp) - the "bumpy broadcasting error".
+        The per-reaction log-space mass-action is now built with correct
+        1-D boolean indexing; every term here is a shape-(n_steps,) vector.
         """
         import numpy as np
         from rmgpu.reactor.simulator import forward_A_T, reverse_factor
@@ -563,60 +581,78 @@ class CoreEdgeLoop:
         n_sp = len(sim["keys"])
         n_steps = len(profiles.ys)
         log.info("_screen: n_sp=%d, n_steps=%d", n_sp, n_steps)
-        # Build per-step rate matrix with numpy vectorization
-        import numpy as np
         c_tot = P / (8.314472 * T)
-        # Precompute reaction rates for each step using numpy
         sp_ratio = {k: 0.0 for k in sim["keys"]}
         log.info("_screen: starting vectorized reaction loop over %d reactions", len(sim["rps"]))
-        import numpy as np
         ys = np.array(profiles.ys, dtype=float)
         times = np.array(profiles.times, dtype=float)
-        # Precompute c_tot
-        c_tot = P / (8.314472 * T)
-        # Vectorized loop over reactions
-        for j, rp in enumerate(sim["rps"]):
-            if j % 100 == 0:
-                log.info("_screen: reaction %d/%d", j, len(sim["rps"]))
-            nu = np.array(sim["nu"][j], dtype=float)
-            n_react = int(np.sum(-nu[nu < 0]))
-            n_prod = int(np.sum(nu[nu > 0]))
-            aT = forward_A_T(rp, T)
-            # Mass-action terms: y^nu
-            # Avoid zeros
-            y_safe = np.maximum(ys, 1e-30)
-            # Compute reactant and product monomials
-            # log space to avoid underflow
-            log_prod_f = np.sum(-nu[nu < 0, None] * np.log(y_safe), axis=1)
-            log_prod_r = np.sum(nu[nu > 0, None] * np.log(y_safe), axis=1)
-            # Actually vectorize correctly
-            # Simpler: compute per step using broadcasting
-            # For clarity keep a compact vectorized version
-            # Compute forward rate
-            fwd = aT * (c_tot ** (n_react - 1)) * np.exp(np.sum(-nu * np.log(y_safe), axis=1))
-            rev_factor = reverse_factor(rp, T, float(n_prod - n_react))
-            rev = aT * rev_factor * (c_tot ** (n_prod - 1)) * np.exp(np.sum(nu * np.log(y_safe), axis=1))
-            rates = np.maximum(fwd, rev)
-            # Trapezoidal integration
-            if len(times) > 1:
-                dt = np.diff(times)
-                integral = np.sum(0.5 * (rates[:-1] + rates[1:]) * dt)
-                avg_rate = integral / (times[-1] - times[0] + 1e-30)
-            else:
-                avg_rate = rates[0] if len(rates) else 0.0
-            rr = avg_rate / char if char > 0 else 0.0
-            # Update sp_ratio for participating species
-            idx = np.where(nu != 0)[0]
-            for i in idx:
-                k = sim["keys"][i]
-                if rr > sp_ratio[k]:
-                    sp_ratio[k] = rr
+        # ys is (n_steps, n_sp): the COLUMN count is the species count.
+        # (len(ys) is the ROW count = n_steps - do NOT compare it to n_sp.)
+        if ys.ndim != 2 or ys.shape[1] != n_sp:
+            log.warning("_screen: profile shape mismatch (%s vs %d species); no screening",
+                        ys.shape, n_sp)
+            return [], []
+        # Per-reaction stoichiometry (n_rx, n_sp) and per-step log-concentrations
+        # (n_steps, n_sp). The per-step log-space mass-action monomials are
+        # matrix products (NO boolean column indexing on the 2-D profile - the
+        # old ``nu[nu < 0, None]`` and ``log_y[nu < 0]`` forms both mis-indexed
+        # the 2-D array):
+        #   log fwd_j(t) =  sum_i max(-nu_ji,0) log y_i(t)   (reactants only)
+        #   log rev_j(t) =  sum_i max( nu_ji,0) log y_i(t)   (products only)
+        # clip() keeps the 2-D (n_rx, n_sp) shape (boolean indexing would
+        # flatten). This matches the ODE integrator (simulator.rates): forward
+        # = prod reactant y, reverse = prod product y - NOT the full -nu,
+        # which would wrongly divide by the product concentration.
+        nmat = np.asarray(sim["nu"], dtype=float)          # (n_rx, n_sp)
+        log_y = np.log(np.maximum(ys, 1e-30))              # (n_steps, n_sp)
+        # Per-rxn reaction/product orders (2-D-safe via np.where).
+        n_react = np.where(nmat < 0, -nmat, 0.0).sum(axis=1)
+        n_prod = np.where(nmat > 0, nmat, 0.0).sum(axis=1)
+        A_T = np.array([forward_A_T(rp, T) for rp in sim["rps"]], dtype=float)
+        rev_t = np.array(
+            [reverse_factor(rp, T, float(n_prod[j] - n_react[j]))
+             for j, rp in enumerate(sim["rps"])], dtype=float)
+        react_w = np.clip(-nmat, 0.0, None)   # max(-nu,0): reactant weights
+        prod_w = np.clip(nmat, 0.0, None)     # max( nu,0): product weights
+        fwd = A_T[:, None] * (c_tot ** (n_react[:, None] - 1.0)) \
+            * np.exp(react_w @ log_y.T)                    # (n_rx, n_steps)
+        rev = A_T[:, None] * rev_t[:, None] \
+            * (c_tot ** (n_prod[:, None] - 1.0)) \
+            * np.exp(prod_w @ log_y.T)                      # (n_rx, n_steps)
+        rates = np.maximum(fwd, rev)
+        # Trapezoidal integration of each rate over the profile window
+        # (along the TIME axis - rates is (n_rx, n_steps)).
+        if len(times) > 1 and times[-1] > times[0]:
+            dt = np.diff(times)
+            integral = np.sum(0.5 * (rates[:, :-1] + rates[:, 1:]) * dt[None, :],
+                              axis=1)
+            avg_rate = integral / float(times[-1] - times[0])
+        else:
+            avg_rate = rates[0] if len(rates) else np.zeros(len(sim["rps"]))
+        rr_vec = (avg_rate / char) if char > 0 else np.zeros(len(sim["rps"]))
+        # A species' rate-ratio is the max over the reactions it participates
+        # in (RMG-Py's max_edge_species_rate_ratios accumulation).
+        rr_by_species = np.where(nmat != 0.0, rr_vec[:, None], -np.inf)
+        sp_max = np.nanmax(rr_by_species, axis=0) if rr_by_species.size else np.zeros(n_sp)
+        for i, k in enumerate(sim["keys"]):
+            v = sp_max[i]
+            if np.isfinite(v) and v > sp_ratio[k]:
+                sp_ratio[k] = float(v)
         core_keys = self._core_key_set()
-        promote = [k for k in sim["keys"] if k not in core_keys and sp_ratio.get(k,0.0) > tol_core]
-        demote = [k for k in core_keys if sp_ratio.get(k,0.0) < tol_keep and not self._is_seed_key(k)]
+        promote = [k for k in sim["keys"] if k not in core_keys and sp_ratio.get(k, 0.0) > tol_core]
+        demote = [k for k in core_keys if sp_ratio.get(k, 0.0) < tol_keep
+                  and not self._is_seed_key(k)]
         self._last_sp_ratio = sp_ratio
         log.info("_screen: done, promote %d, demote %d", len(promote), len(demote))
         return promote, demote
+
+    def _is_seed_key(self, key: str) -> bool:
+        """True when the species behind this canonical key was introduced by a
+        seed mechanism (or the input species block). Seed species are never
+        demoted out of the core (the seed mechanism is what the run was asked
+        to actually run)."""
+        sp = self.species_by_key.get(key)
+        return bool(getattr(sp, "is_seed", False))
 
     # -- main loop --------------------------------------------------------
     def run(self) -> RunResult:
@@ -625,6 +661,7 @@ class CoreEdgeLoop:
         cfg = ctx.config
         # Seed species from input species block
         for sp in ctx.seed_species:
+            sp.is_seed = True
             self.model.add_species_to_core(sp)
             self.species_by_key[canonical_key(sp.molecule)] = sp
             self._thermo(sp, 0)
