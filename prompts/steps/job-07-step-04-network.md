@@ -125,3 +125,60 @@ Read ONLY what is listed plus the direct dependencies you hit (note any extra re
 2. STATUS.md: set your step row to `done` and append a session-log entry: `### <date> - job-07/step-04 / built: ... / checks: ... (GREEN|RED + one line) / commits: <hashes> / next: <the next step id>`. Update the top-level NEXT pointer to the next step's file.
 3. Write the report to reports/job-07-step-04-network.md with: what was built (files + ~1 line each), the checks run (the commands + the real results, not a paraphrase), the reference reads beyond the list (if any), the deviations from this file (if any, with the cause), and what the next step should know first.
 4. STOP. Do not start the next step. Do not spawn subagents.
+
+## HANDOFF NOTES (from a prior session that ran out of context - 2026-09-06)
+
+Status: NOTHING BUILT YET. Tree is clean at commit 0a4c4d1 (STATUS pointer
+already set to this step). No rmgpu/pdep/ package, no tests/test_pdep_network.py,
+no reports/job-07-step-04-network.md. Pick up from zero.
+
+Work done before the session died (all investigation, to save re-reading):
+- Reference paths confirmed: RMG-Py/rmgpy/pdep/network.py (1149 lines),
+  me.pyx (186), reaction.pyx (402), RMG-Py/arkane/pdep.py (779). The TS-E0
+  derivation is in arkane/pdep.py - grep for the E0-TS derivation (search
+  "derive" / "ts_e0" / k_inf*V/h).
+- RMG-Py test pattern for networks (test/rmgpy/pdep/networkTest.py) was read:
+  it builds toy networks with hand-set conformers (single mode + 1D torsion
+  rotors), SingleExponentialDown collision, and compares grain grids /
+  k(T,P). Use it as the template for the toy Lindemann sub-gate test.
+- scripts/record_job05_step04_reference.py (11 KB) is the pattern for
+  recording RMG-Py reference values: a standalone script that builds the
+  RMG-Py object, runs the grid, dumps JSON to references/ (dir does not
+  exist yet under rmgpu/ - create rmgpu/references/).
+- RMG-Py statmech/schrodinger.pyx was fully read: generate_1d_torsion_levels
+  uses an even-parity discretization (x_i in 0..pi), and
+  generate_torsion_schrodinger_eigenvalues_forst is the FORTRAN-port fast
+  path. rmgpu step-02 already has the 1D/2D torsion eigenproblem port
+  (commit 7c20c9b, in rmgpu/statmech/) - REUSE it, do not re-derive.
+- rmgpu core model: see rmgpu/core/model.py for the existing
+  update_unimolecular_reaction_networks(self) at line ~2041 - that is where
+  job-06's HPL stub lives and where the real network will be wired in
+  step-06 (driver). This step only needs the standalone Network + tests.
+
+Planned approach (not yet executed):
+1. rmgpu/pdep/__init__.py + rmgpu/pdep/network.py with a `Network` class
+   consuming step-03 conformers (rmgpu/statmech/modes.py,
+   rmgpu/data/statmech.py); grain generation ported from network.py
+   (max grain size / min grain count / energy_grid logic); rate-matrix
+   diagonal = RRKM k(E) from TS DoS + energy gap; collision off-diagonal
+   = protocol/stub raising until step 05 (CSE); ME integration via torchdae
+   (job-06 backend choice: see reports/job-06-step-08-sparse-dae-ml-batch.md
+   for which integrator job 06 settled on); k(T,P) extraction from the
+   quasi-stationary flux (port network.py's extraction code); method
+   dispatch on the long strings (CSE allen works via protocol; everything
+   else raises NotImplemented).
+2. derive_ts_e0(...) per arkane/pdep.py, ported exactly.
+3. tests/test_pdep_network.py: (a) TS-E0 known case, (b) grain grid vs
+   RMG-Py (counts + boundaries), (c) toy Lindemann k(T,P) vs RMG-Py
+   (standalone, hand-set params, must pass BEFORE any driver wiring).
+   Build the RMG-Py side of the test the way networkTest.py does (read
+   test/rmgpy/pdep/networkTest.py lines ~80-455 for the exact recipe).
+
+Pitfalls found / to keep in mind:
+- Do NOT read more RMG-Py source than the list above; the previous session
+  burned its context on wide reads. Grep for the specific function, read
+  the function.
+- The interpreter is /home/jackson/miniforge3/envs/rmgpu/bin/python.
+- Commit convention: `job-07/step-04: <summary>`, no push.
+- Finish with the Done protocol above (commit, STATUS.md row done + session
+  log + NEXT pointer to job-07-step-05-collision, report, stop).
