@@ -118,3 +118,61 @@ Read ONLY what is listed plus the direct dependencies you hit (note any extra re
 2. STATUS.md: set your step row to `done` and append a session-log entry: `### <date> - job-07/step-06 / built: ... / checks: ... (GREEN|RED + one line) / commits: <hashes> / next: <the next step id>`. Update the top-level NEXT pointer to the next step's file.
 3. Write the report to reports/job-07-step-06-driver.md with: what was built (files + ~1 line each), the checks run (the commands + the real results, not a paraphrase), the reference reads beyond the list (if any), the deviations from this file (if any, with the cause), and what the next step should know first.
 4. STOP. Do not start the next step. Do not spawn subagents.
+
+## HANDOFF NOTES - session 1 (2026-09-07, context-exhausted; NO code built)
+
+Progress: exploration only. The git tree was left CLEAN (no uncommitted
+step-06 work; last commit b4eb540 = step-05 done). Nothing to salvage,
+nothing half-written. Start from the plan below.
+
+Verified anchors in /home/jackson/rmgpu/RMG-Py (read by line range, NOT whole
+files - whole-file reads are what blew session 1's context):
+- THE driver to port: `pressure_dependence(` at rmgpy/rmg/pdep.py:1376.
+  Read its body first: family-metadata selection of pressure-dependent
+  reactions, network building, (T,P) grid from the input's
+  pressure_dependence block, the fit, Falloff attach.
+- THE fit: `fit_interpolation_model(reaction, Tlist, Plist, K, model,
+  Tmin, Tmax, Pmin, Pmax, error_check=False)` at
+  rmgpy/pdep/reaction.pyx:338 - Chebyshev vs PDepArrhenius selected by the
+  input's interpolation_model. Port this exact fit, do not substitute.
+- rmgpy/exceptions.py:203 `class PressureDependenceError` - what RMG raises
+  for unsupported methods (rmgpu: raise NotImplemented for MSC/RS/SLS).
+- rmgpy/kinetics/chebyshev.pyx - read the FIT path (step 4's read may have
+  covered only eval).
+- rmgpy/pdep/network.py + rmgpy/pdep/collision.py - ALREADY ported in steps
+  4-5; rmgpu/pdep/network.py and rmgpu/pdep/collision.py exist in-tree.
+
+Open questions session 1 could NOT resolve - answer these FIRST (cheap
+greps, a few minutes of tokens):
+1. Where does the pressure_dependence block enter rmgpu? grep of
+   rmgpu/importer/legacy.py for pressure_dependence|pressureDependence|
+   interpolation found NO matches - the legacy importer does NOT carry it.
+   Find the real path (core/loop.py? a model object? input.py DSL parse?)
+   before finalizing run_pdep's signature.
+2. Which legacy examples exercise pdep:
+   `grep -rln "pressureDependence" /home/jackson/rmgpu/RMG-Py/examples/rmg/*/input.py /home/jackson/rmgpu/RMG-Py/test/regression/*/input.py`
+   (session 1's run of this got lost to compaction; propane_branching is
+   the gate example per the gate text above).
+3. /home/jackson/rmgpu/rmgpu/examples/ appears absent/empty (ls returned
+   nothing) - the 50 legacy input.py live under RMG-Py (38 examples/rmg +
+   12 test/regression).
+
+Useful pattern: scripts/record_job07_step04_reference.py (in-tree, ~11.4KB)
+is step 04's reference recorder - reuse its shape if you need to record
+RMG-Py reference data (network structure, grid, fitted coefficients) for
+the step-07 gate.
+
+Session 2 plan of attack:
+  1. Answer the 3 open questions above (grep/sed only).
+  2. Read pressure_dependence() body + fit_interpolation_model + the
+     chebyshev fit path, by line range.
+  3. Check rmgpu/kinetics/models.py for the Falloff/Chebyshev model shapes
+     and rmgpu/core/loop.py for the HPL stub's exact call site (that is the
+     wiring point for the loop deliverable).
+  4. Write rmgpu/pdep/driver.py, do the loop wiring, add
+     tests/test_pdep_driver.py.
+  5. Run the Checks section until GREEN, then execute the Done protocol
+     (exact) in full: commit, STATUS.md row + session-log entry + NEXT
+     pointer, report at reports/job-07-step-06-driver.md (include these
+     handoff notes' open questions as "reference reads beyond the list"
+     context), then STOP.
