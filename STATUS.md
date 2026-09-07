@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-07-step-05-collision.md
+NEXT: prompts/steps/job-07-step-06-driver.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -82,7 +82,7 @@ documented finding) and the session log has the evidence.
 | 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | done |
 | 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | done |
 | 07/04 | The pdep network + master equation (CSE) + TS-E0 | test_pdep_network.py (Lindemann case) | done (2026-09-06: 6 passed; grain parity exact vs RMG-Py initial select_energy_grains; CSE k(T,P) toy-Lindemann max rel diff 1.9e-11 vs RMG-Py K_ref; ILT k(E) max diff 0.0 vs RMG-Py; TS-E0 Ea-based no-QM form; non-circular reference gates/baselines/job07/toy_lindemann_ref.json) |
-| 07/05 | Collision models: CSE + collision frequency | test_collision_cse.py | pending |
+| 07/05 | Collision models: CSE + collision frequency | test_collision_cse.py | done (2026-09-07: 8 tests GREEN; LJ collision frequency single+multi-bath max rel 6e-16 vs RMG-Py; grain->grain P_coll max rel 1.7e-16; CSE (Allen) k(T,P) full pipeline (rmgpu's own collision state -> Network) reproduces RMG-Py K_ref; collision efficiency (MSC) max rel 4.6e-15 across (0,1); missing-LJ fallback ported; kB aligned to RMG 1.3806504e-23) |
 | 07/06 | The pdep driver + loop wiring + pdep/ output | test_pdep_driver.py | pending |
 | 07/07 | Job-07 gate (CSE k(T,P) parity, propane_branching) | gate_07.py (<1% k(T,P)) | pending |
 | 08/01 | pdep MSC + RS + SLS (onto job-07's core) | test_pdep_methods.py | pending |
@@ -963,3 +963,60 @@ next: job-07/step-05-collision (read prompts/steps/job-07-step-05-collision.md).
   until the ILT k(E) reproduces the HPL limit), NOT the pure
   select_energy_grains - the reference records BOTH (e_list_initial = pure,
   e_list = post-retry, which the CSE test seeds).
+
+### 2026-09-07 - job-07/step-05 (completed - collision side GREEN)
+built: rmgpu/pdep/collision.py (the collision side of the ME, ported from
+  RMG-Py rmgpy/pdep/collision.pyx + configuration.pyx): SingleExponentialDown
+  (alpha(T)=alpha0*(T/T0)^n; generate_collision_matrix = the grain->grain
+  collision transfer matrix P, ported line-for-line including the sequential
+  detailed-balance normalization and the J-active strong-collision phi
+  factor; calculate_collision_efficiency = the MSC Chang-Bozzelli-Dean
+  factor, for job-08); calculate_collision_frequency (the Lennard-Jones
+  omega22 collision frequency, bath-averaged: sigma linear, epsilon
+  geometric, mass linear - ported from configuration.pyx); estimate_lj_params
+  (RMG's fixed-LJ last-resort table by heavy-atom count - the missing-LJ
+  fallback so a species with no transport entry degrades to a constant
+  instead of crashing the ME) + lj_from_transport_entry (job-02
+  TransportEntry sigma/angstrom + epsilon/K -> SI) + build_collision_inputs
+  (coll_freq, P_coll, Mcoll = coll_freq*P_coll, the Network.seed_collision
+  input). Exported from rmgpu/pdep/__init__.py. scripts/
+  record_job07_step05_reference.py (rmg_env) + gates/baselines/job07/
+  collision_ref.json (single+multi-bath frequency, collision efficiency on
+  the toy network's real e_list/dens across a spread of barriers).
+  tests/test_collision_cse.py (8 tests).
+checks: GREEN - pytest tests/test_collision_cse.py -q: 8 passed. Parity vs
+  INDEPENDENT RMG-Py runs (non-circular): collision frequency single-bath N2
+  + multi-bath N2/Ar max rel diff 6.1e-16; grain->grain P_coll (the grain
+  mapping) max rel diff 1.7e-16; CSE (Allen) k(T,P) FULL PIPELINE - rmgpu's
+  OWN collision frequency + collision matrix composed into Mcoll and seeded
+  into the step-04 Network (no RMG-Py collision state) reproduces RMG-Py's
+  recorded K_ref (the pre-gate proof that collision + network compose);
+  collision efficiency (MSC) max rel diff 4.6e-15 across the (0,1) range
+  (capped at 1 for low barriers, ~0.2-0.4 for high). Full suite: pytest
+  tests/ -q: 664 passed (no regression).
+deviations: (a) the step brief lists MSC/RS/SLS as job-08 ("do not port them
+  early"); the collision EFFICIENCY factor (a method of the SingleExponential
+  Down energy-transfer model, not a method driver) IS ported because job-08's
+  MSC driver consumes it - only the MSC/RS/SLS DRIVERS are deferred (the
+  Network dispatch still raises NotImplementedError for them, unchanged).
+  (b) the georgievskii CSE variant (cse.pyx get_rate_coefficients_CSE_Advanced)
+  is a job-08 deliverable (needs the Network's channel objects, not just the
+  state-seeded arrays); RMG's own implementation hits an internal IndexError
+  on the toy topology (a bimolecular product channel + exclude_association),
+  so it is NOT recorded and NOT ported here. (c) constants: network.py kB was
+  R/Na (1.38065032e-23); RMG-Py hardcodes 1.3806504e-23. The collision
+  frequency scales as kB**-1/2, so aligning kB to RMG's exact value was
+  required for the 1e-9 frequency parity (the grain tail 40*kB*T is unaffected
+  at this precision); step-04 grain parity re-verified unaffected.
+commits: ad6b836 (code + tests + recorder + reference)
+next: job-07/step-06-driver (read prompts/steps/job-07-step-06-driver.md).
+  Key context: the pdep DRIVER (step-06) should call
+  build_collision_inputs(T, P, model, dens, e_list, j_list, species_lj,
+  species_mass, bath, bath_masses) (or the pieces) to COMPUTE coll_freq +
+  Mcoll from the bath gas + LJ params + energy-transfer model, and seed the
+  Network via seed_collision - replacing the step-04/05 state-seeding. The
+  collision model is P-dependent only through coll_freq ~ P; P_coll is
+  T-only (alpha(T)), so it can be computed once per T and reused across P.
+  The single-bath N2 toy case: species LJ sigma=5.94A/eps=559K/mw=74.07,
+  bath N2 sigma=3.41A/eps=124K/mw=28.04, SingleExponentialDown
+  alpha0=447.5*0.011962 kJ/mol (5.353e3 J/mol), T0=300, n=0.85.
