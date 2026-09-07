@@ -176,3 +176,95 @@ Session 2 plan of attack:
      pointer, report at reports/job-07-step-06-driver.md (include these
      handoff notes' open questions as "reference reads beyond the list"
      context), then STOP.
+
+## HANDOFF NOTES - session 2 (2026-09-07, context-exhausted mid-session; tree NOT clean)
+
+Stopped per user directive. Everything below verified via git status/diff and
+targeted reads at cutoff, so session 3 can trust it without re-deriving.
+
+TREE STATE AT CUTOFF (verified):
+- Last commit: f88c372 (the step-06 notes commit, no code).
+- The ONLY uncommitted change: `rmgpu/pdep/network.py` (+16/-1). It adds a
+  `state_provider` hook (a callable T -> per-T state dict) to
+  `Network.__init__` and to the state-source dispatch in
+  `calculate_rate_coefficients` (~line 600): the `state_at` dict (step-04
+  path) takes precedence, else `state_provider`, else None. This is
+  intentional step-06 work - KEEP IT and commit it as part of step-06
+  (do NOT revert).
+- `rmgpu/pdep/driver.py`: NOT created. `tests/test_pdep_driver.py`: NOT
+  created. `rmgpu/core/loop.py`: untouched (loop wiring not done).
+- `/tmp/probe_fit.py` exists (1.7KB): an empirical probe of RMG-Py's
+  PDepArrhenius/Chebyshev fit unit conventions (fits known data, inspects
+  stored coefficients vs CGS vs SI). Its run/output was NOT confirmed
+  before cutoff - see FIRST ACTION below.
+
+KEY FINDINGS (verified by read; the numerics need NO change for 2 isomers):
+- The existing CSE machinery is already fully general over `n_isom`:
+  `generate_full_me_matrix` / `apply_cse_allen` loop all isomers
+  (rmgpu/pdep/network.py lines ~277-494). A 2-isomer test network needs no
+  numeric changes. This step is orchestration/wiring only.
+- `_apply_state` (rmgpu/pdep/network.py line 627) currently fills
+  `dens_states` for a SINGLE-isomer state dict (product row at index
+  `n_isom + n_reac`, line 639). It must be generalized so the driver's state
+  provider can seed all `n_isom` rows (e.g. from `st["dens_isomers"]`), or
+  the test builds per-isomer states - decide when writing the driver.
+- UNIT-CONVENTION TRAP: rmgpu's `Chebyshev.__post_init__` (rmgpu/kinetics/
+  models.py) has a hardcoded `-6` unit shift (likely the cm^3 -> m^3 shift on
+  the A factor). The stored-coefficient convention (CGS vs SI) is THE open
+  question for the fit port. The ported fit must produce coefficients in
+  whatever convention rmgpu's existing Falloff/Chebyshev EVAL (job 02/3,
+  rmgpu/kinetics/models.py) expects (SI). Verify via the probe + a line-range
+  read of models.py BEFORE porting the fit. Do not guess the shift.
+
+IN FLIGHT AT COMPACTION (resume exactly here):
+1. FIRST ACTION: run the probe -
+   `/home/jackson/miniforge3/envs/rmgpu/bin/python /tmp/probe_fit.py` - and
+   read the output; it settles the CGS-vs-SI question. If /tmp was wiped,
+   re-derive by reading, by line range ONLY: `fit_interpolation_model`
+   (rmgpy/pdep/reaction.pyx:338) + the fit path in
+   rmgpy/kinetics/chebyshev.pyx + PDepArrhenius in
+   rmgpy/kinetics/arrhenius.pyx.
+2. Re-answer the 3 open questions from the session-1 notes above (cheap
+   greps). Q1 (where the pressure_dependence block enters rmgpu) decides
+   `run_pdep`'s signature; the legacy importer does NOT carry it.
+3. The loop wiring implies the loop/simulator evaluate path must carry `P`
+   (k(T,P) at reactor conditions via the registry's evaluate(T,P)) - at
+   cutoff I was about to confirm the simulator's `forward_A_T` call sites all
+   take P; re-derive while reading core/loop.py.
+
+SESSION 3 WORK ORDER (refined plan. BUDGET RULE: read by line range/sed,
+NEVER whole files - whole-file reads are what killed sessions 1 and 2):
+1. Probe run (above) + settle the unit convention; read the Falloff/
+   Chebyshev/PDepArrhenius shapes in rmgpu/kinetics/models.py (line range).
+2. Read by line range: the `pressure_dependence(` body at
+   rmgpy/rmg/pdep.py:1376 (family-metadata selection, network building,
+   (T,P) grid, fit, Falloff attach); `fit_interpolation_model` at
+   rmgpy/pdep/reaction.pyx:338; the fit path in chebyshev.pyx.
+3. Generalize `_apply_state` for multi-isomer (network.py line 627).
+4. Write `rmgpu/pdep/driver.py` with `run_pdep(model,
+   pressure_dependence_block, databases)`: family-metadata selection;
+   network building (isomer grouping per RMG's rules); the (T,P) grid from
+   the YAML block (Tmin/Tmax/Tcount, Pmin/Pmax/Pcount); per-(T,P) network
+   solve; the EXACT RMG fit (port, no substitution); Falloff attach to the
+   registry (job 02/3); write pdep/<network>.yaml (network def + k(T,P)
+   grid, self-contained). MSC/RS/SLS: raise NotImplemented (job 08).
+5. Loop wiring: replace the HPL stub in rmgpu/core/loop.py (find the exact
+   call site - the pdep hook from job 06/2) so pdep families get Falloff
+   kinetics; the loop's simulate step then uses k(T,P) at the reactor (T,P).
+6. tests/test_pdep_driver.py: a hand-built 2-isomer network through
+   run_pdep - check (a) Falloff attaches (the reaction's rate model is now a
+   Falloff with the fitted params), (b) pdep/<network>.yaml writes + parses,
+   (c) the fit reproduces the (T,P) grid within the interpolation tolerance
+   (vs the network's direct solve).
+7. Run the Checks section until GREEN, then the Done protocol (exact),
+   lines 115-120 of this file, in full: commit (am, "job-07/step-06: ...",
+   NO push), STATUS.md row -> done + session-log entry (exact format) + NEXT
+   pointer to job-07/step-07-gate, report at
+   reports/job-07-step-06-driver.md (include the session-1 open questions +
+   this section as "reference reads beyond the list" context), then STOP.
+
+Reference pattern: scripts/record_job07_step04_reference.py (step-04's
+RMG-Py reference recorder, ~11.4KB). Steps 4-5 established the non-circular
+pattern: record an RMG-Py run, then validate rmgpu against it. Reuse the
+recorder's shape if you record a 2-isomer RMG-Py reference to validate the
+driver (Falloff attach + yaml + fit-reproduces-grid).
