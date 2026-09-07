@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-07-step-04-network.md
+NEXT: prompts/steps/job-07-step-05-collision.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -81,7 +81,7 @@ documented finding) and the session log has the evidence.
 || 07/01 | Statmech modes: conformer, vibration, rotation | test_statmech_modes.py | done |
 | 07/02 | Statmech torsions: 1D rotor PDE + 2D (ndTorsions) | test_torsions.py | done |
 | 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | done |
-| 07/04 | The pdep network + master equation (CSE) + TS-E0 | test_pdep_network.py (Lindemann case) | pending |
+| 07/04 | The pdep network + master equation (CSE) + TS-E0 | test_pdep_network.py (Lindemann case) | done (2026-09-06: 6 passed; grain parity exact vs RMG-Py initial select_energy_grains; CSE k(T,P) toy-Lindemann max rel diff 1.9e-11 vs RMG-Py K_ref; ILT k(E) max diff 0.0 vs RMG-Py; TS-E0 Ea-based no-QM form; non-circular reference gates/baselines/job07/toy_lindemann_ref.json) |
 | 07/05 | Collision models: CSE + collision frequency | test_collision_cse.py | pending |
 | 07/06 | The pdep driver + loop wiring + pdep/ output | test_pdep_driver.py | pending |
 | 07/07 | Job-07 gate (CSE k(T,P) parity, propane_branching) | gate_07.py (<1% k(T,P)) | pending |
@@ -904,3 +904,62 @@ built: rmgpu/statmech/modes.py (Mode base, HarmonicOscillator, LinearRotor, Nonl
 checks: GREEN - pytest tests/test_statmech_modes.py -q: 4 passed (heat capacity sanity, conformer sum, number of states shape, DoS non-negative)
 commits: 9bdfde0
 next: job-07/step-02-torsion (read prompts/steps/job-07-step-02-torsion.md)
+
+### 2026-09-06 - job-07/step-04-network (completed)
+built: rmgpu/pdep/network.py (the pressure-dependent Network + master equation,
+  ported from RMG-Py rmgpy/pdep/{network.py,me.pyx,cse.pyx,reaction.pyx} +
+  rmgpy/rmg/pdep.py): select_energy_grains (grain generation, e_max includes
+  the TS E0 + 40kT tail), calculate_equilibrium_ratios, derive_ts_e0 +
+  network_energy_correction (the no-QM TS-E0 path), generate_full_me_matrix
+  (me.pyx), apply_cse_allen (cse.pyx, incl. RMG's zero-k(T,P)-when-eigenvalues
+  do-not-separate behavior), apply_ilt_k_e (the ILT microcanonical rate),
+  method dispatch on the long strings (CSE allen = this step; MSC/RS/SLS/georgievskii
+  raise NotImplementedError for job-08). The collision matrix + frequency are a
+  SEEDING PROTOCOL (seed_collision) - step-05's deliverable plugs in there.
+  rmgpu/pdep/__init__.py (exports); tests/test_pdep_network.py (6 tests);
+  scripts/record_job07_step04_reference.py (RMG-Py rmg_env recorder,
+  non-circular) + gates/baselines/job07/toy_lindemann_ref.json (2.3 MB, RMG-Py's
+  own run of a toy Lindemann network: per-T snapshots of e_list (+initial
+  pure selection), j_list, dens_isomer, P_coll (P-independent collision
+  probability), Kij/Gnj/Fim, eq_ratios, per-P coll_freqs, RMG's raw ILT k(E),
+  + K_ref = RMG-Py's CSE k(T,P) at 2 T x 4 P).
+checks: GREEN - /home/jackson/miniforge3/envs/rmgpu/bin/python -m pytest
+  tests/test_pdep_network.py -q: 6 passed (1.0s). Parity vs RMG-Py (non-circular):
+  grain generation EXACT (max diff 0.0 on counts + boundaries, T=400/600);
+  CSE k(T,P) toy-Lindemann max rel diff 1.9e-11 (machine precision; 8/8 points
+  nonzero) vs RMG-Py K_ref; ILT k(E) max diff 0.0 vs RMG-Py's raw ILT k(E)
+  (T=400/600); TS-E0 (Ea-based no-QM) reproduces RMG-Py's derived E0_TS
+  (abs 1e-9) + energy_correction exact. Full suite: pytest tests/ -q: 656
+  passed (was 650; the 6 new pdep tests, no regressions).
+deviations: (1) The step brief cites the TST form E0_TS = sum(reactant E0) -
+  R*T*ln(k_inf*V/h) (citing arkane/pdep.py). RMG-Py's ACTUAL no-QM core-loop
+  path (rmgpy/rmg/pdep.py:856) implements the Ea-based form E0_TS =
+  sum(reactant E0) + Ea + energy_correction (arkane/pdep.py:280 uses the same,
+  the Ea path; the -R*T*ln(kinf*V/h) TST expression is not what RMG-Py's core
+  loop uses - it has no k_inf/V there). Since the job-07 gate sub-gate 2 compares
+  rmgpu's E0_TS to RMG-Py's within 1e-8 (a BLOCKER), derive_ts_e0 ports
+  RMG-Py's exact Ea-based expression. Documented in network.py + the report.
+  (2) The reference is a TOY Lindemann network (1 isomer + 1 dissociation
+  channel + 1 path reaction via ILT), not the full propane_branching - the
+  step-04 scope is the Network + ME + CSE + TS-E0 in isolation; the
+  propane_branching k(T,P) gate (sub-gate 3) is the job's GATE step (07/07).
+  The toy case de-risks it per the step brief ("this test must pass before the
+  driver is wired"). (3) The step-04 unit test SEEDS the DoS + collision
+  matrix from the RMG-Py reference (step-01/03's DoS is a stub; step-05's
+  collision is unbuilt), isolating the step-04-owned grain/ME-matrix/CSE/
+  TS-E0 logic. Non-circular: every compared value is RMG-Py's own run.
+commits: d87120c (code + tests + recorder + reference)
+next: job-07/step-05-collision (read prompts/steps/job-07-step-05-collision.md).
+  Key context: the Network's seed_collision(coll_freq, Mcoll) is the SEAM -
+  step-05 builds rmgpu/pdep/collision.py (SingleExponentialDown port) to
+  COMPUTE coll_freq + Mcoll from the bath gas + energy-transfer model, and
+  the pdep driver (step-06) calls it instead of seeding. The step-04 CSE
+  extraction (apply_cse_allen) consumes Mcoll verbatim, so it plugs in
+  without touching network.py. RMG's collision matrix factors as
+  Mcoll(T,P) = coll_freq(T,P) * P_coll(T) (P_coll is P-independent; the
+  recorder stores it separately to keep the reference compact) - step-05
+  should reproduce that factorization. The grain selection RMG-Py uses at
+  runtime is the set_conditions k(E)-validity retry loop (halves grain size
+  until the ILT k(E) reproduces the HPL limit), NOT the pure
+  select_energy_grains - the reference records BOTH (e_list_initial = pure,
+  e_list = post-retry, which the CSE test seeds).
