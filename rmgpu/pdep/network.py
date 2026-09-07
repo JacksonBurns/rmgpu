@@ -50,7 +50,11 @@ R = 8.314472                 # J/mol/K   (RMG-Py value, NOT CODATA)
 h = 6.62606896e-34           # J*s
 Na = 6.02214179e23           # 1/mol
 c = 299792458.0              # m/s
-kB = R / Na
+# RMG-Py hardcodes kB = 1.3806504e-23 (rmgpy/constants.py), which differs from
+# R/Na = 1.38065032e-23 by 5.7e-8. The collision frequency scales as
+# kB**(-1/2), so matching RMG's exact kB is required for the 1e-9 frequency
+# parity (the grain tail 40*kB*T is unaffected at this precision).
+kB = 1.3806504e-23
 hbar = h / (2.0 * np.pi)
 
 
