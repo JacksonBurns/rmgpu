@@ -20,7 +20,7 @@ The registry API is intentionally flat so later jobs can consume it:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -38,6 +38,30 @@ c = 299792458.0  # m/s
 Na = 6.02214179e23  # mol^-1 (RMG-Py parity)
 
 MODEL_REGISTRY = {}
+
+# Pre-exponential volume-unit CGS -> SI conversion factors (m^3 per cm^3).
+# RMG-Py's Quantity layer (rmgpy/quantity.py RateCoefficient.value_si) applies
+# these when converting a stored rate to SI. The Chebyshev coefficient
+# zeroth-order term c00 carries a log10(RateCoefficient(1.0, kunits).value_si)
+# shift on file load (see Chebyshev.__post_init__); the driver's fit stores
+# coefficients on the SI scale (RMG's fit_to_data converts K -> SI before
+# fitting log10), so the fit path passes SI kunits and gets factor 1.
+_KUNITS_CGS_TO_SI3 = {
+    "cm^3/(mol*s)": 1.0e-6,
+    "cm^6/(mol^2*s)": 1.0e-12,
+    "cm^9/(mol^3*s)": 1.0e-18,
+}
+
+
+def kunits_to_si(kunits: str) -> float:
+    """CGS -> SI pre-exponential volume factor for `kunits` (RMG quantity.py).
+
+    SI or empty units -> 1.0 (no shift); the CGS volume units -> the m^3/cm^3
+    factor to the reaction order's power. Anything else is treated as SI.
+    """
+    if kunits is None:
+        return 1.0
+    return _KUNITS_CGS_TO_SI3.get(str(kunits), 1.0)
 
 
 @dataclass
@@ -219,10 +243,17 @@ class Troe(PDepKineticsModel):
 
 @dataclass
 class Chebyshev(PDepKineticsModel):
-    """Chebyshev polynomial model in inverse temperature and log pressure."""
+    """Chebyshev polynomial model in inverse temperature and log pressure.
+
+    The stored `coeffs` matrix holds `log10(k)` on the SI scale (RMG-Py's
+    ``fit_to_data`` converts K -> SI before fitting ``log10``; the zeroth-order
+    coefficient ``c00`` carries a ``log10(RateCoefficient(1.0, kunits).value_si)``
+    shift on FILE LOAD so the stored polynomial is on the SI scale. See
+    :meth:`__post_init__` and :meth:`get_rate_coefficient` (both SI).
+    """
 
     coeffs: Optional[np.ndarray] = None
-    kunits: str = "m^6/(mol^2*s)"
+    kunits: str = ""          # the kunits the coeffs were fit/stored in (RMG)
     highPlimit: Optional[KineticsModel] = None
 
     def __post_init__(self):
@@ -230,10 +261,18 @@ class Chebyshev(PDepKineticsModel):
             self.coeffs = np.zeros((1, 1))
         self.degreeT = self.coeffs.shape[0]
         self.degreeP = self.coeffs.shape[1]
-        # Adjust coefficient[0,0] so the stored polynomial is in SI units.
-        factor = np.log10(1.0 / (1000 ** 2))  # cm^6/(mol^2*s) -> m^6/(mol^2*s)
-        self.coeffs = self.coeffs.copy()
-        self.coeffs[0, 0] += factor
+        # RMG-Py (rmgpy/kinetics/chebyshev.pyx __init__): on load, the stored
+        # polynomial is shifted so that c00 encodes the SI scale for the
+        # model's `kunits`. The CGS -> SI factor is 1e-6 (cm^3), 1e-12 (cm^6),
+        # or 1.0 for SI units. A coefficient fitted on the SI scale (the driver
+        # path, see rmgpu/pdep/driver.py) stores SI kunits and gets factor 1.0,
+        # so the fit is unaffected; only file-loaded CGS coefficients are shifted.
+        # (The pre-step-06 code hard-coded -6 for ALL models regardless of
+        # kunits, which silently corrupted any SI-fitted Chebyshev.)
+        factor = kunits_to_si(self.kunits)
+        if factor != 1.0:
+            self.coeffs = self.coeffs.copy()
+            self.coeffs[0, 0] += float(np.log10(factor))
 
     @staticmethod
     def chebyshev(n: int, x: float) -> float:
@@ -279,11 +318,92 @@ class Chebyshev(PDepKineticsModel):
                 )
         return 10.0**k
 
+    def fit_to_data(self, Tlist, Plist, K, kunits: str = "",
+                    degreeT: int = 6, degreeP: int = 4,
+                    Tmin: float = 0.0, Tmax: float = 0.0,
+                    Pmin: float = 0.0, Pmax: float = 0.0) -> "Chebyshev":
+        """RMG Chebyshev.fit_to_data (chebyshev.pyx:177): fit ``log10(K)`` on
+        the reduced Chebyshev basis by least squares. K is SI (the driver
+        passes SI kunits); the stored coeffs are therefore on the SI scale and
+        ``get_rate_coefficient`` returns SI directly. The kunits are accepted
+        for RMG-signature parity (RMG converts a CGS K to SI internally;
+        rmgpu keeps SI throughout)."""
+        Tlist = np.asarray(Tlist, dtype=float)
+        Plist = np.asarray(Plist, dtype=float)
+        K = np.asarray(K, dtype=float)
+        nT, nP = len(Tlist), len(Plist)
+        if nT <= degreeT or nP <= degreeP:
+            raise ValueError(
+                "The master equation data needs more temperature and pressure "
+                "data points than the Chebyshev polynomial degree.")
+        self.Tmin = float(Tmin) if Tmin else float(Tlist[0])
+        self.Tmax = float(Tmax) if Tmax else float(Tlist[-1])
+        self.Pmin = float(Pmin) if Pmin else float(Plist[0])
+        self.Pmax = float(Pmax) if Pmax else float(Plist[-1])
+        Tred = [self.get_reduced_temperature(t) for t in Tlist]
+        Pred = [self.get_reduced_pressure(p) for p in Plist]
+        A = np.zeros((nT * nP, degreeT * degreeP), float)
+        b = np.zeros((nT * nP), float)
+        for t1 in range(nT):
+            for p1 in range(nP):
+                for t2 in range(degreeT):
+                    for p2 in range(degreeP):
+                        A[p1 * nT + t1, p2 * degreeT + t2] = (
+                            self.chebyshev(t2, Tred[t1])
+                            * self.chebyshev(p2, Pred[p1]))
+                b[p1 * nT + t1] = np.log10(K[t1, p1])
+        x, _, _, _ = np.linalg.lstsq(A, b, rcond=-1)
+        coeffs = np.zeros((degreeT, degreeP), float)
+        for t2 in range(degreeT):
+            for p2 in range(degreeP):
+                coeffs[t2, p2] = x[p2 * degreeT + t2]
+        self.kunits = kunits
+        self.coeffs = coeffs
+        self.degreeT = degreeT
+        self.degreeP = degreeP
+        return self
+
+
+def _fit_arrhenius(Tlist, klist, T0: float = 1.0) -> "Arrhenius":
+    """RMG's 3-parameter Arrhenius least-squares fit (arrhenius.pyx fit_to_data):
+    fit ``log(k) = log(A) + n*log(T/T0) - Ea/(R*T)`` by ``lstsq``. Returns an
+    rmgpu ``Arrhenius`` with SI A (klist is SI) and Ea in J/mol. Mirrors
+    rmgpy/kinetics/arrhenius.pyx:149 exactly (the coefficient of ``-1/(R*T)``
+    is Ea in J/mol)."""
+    Tlist = np.asarray(Tlist, dtype=float)
+    klist = np.asarray(klist, dtype=float)
+    if np.any(klist <= 0):
+        raise ValueError("Arrhenius fit requires all-positive rate coefficients.")
+    Am = np.zeros((len(Tlist), 3), float)
+    Am[:, 0] = 1.0
+    Am[:, 1] = np.log(Tlist / T0)
+    Am[:, 2] = -1.0 / R / Tlist
+    b = np.log(klist)
+    x, _, _, _ = np.linalg.lstsq(Am, b, rcond=-1)
+    return Arrhenius(A=float(np.exp(x[0])), n=float(x[1]),
+                     Ea=float(x[2]), T0=float(T0))
+
 
 @dataclass
 class PDepArrhenius(PDepKineticsModel):
-    """Pressure-dependent Arrhenius storage and evaluation."""
+    """Pressure-dependent Arrhenius: an Arrhenius fit at EACH grid pressure,
+    interpolated in log-log between adjacent pressures.
 
+    Two storage shapes (RMG parity, rmgpy/kinetics/arrhenius.pyx PDepArrhenius):
+    - RMG shape (the driver's fit): ``pressures`` (Pa, array) + ``arrhenius``
+      (list of Arrhenius, one per pressure). ``fit_to_data`` populates these;
+      ``get_rate_coefficient`` does RMG's log-log interpolation between the
+      two adjacent pressures.
+    - Legacy single-model shape (pre-step-06, kept for the job-02 assembly
+      tests): ``A``/``n``/``Ea``/``T0``/``highPlimit`` + a Pmin->Pmax power
+      ramp. Used only when ``arrhenius`` is empty.
+    Both evaluate in SI (m^3/mol/s etc. for the reaction order).
+    """
+
+    # RMG shape (the driver's fit target)
+    pressures: Optional[List[float]] = None
+    arrhenius: Optional[List[Arrhenius]] = None
+    # Legacy single-model shape (backward compat)
     A: float = 0.0
     n: float = 0.0
     Ea: float = 0.0
@@ -292,26 +412,69 @@ class PDepArrhenius(PDepKineticsModel):
     Pmax: Optional[float] = None
     highPlimit: Optional[KineticsModel] = None
 
+    def _adjacent(self, P: float):
+        pressures = list(self.pressures)
+        ilow, ihigh = 0, 0
+        for i, p in enumerate(pressures):
+            if p <= P:
+                ilow = i
+            if p >= P and ihigh == 0:
+                ihigh = i
+        if ihigh == 0:
+            ihigh = len(pressures) - 1
+        return pressures[ilow], pressures[ihigh], self.arrhenius[ilow], self.arrhenius[ihigh]
+
     def get_rate_coefficient(self, T: float, P: float = 0.0) -> float:
-        # RMG's PDepArrhenius evaluation is a simplified pressure-dependent form.
-        # For storage and evaluation, use Arrhenius-like behaviour with
-        # high-pressure limit clamping.
+        if P == 0:
+            raise ValueError(
+                "No pressure specified to pressure-dependent PDepArrhenius.get_rate_coefficient().")
+        # RMG shape: log-log interpolation between adjacent pressures.
+        if self.arrhenius is not None and self.pressures is not None:
+            Plow, Phigh, alow, ahigh = self._adjacent(P)
+            if Plow == Phigh:
+                return alow.get_rate_coefficient(T)
+            klow = alow.get_rate_coefficient(T)
+            khigh = ahigh.get_rate_coefficient(T)
+            if klow == khigh == 0.0:
+                return 0.0
+            return klow * 10.0 ** (
+                np.log10(P / Plow) / np.log10(Phigh / Plow)
+                * np.log10(khigh / klow))
+        # Legacy single-model shape (job-02 assembly tests).
         if self.highPlimit is not None:
             kinf = self.highPlimit.get_rate_coefficient(T)
         else:
             kinf = self.A * (T / self.T0) ** self.n * np.exp(-self.Ea / (R * T))
         if self.Pmin is None or self.Pmax is None:
             return kinf
-        Pmin = self.Pmin
-        Pmax = self.Pmax
-        if P <= Pmin:
+        if P <= self.Pmin:
             return 0.0
-        if P >= Pmax:
+        if P >= self.Pmax:
             return kinf
-        frac = (np.log10(P) - np.log10(Pmin)) / (
-            np.log10(Pmax) - np.log10(Pmin)
-        )
+        frac = (np.log10(P) - np.log10(self.Pmin)) / (
+            np.log10(self.Pmax) - np.log10(self.Pmin))
         return kinf * np.power(frac, 0.5)
+
+    def fit_to_data(self, Tlist, Plist, K, kunits: str = "", T0: float = 298.0):
+        """RMG PDepArrhenius.fit_to_data: fit an Arrhenius at EACH pressure
+        column of K (K is SI, so A is stored SI), then log-log interpolate.
+        Mirrors rmgpy/kinetics/arrhenius.pyx:906 (the kunits are accepted for
+        RMG-signature parity but rmgpu stores SI throughout)."""
+        Tlist = np.asarray(Tlist, dtype=float)
+        Plist = np.asarray(Plist, dtype=float)
+        K = np.asarray(K, dtype=float)
+        pressures = list(Plist)
+        arrhenius = []
+        for i in range(len(Plist)):
+            a = _fit_arrhenius(Tlist, K[:, i], T0)
+            arrhenius.append(a)
+        self.pressures = pressures
+        self.arrhenius = arrhenius
+        self.Pmin = float(Plist[0])
+        self.Pmax = float(Plist[-1])
+        self.Tmin = float(Tlist[0])
+        self.Tmax = float(Tlist[-1])
+        return self
 
 
 @dataclass

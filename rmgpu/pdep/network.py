@@ -199,6 +199,11 @@ class Network:
         self.T = 0.0
         self.P = 0.0
         self.K = None
+        # step-06: an optional state provider (a callable T -> per-T state dict)
+        # used by the driver to compute the network state on demand. When set,
+        # calculate_rate_coefficients uses it instead of the explicit `state_at`
+        # mapping (the step-04 seeded path keeps `state_at`).
+        self.state_provider = None
 
     # ------------------------------------------------------------------ #
     # Collision protocol (step-05 plugs in here; seeded in the unit test)
@@ -594,10 +599,19 @@ class Network:
 
         n_cfg = self.n_cfg
         K = np.zeros((len(Tlist), len(Plist), n_cfg, n_cfg), float)
+        # step-06: two state sources. `state_at` (step-04) is a dict keyed by T;
+        # `self.state_provider` (step-06 driver) is a callable T -> state.
+        has_dict = state_at is not None
+        provider = self.state_provider
         for t, T in enumerate(Tlist):
             for p, P in enumerate(Plist):
-                if state_at is not None:
+                if has_dict:
                     st = state_at[T]
+                elif provider is not None:
+                    st = provider(T)
+                else:
+                    st = None
+                if st is not None:
                     self._apply_state(st, T, P, coll_freq=st["coll_freqs"][p])
                 if method_l == "chemically-significant eigenvalues":
                     self.apply_cse_allen()
@@ -610,8 +624,22 @@ class Network:
                 K[t, p] = self.K
         return K
 
-    def _apply_state(self, st: dict, T: float, P: float, coll_freq: float) -> None:
-        """Load a seeded per-T state + the coll_freq for the current P."""
+    def _apply_state(self, st: dict, T: float, P: float, coll_freq) -> None:
+        """Load a seeded per-T state + the coll_freq for the current P.
+
+        Generalized (step-06) for multi-isomer networks. State keys:
+          e_list (n_grains,), j_list (n_j,),
+          dens_isomers (n_isom, n_grains, n_j)  [or the single-isomer legacy
+              key `dens_isomer` (n_grains, n_j) when n_isom == 1],
+          dens_product (n_grains, n_j) or None,
+          eq_ratios (n_cfg,), Kij, Gnj, Fim,
+          P_coll (n_isom, n_grains, n_j, n_grains, n_j)  [or single-isomer
+              (n_grains, n_j, n_grains, n_j)],
+          and `coll_freq` (a scalar for a single isomer, or an (n_isom,) array
+              for multiple isomers) - the per-P collision frequency.
+        Collision: Mcoll(T,P) = coll_freq(T,P) * P_coll(T) (RMG's factorization;
+        P_coll is P-independent, computed once per T by the driver).
+        """
         self.T = float(T)
         self.P = float(P)
         self.e_list = np.asarray(st["e_list"], dtype=float)
@@ -619,8 +647,17 @@ class Network:
         n_cfg = self.n_cfg
         n_grains = self.e_list.shape[0]
         n_j = self.j_list.shape[0]
+        n_isom = self.n_isom
         dens = np.zeros((n_cfg, n_grains, n_j), float)
-        dens[0] = np.asarray(st["dens_isomer"], dtype=float)
+        # Isomer rows: prefer the explicit multi-isomer `dens_isomers`; fall
+        # back to the single-isomer legacy `dens_isomer` (row 0).
+        if "dens_isomers" in st:
+            di = np.asarray(st["dens_isomers"], dtype=float)
+            if di.ndim == 2:                      # (n_grains, n_j) for n_isom==1
+                di = di[None, :, :]
+            dens[:n_isom] = di
+        else:
+            dens[0] = np.asarray(st["dens_isomer"], dtype=float)
         if st.get("dens_product") is not None:
             dens[self.n_isom + self.n_reac] = np.asarray(st["dens_product"], dtype=float)
         self.dens_states = dens
@@ -628,11 +665,18 @@ class Network:
         self.Kij = np.asarray(st["Kij"], dtype=float)
         self.Gnj = np.asarray(st["Gnj"], dtype=float)
         self.Fim = np.asarray(st["Fim"], dtype=float)
-        # Collision: Mcoll(T,P) = coll_freq(T,P) * P_coll(T). P_coll is
-        # P-independent (seeded from the RMG-Py reference); coll_freq ~ P.
+        # Collision: Mcoll(T,P) = coll_freq(T,P) * P_coll(T).
         P_coll = np.asarray(st["P_coll"], dtype=float)
-        n_isom = self.n_isom
-        Mcoll = np.zeros((n_isom, n_grains, n_j, n_grains, n_j), float)
-        Mcoll[0] = float(coll_freq) * P_coll
-        self.coll_freq = np.array([float(coll_freq)], float)
+        cf = np.atleast_1d(np.asarray(coll_freq, dtype=float))
+        if n_isom > 1 and P_coll.shape[0] == n_isom:
+            # Multi-isomer: per-isomer P_coll (n_isom, n_g, n_j, n_g, n_j).
+            Mcoll = np.zeros((n_isom, n_grains, n_j, n_grains, n_j), float)
+            for i in range(n_isom):
+                Mcoll[i] = cf[i] * P_coll[i]
+        else:
+            # Single-isomer: P_coll (n_g, n_j, n_g, n_j), cf scalar.
+            Mcoll = np.zeros((n_isom, n_grains, n_j, n_grains, n_j), float)
+            Mcoll[0] = cf[0] * P_coll
+        self.coll_freq = cf
         self.Mcoll = Mcoll
+
