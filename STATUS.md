@@ -5,7 +5,7 @@ file before committing. Do not delete entries; append and annotate.
 
 ## NEXT (the pointer - the human reads this first)
 
-NEXT: prompts/steps/job-07-step-06-driver.md
+NEXT: prompts/steps/job-07-step-07-gate.md
 (When a step finishes, the session updates this pointer to the following
 step's file, or to a small fix-step file written for a red gate. One step
 at a time.)
@@ -83,7 +83,7 @@ documented finding) and the session log has the evidence.
 | 07/03 | Conformer assembly from the statmech DB (no QM) | test_statmech_assembly.py | done |
 | 07/04 | The pdep network + master equation (CSE) + TS-E0 | test_pdep_network.py (Lindemann case) | done (2026-09-06: 6 passed; grain parity exact vs RMG-Py initial select_energy_grains; CSE k(T,P) toy-Lindemann max rel diff 1.9e-11 vs RMG-Py K_ref; ILT k(E) max diff 0.0 vs RMG-Py; TS-E0 Ea-based no-QM form; non-circular reference gates/baselines/job07/toy_lindemann_ref.json) |
 | 07/05 | Collision models: CSE + collision frequency | test_collision_cse.py | done (2026-09-07: 8 tests GREEN; LJ collision frequency single+multi-bath max rel 6e-16 vs RMG-Py; grain->grain P_coll max rel 1.7e-16; CSE (Allen) k(T,P) full pipeline (rmgpu's own collision state -> Network) reproduces RMG-Py K_ref; collision efficiency (MSC) max rel 4.6e-15 across (0,1); missing-LJ fallback ported; kB aligned to RMG 1.3806504e-23) |
-| 07/06 | The pdep driver + loop wiring + pdep/ output | test_pdep_driver.py | pending |
+| 07/06 | The pdep driver + loop wiring + pdep/ output | test_pdep_driver.py | done (2026-09-07: 9 tests GREEN; driver run_pdep (grid + exact RMG fit + Falloff attach + pdep/<network>.yaml) on a non-circular 2-isomer RMG-Py reference; Chebyshev + PDepArrhenius fit ported (SI convention, c00 unit-shift bug fixed); network solve vs RMG K_ref max rel 1.19e-05 (CSE precision, not wiring); fit reproduces grid within RMG 0.5 log-RMS bar; loop _pdep_update hook (RMG model.py:812 call site, signature-based re-solve) + simulator forward_A_TP (k(T,P) at reactor) wired into run(); MSC/RS/SLS raise NotImplemented (job 08); full pytest 673; production network STATE builder (statmech->DoS->fluxes) = step-07 gate) |
 | 07/07 | Job-07 gate (CSE k(T,P) parity, propane_branching) | gate_07.py (<1% k(T,P)) | pending |
 | 08/01 | pdep MSC + RS + SLS (onto job-07's core) | test_pdep_methods.py | pending |
 | 08/02 | Isotope support | test_isotopes.py | pending |
@@ -1020,3 +1020,60 @@ next: job-07/step-06-driver (read prompts/steps/job-07-step-06-driver.md).
   The single-bath N2 toy case: species LJ sigma=5.94A/eps=559K/mw=74.07,
   bath N2 sigma=3.41A/eps=124K/mw=28.04, SingleExponentialDown
   alpha0=447.5*0.011962 kJ/mol (5.353e3 J/mol), T0=300, n=0.85.
+
+### 2026-09-07 - job-07/step-06 (completed - driver + loop wiring)
+built: rmgpu/pdep/driver.py (run_pdep: method selection CSE-only
+  (MSC/RS/SLS NotImplemented, job 08), the (T,P) grid from the YAML
+  pressure_dependence block (RMG generate_T/P_list, Gauss-Chebyshev /
+  linear-log), the network solve over the grid (step-04 Network via the
+  state_provider seam), the EXACT RMG fit per net reaction (fit_interpolation
+  _model port), Falloff attach, pdep/<network>.yaml write + load, PDepResult
+  with wall times); rmgpu/kinetics/models.py (Chebyshev.fit_to_data - RMG
+  chebyshev.pyx:177 port, log10(SI k) basis; c00 unit shift corrected to the
+  RMG kunits-based form via kunits_to_si - the pre-step-06 code hard-coded -6
+  for ALL models, corrupting SI-fitted Chebyshev; PDepArrhenius RMG shape
+  (per-pressure Arrhenius list + log-log interpolation) + fit_to_data +
+  _fit_arrhenius (arrhenius.pyx:149 port)); rmgpu/pdep/network.py (state
+  provider seam + _apply_state generalized for multi-isomer: dens_isomers,
+  per-isomer P_coll/coll_freq); rmgpu/reactor/simulator.py (RateParam.falloff
+  + source 'pdep'; forward_A_TP - k(T,P) when a Falloff is attached, else
+  HPL A(T); simulate_mole_fractions + characteristic_rate use it);
+  rmgpu/core/loop.py (RunContext.pressure_dependence / .pdep_reactions /
+  .pdep_state_provider; _pdep_update hook at the RMG model.py:812 call site
+  - after enlarge, before simulate - signature-based re-solve, Falloff
+  attach, wall time; wired into run(); docstring updated); rmgpu/main.py
+  (the input's pressure_dependence block -> RunContext);
+  tests/test_pdep_driver.py (9 tests); scripts/record_job07_step06_reference
+  .py (RMG-Py 2-isomer recorder, rmg_env) + scripts/probe_driver.py (end-to
+  -end probe); gates/baselines/job07/toy_2isomer_ref.json (RMG-Py recorded:
+  per-T network state + K_ref on the 8x6 Gauss-Chebyshev grid + net reactions,
+  2 isomers + 1 product channel, N2 bath, CSE Allen, ~27MB).
+checks: GREEN - pytest tests/test_pdep_driver.py -q: 9 passed (91.5s):
+  (a) Falloff attaches (Chebyshev 6/4 + PDepArrhenius, on the non-circular
+  2-isomer reference); (b) pdep/toy-2isomer.yaml writes + parses (network def
+  + grid + coeffs + k(T,P) grid); (c) fit reproduces the (T,P) grid within
+  the interpolation tolerance (log-RMS < 0.5 RMG error_check bar; point-for-
+  point < 100%); non-circular cross-check: network solve vs RMG K_ref max rel
+  1.19e-05 (CSE precision); loop wiring: forward_A_TP (falloff vs HPL) +
+  _pdep_update (attach + no-op + signature re-solve). Unit convention settled
+  (RMG fits on SI: Chebyshev coeffs = log10(SI k), c00 shift file-load-only,
+  PDepArrhenius per-pressure A in the K units - /tmp/probe_fit.py +
+  chebyshev.pyx:177 + arrhenius.pyx:149,906). pytest tests/ -q: 673 passed
+  (279.75s, no regressions).
+commits: fdd537f (driver + fit + multi-isomer state seam + reference + tests),
+  8e58ae5 (loop wiring: forward_A_TP + _pdep_update hook + block into
+  RunContext), <this commit> (STATUS.md + report)
+next: job-07/step-07-gate (read prompts/steps/job-07-step-07-gate.md).
+  Key context: the driver is ready to be driven on propane_branching - the
+  missing piece is the production network STATE builder (statmech -> DoS ->
+  fluxes -> collision -> per-T state; RMG-Py network.set_conditions), which
+  the gate builds and wires into ctx.pdep_reactions (reaction_key ->
+  (PDepNetwork, PDepReaction), Network.state_provider set to the builder) -
+  the loop's _pdep_update (already in run()) then solves + fits + attaches
+  with no further loop change. The step-06 test (test_pdep_update_attaches_
+  falloff) shows the exact registry shape. The driver's K-vs-K_ref (1.2e-5 on
+  the 2-isomer reference) proves the wiring is not a gap source; the gate's
+  <1% k(T,P) parity will expose any gap in the state builder (grains/DoS/
+  collision) or the gate's own reference. Grid + fit are exact ports (grid
+  matches the reference to 1e-12; fit is RMG's). MSC/RS/SLS = job 08; gate
+  is CSE-only. Full detail: reports/job-07-step-06-driver.md.
