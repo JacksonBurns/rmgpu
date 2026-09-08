@@ -225,4 +225,7 @@ def inspect(path: str) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import torch
+
+    with torch.autograd.set_grad_enabled(False):
+        main()
