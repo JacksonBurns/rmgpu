@@ -156,6 +156,8 @@ def _ser_species(spec):
             elif t in ("HinderedRotor",):
                 md["inertia"] = float(m.inertia.value_si)
                 md["symmetry"] = int(m.symmetry)
+                md["quantum"] = bool(getattr(m, "quantum", False))
+                md["semiclassical"] = bool(getattr(m, "semiclassical", False))
                 if getattr(m, "barrier", None) is not None:
                     md["barrier"] = float(m.barrier.value_si)
                 if getattr(m, "fourier", None) is not None:
@@ -165,6 +167,7 @@ def _ser_species(spec):
             elif t == "FreeRotor":
                 md["inertia"] = float(m.inertia.value_si)
                 md["symmetry"] = int(m.symmetry)
+                md["quantum"] = bool(getattr(m, "quantum", False))
             modes.append(md)
         d["modes"] = modes
         # precomputed reference quantities (RMG-Py's own methods)

@@ -72,10 +72,13 @@ def dump_conformer(out, label, e_list, T_list, conf, note=""):
         elif t == "HinderedRotor":
             md["inertia"] = float(m.inertia.value_si)
             md["symmetry"] = int(m.symmetry)
+            md["quantum"] = bool(getattr(m, "quantum", False))
+            md["semiclassical"] = bool(getattr(m, "semiclassical", False))
             md["barrier"] = float(m.barrier.value_si) if getattr(m, "barrier", None) is not None else None
         elif t == "FreeRotor":
             md["inertia"] = float(m.inertia.value_si)
             md["symmetry"] = int(m.symmetry)
+            md["quantum"] = bool(getattr(m, "quantum", False))
         elif t == "IdealGasTranslation":
             md["mass"] = float(m.mass.value_si)
         modes.append(md)
@@ -159,6 +162,35 @@ def main():
     ], spin_multiplicity=1, optical_isomers=1)
     dump_conformer(out, "linear_N2like", e_list, T_list, conf,
                    "linear species with a linear rotor (N2-like)")
+
+    # 7. CLASSICAL hindered rotor (quantum=False, cosine potential) - the path
+    #    the real propane_branching pdep species use (RMG's fitted statmech
+    #    builds HinderedRotor(quantum=False, semiclassical=False)). C2H5's
+    #    actual rotor parameters (from the statmech dump). Tests the classical
+    #    cosine-potential Cv/SoS/DoS branch of the port.
+    conf = Conformer(E0=(0.0, "J/mol"), modes=[
+        IdealGasTranslation(mass=(30.07, "g/mol")),
+        NonlinearRotor(inertia=([1.5, 2.0, 3.5], "amu*angstrom^2"), symmetry=1),
+        HarmonicOscillator(frequencies=([3100, 3200, 3400, 1450], "cm^-1")),
+        HinderedRotor(inertia=(1.1539816796719142e-49, "kg*m^2"), symmetry=1,
+                      barrier=(7541.984689371597, "J/mol"),
+                      quantum=False, semiclassical=False),
+    ], spin_multiplicity=2, optical_isomers=1)
+    dump_conformer(out, "c2h5_classical_rotor", e_list, T_list, conf,
+                   "radical + CLASSICAL cosine-potential hindered rotor (C2H5's rotor)")
+
+    # 8. Same but the QUANTUM branch (same rotor params, quantum=True) - pins
+    #    both branches of the port against the same parameters.
+    conf = Conformer(E0=(0.0, "J/mol"), modes=[
+        IdealGasTranslation(mass=(30.07, "g/mol")),
+        NonlinearRotor(inertia=([1.5, 2.0, 3.5], "amu*angstrom^2"), symmetry=1),
+        HarmonicOscillator(frequencies=([3100, 3200, 3400, 1450], "cm^-1")),
+        HinderedRotor(inertia=(1.1539816796719142e-49, "kg*m^2"), symmetry=1,
+                      barrier=(7541.984689371597, "J/mol"),
+                      quantum=True),
+    ], spin_multiplicity=2, optical_isomers=1)
+    dump_conformer(out, "c2h5_quantum_rotor", e_list, T_list, conf,
+                   "radical + QUANTUM hindered rotor (same C2H5 rotor params)")
 
     with open(out_path, "w") as f:
         json.dump({"e_list": [float(v) for v in e_list],

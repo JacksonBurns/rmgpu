@@ -1984,6 +1984,8 @@
           "type": "HinderedRotor",
           "inertia": 1.1539816796719142e-49,
           "symmetry": 1,
+          "quantum": false,
+          "semiclassical": false,
           "barrier": 7541.984689371597
         }
       ],
@@ -2101,6 +2103,8 @@
           "type": "HinderedRotor",
           "inertia": 2.2668116435229995e-49,
           "symmetry": 1,
+          "quantum": false,
+          "semiclassical": false,
           "barrier": 6379.452651825371
         }
       ],
@@ -2414,6 +2418,8 @@
           "type": "HinderedRotor",
           "inertia": 2.2331629626457413e-48,
           "symmetry": 1,
+          "quantum": false,
+          "semiclassical": false,
           "barrier": 3092.0573599762533
         }
       ],
@@ -2537,6 +2543,8 @@
           "type": "HinderedRotor",
           "inertia": 2.8584792209371195e-50,
           "symmetry": 1,
+          "quantum": false,
+          "semiclassical": false,
           "barrier": 2108.3248880754218
         }
       ],
@@ -2663,6 +2671,8 @@
           "type": "HinderedRotor",
           "inertia": 6.303882685773118e-50,
           "symmetry": 1,
+          "quantum": false,
+          "semiclassical": false,
           "barrier": 5621.500294322589
         }
       ],
@@ -2878,12 +2888,16 @@
           "type": "HinderedRotor",
           "inertia": 2.2506996275625767e-48,
           "symmetry": 1,
+          "quantum": false,
+          "semiclassical": false,
           "barrier": 3116.3387826635144
         },
         {
           "type": "HinderedRotor",
           "inertia": 2.9456136033733205e-50,
           "symmetry": 1,
+          "quantum": false,
+          "semiclassical": false,
           "barrier": 20140.853693096415
         }
       ],

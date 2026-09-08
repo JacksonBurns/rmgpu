@@ -41,7 +41,7 @@
   "edge_species": 64,
   "edge_reactions": 93,
   "n_pdep_networks": 31,
-  "run_wall_s": 218.17317533493042,
+  "run_wall_s": 252.6314606666565,
   "eq_guard_suppressed_points": 202,
   "eq_guard_suppressed_examples": [
     [
