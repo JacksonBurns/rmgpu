@@ -1,0 +1,4073 @@
+{
+  "n_networks": 31,
+  "networks": [
+    {
+      "label": "PDepNetwork #1",
+      "index": 1,
+      "n_isom": 1,
+      "n_reac": 0,
+      "n_prod": 1,
+      "energy_correction": -31973.993173391907,
+      "isomers": [
+        {
+          "label": "HCO",
+          "E0": -0.0009672330925241113
+        }
+      ],
+      "reactants": [],
+      "products": [
+        {
+          "labels": [
+            "H",
+            "[C]=O"
+          ],
+          "E0": 617969.945093126
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "H",
+            "[C]=O"
+          ],
+          "products": [
+            "HCO"
+          ],
+          "hpl": {
+            "A": 10000000.0,
+            "n": 0.0,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 617969.9460603591
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "HCO"
+          ],
+          "products": [
+            "H",
+            "[C]=O"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #2",
+      "index": 2,
+      "n_isom": 1,
+      "n_reac": 1,
+      "n_prod": 2,
+      "energy_correction": 27746.675633707666,
+      "isomers": [
+        {
+          "label": "CH3O",
+          "E0": 37619.14933839021
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "O",
+            "CH3"
+          ],
+          "E0": 407276.5231097486
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "H",
+            "[CH2][O]"
+          ],
+          "E0": 431073.06710120954
+        },
+        {
+          "labels": [
+            "CH2OH"
+          ],
+          "E0": 0.00014754233416169882
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "O",
+            "CH3"
+          ],
+          "products": [
+            "CH3O"
+          ],
+          "hpl": {
+            "A": 2085.5506342669346,
+            "n": 1.0907744103150985,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 407276.5229622063
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "H",
+            "[CH2][O]"
+          ],
+          "products": [
+            "CH3O"
+          ],
+          "hpl": {
+            "A": 2805150.0,
+            "n": 0.314888,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 431073.0669536672
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "CH2OH"
+          ],
+          "products": [
+            "CH3O"
+          ],
+          "hpl": {
+            "A": 25600.0,
+            "n": 2.36,
+            "Ea": 138490.0,
+            "T0": 1.0
+          },
+          "ts_E0": 138490.0
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH3O"
+          ],
+          "products": [
+            "O",
+            "CH3"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH3O"
+          ],
+          "products": [
+            "H",
+            "[CH2][O]"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH3O"
+          ],
+          "products": [
+            "CH2OH"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #3",
+      "index": 3,
+      "n_isom": 1,
+      "n_reac": 1,
+      "n_prod": 2,
+      "energy_correction": 60985.76751985634,
+      "isomers": [
+        {
+          "label": "CH2CO",
+          "E0": -0.0018948563374578953
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "H",
+            "HCCO"
+          ],
+          "E0": 440131.4560544434
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "ketene(T)"
+          ],
+          "E0": 211657.99663263327
+        },
+        {
+          "labels": [
+            "[CH]C=O"
+          ],
+          "E0": 334333.0560103995
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "ketene(T)"
+          ],
+          "products": [
+            "CH2CO"
+          ],
+          "hpl": {
+            "A": 194900000000.00018,
+            "n": 0.486,
+            "Ea": 22861.375999999993,
+            "T0": 1.0
+          },
+          "ts_E0": 234519.3745274896
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "H",
+            "HCCO"
+          ],
+          "products": [
+            "CH2CO"
+          ],
+          "hpl": {
+            "A": 11386000.0,
+            "n": 0.308956,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 440131.4579492997
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "[CH]C=O"
+          ],
+          "products": [
+            "CH2CO"
+          ],
+          "hpl": {
+            "A": 3.95159e+18,
+            "n": -1.97082,
+            "Ea": 12213.215565730687,
+            "T0": 1.0
+          },
+          "ts_E0": 346546.2734709865
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH2CO"
+          ],
+          "products": [
+            "H",
+            "HCCO"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CO"
+          ],
+          "products": [
+            "ketene(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CO"
+          ],
+          "products": [
+            "[CH]C=O"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #4",
+      "index": 4,
+      "n_isom": 1,
+      "n_reac": 0,
+      "n_prod": 2,
+      "energy_correction": -286378.5820202497,
+      "isomers": [
+        {
+          "label": "C2H3",
+          "E0": -0.01172975031659007
+        }
+      ],
+      "reactants": [],
+      "products": [
+        {
+          "labels": [
+            "H",
+            "H2CC(T)"
+          ],
+          "E0": 525737.588807711
+        },
+        {
+          "labels": [
+            "H",
+            "C2H2(T)"
+          ],
+          "E0": 516171.7977700825
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "H",
+            "H2CC(T)"
+          ],
+          "products": [
+            "C2H3"
+          ],
+          "hpl": {
+            "A": 10000000.0,
+            "n": 0.0,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 525737.6005374613
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "H",
+            "C2H2(T)"
+          ],
+          "products": [
+            "C2H3"
+          ],
+          "hpl": {
+            "A": 127099400.0,
+            "n": 0.0334649,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 516171.80949983274
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "C2H3"
+          ],
+          "products": [
+            "H",
+            "H2CC(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -41.26865992638649,
+                0.13205314233928137,
+                -0.045736567542570036,
+                0.009381784909881064
+              ],
+              [
+                36.81210727859569,
+                0.18301710102522353,
+                -0.050759283747437364,
+                0.00422009803380836
+              ],
+              [
+                -0.10199882526526216,
+                0.09972958676625356,
+                -0.01864832270715836,
+                -0.0023233736214654343
+              ],
+              [
+                -0.04979355707142331,
+                0.04450060595976287,
+                -0.0030574377988272497,
+                -0.0028154575252784357
+              ],
+              [
+                -0.02193634089510463,
+                0.016879767101140662,
+                0.0013337036428110293,
+                -0.001402400903418588
+              ],
+              [
+                -0.009101417524584814,
+                0.005503350169252664,
+                0.001446601824962996,
+                -0.0003537029838511785
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "C2H3"
+          ],
+          "products": [
+            "H",
+            "C2H2(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -39.31010250644421,
+                0.08685254397514201,
+                -0.028037248155057797,
+                0.004628098236933775
+              ],
+              [
+                36.190503092222826,
+                0.13916997567101286,
+                -0.03995830844395944,
+                0.004100191557337695
+              ],
+              [
+                -0.06985973321809748,
+                0.08519943193991694,
+                -0.018764483739797135,
+                -0.0005708201243499351
+              ],
+              [
+                -0.039790762105838026,
+                0.042185255655049,
+                -0.0052141766938940135,
+                -0.0019399873028977136
+              ],
+              [
+                -0.01936537017749105,
+                0.01747293109600629,
+                0.0001119773170297146,
+                -0.0013532005122020574
+              ],
+              [
+                -0.00854733478621018,
+                0.006131326878509377,
+                0.0011032211290727635,
+                -0.0005217252722998222
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #5",
+      "index": 5,
+      "n_isom": 1,
+      "n_reac": 0,
+      "n_prod": 1,
+      "energy_correction": -40822.10237592179,
+      "isomers": [
+        {
+          "label": "C2H4",
+          "E0": 0.000813421793282032
+        }
+      ],
+      "reactants": [],
+      "products": [
+        {
+          "labels": [
+            "CHCH3(S)"
+          ],
+          "E0": 315436.5224073129
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "CHCH3(S)"
+          ],
+          "products": [
+            "C2H4"
+          ],
+          "hpl": {
+            "A": 1.185477e+19,
+            "n": -1.97082,
+            "Ea": 14319.442874581213,
+            "T0": 1.0
+          },
+          "ts_E0": 329755.9644684723
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "C2H4"
+          ],
+          "products": [
+            "CHCH3(S)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #6",
+      "index": 6,
+      "n_isom": 1,
+      "n_reac": 1,
+      "n_prod": 0,
+      "energy_correction": 84435.00639871787,
+      "isomers": [
+        {
+          "label": "CH4",
+          "E0": 0.0014137821272015572
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "H2",
+            "CH2(S)"
+          ],
+          "E0": 494930.18430449197
+        }
+      ],
+      "products": [],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "H2",
+            "CH2(S)"
+          ],
+          "products": [
+            "CH4"
+          ],
+          "hpl": {
+            "A": 71881.89755227404,
+            "n": 0.444,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 494930.18289070984
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH4"
+          ],
+          "products": [
+            "H2",
+            "CH2(S)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #7",
+      "index": 7,
+      "n_isom": 1,
+      "n_reac": 1,
+      "n_prod": 2,
+      "energy_correction": -108926.23941135581,
+      "isomers": [
+        {
+          "label": "C2H5",
+          "E0": -0.0027761441888287663
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "CH2",
+            "CH3"
+          ],
+          "E0": 408968.8663099874
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "H",
+            "CHCH3(T)"
+          ],
+          "E0": 446758.4227237981
+        },
+        {
+          "labels": [
+            "H",
+            "C2H4(T)"
+          ],
+          "E0": 421012.13841631706
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "CH2",
+            "CH3"
+          ],
+          "products": [
+            "C2H5"
+          ],
+          "hpl": {
+            "A": 1735256.5715718453,
+            "n": 0.37773196088241556,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 408968.86908613157
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "H",
+            "CHCH3(T)"
+          ],
+          "products": [
+            "C2H5"
+          ],
+          "hpl": {
+            "A": 10000000.0,
+            "n": 0.0,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 446758.42549994227
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "H",
+            "C2H4(T)"
+          ],
+          "products": [
+            "C2H5"
+          ],
+          "hpl": {
+            "A": 156573400.0,
+            "n": 0.0631113,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 421012.14119246125
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "C2H5"
+          ],
+          "products": [
+            "CH2",
+            "CH3"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -27.525065383578934,
+                0.07795214593538534,
+                -0.0233349363891191,
+                0.0030490937033172405
+              ],
+              [
+                28.990054082231666,
+                0.13729251630734174,
+                -0.038937509736124955,
+                0.004087904860596991
+              ],
+              [
+                -0.07752199351606208,
+                0.09567011155952525,
+                -0.02286054511057155,
+                0.0005428014986035419
+              ],
+              [
+                -0.0716497380307893,
+                0.0538065804642695,
+                -0.008756356579556613,
+                -0.0015593969185539965
+              ],
+              [
+                -0.035953401940794306,
+                0.02451056208978002,
+                -0.0010486394039024832,
+                -0.0016931495056317913
+              ],
+              [
+                -0.015061913679604359,
+                0.008699579586378047,
+                0.0014451953484488679,
+                -0.0009398951455623916
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "C2H5"
+          ],
+          "products": [
+            "H",
+            "CHCH3(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -32.98630918363738,
+                0.24275717435417252,
+                -0.0757814643934506,
+                0.013928112515676494
+              ],
+              [
+                31.092160899223522,
+                0.3498747028432476,
+                -0.08680062525518997,
+                0.005898865860337184
+              ],
+              [
+                -0.17740486156671167,
+                0.18331603102696245,
+                -0.02526004771836591,
+                -0.006363131288811977
+              ],
+              [
+                -0.08783130817741172,
+                0.07411253921820833,
+                0.002019937286246185,
+                -0.0060459967306739255
+              ],
+              [
+                -0.03909114614253123,
+                0.023759737953978028,
+                0.006212790165306637,
+                -0.002158432692927481
+              ],
+              [
+                -0.016066370288301296,
+                0.00571070819965183,
+                0.0035347861370449065,
+                0.00012707593483674007
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "C2H5"
+          ],
+          "products": [
+            "H",
+            "C2H4(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -29.40884161112443,
+                0.145585410306167,
+                -0.03962667863682032,
+                0.0047750147893840245
+              ],
+              [
+                29.664337574419086,
+                0.24582192289941338,
+                -0.06055593577391399,
+                0.004504955735479176
+              ],
+              [
+                -0.09158253813601813,
+                0.15666317724705248,
+                -0.028381337124924706,
+                -0.0019234323510421904
+              ],
+              [
+                -0.0635069615696001,
+                0.07773916538484701,
+                -0.005650382737865589,
+                -0.003907268987916366
+              ],
+              [
+                -0.03564732560550548,
+                0.030053385799979262,
+                0.0029774519529389178,
+                -0.00246161412212062
+              ],
+              [
+                -0.016883884105515213,
+                0.008327323273310112,
+                0.003543536935821144,
+                -0.0006087612599075254
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #8",
+      "index": 8,
+      "n_isom": 1,
+      "n_reac": 1,
+      "n_prod": 3,
+      "energy_correction": 27746.675633707666,
+      "isomers": [
+        {
+          "label": "CH2OH",
+          "E0": 0.00014754233416169882
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "OH",
+            "CH2"
+          ],
+          "E0": 437488.6712748363
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "H",
+            "HCOH(T)"
+          ],
+          "E0": 445445.0743167328
+        },
+        {
+          "labels": [
+            "H",
+            "[CH2][O]"
+          ],
+          "E0": 431073.06710120954
+        },
+        {
+          "labels": [
+            "CH3O"
+          ],
+          "E0": 37619.14933839021
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "OH",
+            "CH2"
+          ],
+          "products": [
+            "CH2OH"
+          ],
+          "hpl": {
+            "A": 15399.627862208068,
+            "n": 0.9328853940969797,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 437488.67112729396
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "H",
+            "HCOH(T)"
+          ],
+          "products": [
+            "CH2OH"
+          ],
+          "hpl": {
+            "A": 10000000.0,
+            "n": 0.0,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 445445.0741691905
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "H",
+            "[CH2][O]"
+          ],
+          "products": [
+            "CH2OH"
+          ],
+          "hpl": {
+            "A": 2805150.0,
+            "n": 0.314888,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 431073.0669536672
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "CH2OH"
+          ],
+          "products": [
+            "CH3O"
+          ],
+          "hpl": {
+            "A": 25600.0,
+            "n": 2.36,
+            "Ea": 138490.0,
+            "T0": 1.0
+          },
+          "ts_E0": 138490.0
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH2OH"
+          ],
+          "products": [
+            "OH",
+            "CH2"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2OH"
+          ],
+          "products": [
+            "H",
+            "HCOH(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2OH"
+          ],
+          "products": [
+            "H",
+            "[CH2][O]"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2OH"
+          ],
+          "products": [
+            "CH3O"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #9",
+      "index": 9,
+      "n_isom": 1,
+      "n_reac": 2,
+      "n_prod": 6,
+      "energy_correction": 21293.848142638453,
+      "isomers": [
+        {
+          "label": "CH2CHO",
+          "E0": 27826.81595822517
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "HCO",
+            "CH2"
+          ],
+          "E0": 434637.88114481064
+        },
+        {
+          "labels": [
+            "O",
+            "C2H3"
+          ],
+          "E0": 550677.2088226797
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "H",
+            "ketene(T)"
+          ],
+          "E0": 383758.21781006316
+        },
+        {
+          "labels": [
+            "oxiranyl"
+          ],
+          "E0": 177798.37172849476
+        },
+        {
+          "labels": [
+            "H",
+            "[CH2][C]=O"
+          ],
+          "E0": 394016.46154389373
+        },
+        {
+          "labels": [
+            "CH3CO"
+          ],
+          "E0": -0.00048638845328241587
+        },
+        {
+          "labels": [
+            "CH2COH"
+          ],
+          "E0": 124563.18035986088
+        },
+        {
+          "labels": [
+            "CHCHOH"
+          ],
+          "E0": 139929.34345068224
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "HCO",
+            "CH2"
+          ],
+          "products": [
+            "CH2CHO"
+          ],
+          "hpl": {
+            "A": 1735256.5715718453,
+            "n": 0.37773196088241556,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 434637.8816311991
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "H",
+            "ketene(T)"
+          ],
+          "products": [
+            "CH2CHO"
+          ],
+          "hpl": {
+            "A": 10000000.0,
+            "n": 0.0,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 383758.2182964516
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "oxiranyl"
+          ],
+          "hpl": {
+            "A": 6.95187e+18,
+            "n": -1.62813,
+            "Ea": 199109.62375934407,
+            "T0": 1.0
+          },
+          "ts_E0": 226936.4402039577
+        },
+        {
+          "label": "reaction4",
+          "reactants": [
+            "H",
+            "[CH2][C]=O"
+          ],
+          "products": [
+            "CH2CHO"
+          ],
+          "hpl": {
+            "A": 91028700000000.0,
+            "n": -2.74437,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 394016.4620302822
+        },
+        {
+          "label": "reaction5",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "CH3CO"
+          ],
+          "hpl": {
+            "A": 17481.160835578325,
+            "n": 2.5613645833333334,
+            "Ea": 141487.91594444448,
+            "T0": 1.0
+          },
+          "ts_E0": 169314.7323890581
+        },
+        {
+          "label": "reaction6",
+          "reactants": [
+            "O",
+            "C2H3"
+          ],
+          "products": [
+            "CH2CHO"
+          ],
+          "hpl": {
+            "A": 2085.5506342669346,
+            "n": 1.0907744103150985,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 550677.2093090682
+        },
+        {
+          "label": "reaction7",
+          "reactants": [
+            "CH2COH"
+          ],
+          "products": [
+            "CH2CHO"
+          ],
+          "hpl": {
+            "A": 4965190424.301539,
+            "n": 1.0582633333333333,
+            "Ea": 162779.16185333335,
+            "T0": 1.0
+          },
+          "ts_E0": 287342.3426995827
+        },
+        {
+          "label": "reaction8",
+          "reactants": [
+            "CHCHOH"
+          ],
+          "products": [
+            "CH2CHO"
+          ],
+          "hpl": {
+            "A": 6718.852493245488,
+            "n": 2.5846666666666667,
+            "Ea": 192128.83733333336,
+            "T0": 1.0
+          },
+          "ts_E0": 332058.181270404
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "HCO",
+            "CH2"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "O",
+            "C2H3"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "H",
+            "ketene(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "oxiranyl"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "H",
+            "[CH2][C]=O"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "CH3CO"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "CH2COH"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH2CHO"
+          ],
+          "products": [
+            "CHCHOH"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #10",
+      "index": 10,
+      "n_isom": 1,
+      "n_reac": 1,
+      "n_prod": 2,
+      "energy_correction": 177832.8008302605,
+      "isomers": [
+        {
+          "label": "CH3CHO",
+          "E0": -0.003955260501243174
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "H",
+            "CH2CHO"
+          ],
+          "E0": 396157.90432315506
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[CH2]C[O]"
+          ],
+          "E0": 365493.7763763797
+        },
+        {
+          "labels": [
+            "ethenol"
+          ],
+          "E0": 39547.629870633595
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "[CH2]C[O]"
+          ],
+          "products": [
+            "CH3CHO"
+          ],
+          "hpl": {
+            "A": 389800000000.00037,
+            "n": 0.486,
+            "Ea": 22861.375999999993,
+            "T0": 1.0
+          },
+          "ts_E0": 388355.1563316402
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "ethenol"
+          ],
+          "products": [
+            "CH3CHO"
+          ],
+          "hpl": {
+            "A": 1.20593e-38,
+            "n": 14.7335,
+            "Ea": 119026.0,
+            "T0": 1.0
+          },
+          "ts_E0": 158573.6338258941
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "H",
+            "CH2CHO"
+          ],
+          "products": [
+            "CH3CHO"
+          ],
+          "hpl": {
+            "A": 78286700.0,
+            "n": 0.0631113,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 396157.90827841556
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH3CHO"
+          ],
+          "products": [
+            "H",
+            "CH2CHO"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -27.14256205423697,
+                0.6055316239163325,
+                -0.21003058248406759,
+                0.05124929823075419
+              ],
+              [
+                27.514156492594566,
+                0.49891309463119266,
+                -0.06968951172330527,
+                -0.017470918993347982
+              ],
+              [
+                -0.19624357967318476,
+                0.18325602083309703,
+                0.009696506157152644,
+                -0.014957990301867084
+              ],
+              [
+                -0.10997335429631781,
+                0.05246633540850886,
+                0.015102131902193096,
+                -0.0035426281467582144
+              ],
+              [
+                -0.0498128407989228,
+                0.00937135141648853,
+                0.007261094578583216,
+                0.000505958907181886
+              ],
+              [
+                -0.02039313217959052,
+                -0.0002852771843265753,
+                0.0018047895317495938,
+                0.0007650816616651956
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH3CHO"
+          ],
+          "products": [
+            "[CH2]C[O]"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -26.71723879119189,
+                0.4325062531322384,
+                -0.153341818419136,
+                0.03922286241889744
+              ],
+              [
+                26.916444497208403,
+                0.4125801283456355,
+                -0.0766150250613759,
+                -0.005403536227597775
+              ],
+              [
+                -0.13899557167472232,
+                0.17267173162682997,
+                -0.003992323660454586,
+                -0.011379626784411788
+              ],
+              [
+                -0.057248893911447135,
+                0.057881090340954865,
+                0.010252869083146722,
+                -0.004581215080885254
+              ],
+              [
+                -0.11922931613814372,
+                0.01816680815788254,
+                0.00489661503428112,
+                0.0003494228532415211
+              ],
+              [
+                0.059561558800609885,
+                -0.0007933880660426279,
+                0.003969688633123265,
+                -2.408343370285948e-06
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "CH3CHO"
+          ],
+          "products": [
+            "ethenol"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                -14.082737028327035,
+                0.05058784856956071,
+                -0.009596417915603825,
+                0.0006514840641006769
+              ],
+              [
+                16.08626374533575,
+                0.09553286411935173,
+                -0.01766517623708577,
+                0.0010890729423812836
+              ],
+              [
+                0.8998352957758968,
+                0.08026571101228781,
+                -0.013633072106652568,
+                0.0005548743563266377
+              ],
+              [
+                0.1822340338638382,
+                0.05962771814408051,
+                -0.008469385493202307,
+                -4.752140879129674e-05
+              ],
+              [
+                0.02282899908293124,
+                0.03869212514487354,
+                -0.0037140125494548436,
+                -0.00047646374155969895
+              ],
+              [
+                -0.009353588177720269,
+                0.02148850133854076,
+                -0.00044758606485197647,
+                -0.0006233092500515375
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #11",
+      "index": 11,
+      "n_isom": 1,
+      "n_reac": 1,
+      "n_prod": 0,
+      "energy_correction": 96210.45129303494,
+      "isomers": [
+        {
+          "label": "C2H6",
+          "E0": 0.0018319650553166866
+        }
+      ],
+      "reactants": [
+        {
+          "labels": [
+            "CH2(S)",
+            "CH4"
+          ],
+          "E0": 430866.41469035984
+        }
+      ],
+      "products": [],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "CH2(S)",
+            "CH4"
+          ],
+          "products": [
+            "C2H6"
+          ],
+          "hpl": {
+            "A": 1746951.6306984595,
+            "n": 0.189,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 430866.41285839485
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "C2H6"
+          ],
+          "products": [
+            "CH2(S)",
+            "CH4"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #12",
+      "index": 12,
+      "n_isom": 1,
+      "n_reac": 0,
+      "n_prod": 5,
+      "energy_correction": -75007.38631137984,
+      "isomers": [
+        {
+          "label": "ipropyl",
+          "E0": 0.003498879843391478
+        }
+      ],
+      "reactants": [],
+      "products": [
+        {
+          "labels": [
+            "CH3",
+            "CHCH3(T)"
+          ],
+          "E0": 405410.21113493684
+        },
+        {
+          "labels": [
+            "H",
+            "C[C]C"
+          ],
+          "E0": 465005.93688504933
+        },
+        {
+          "labels": [
+            "H",
+            "C3H6"
+          ],
+          "E0": 142761.05397757984
+        },
+        {
+          "labels": [
+            "H",
+            "C3H6(T)"
+          ],
+          "E0": 421649.88321052794
+        },
+        {
+          "labels": [
+            "npropyl"
+          ],
+          "E0": 12054.723651746288
+        }
+      ],
+      "bath_gas": {
+        "N2": 0.5,
+        "Ne": 0.5
+      },
+      "path_reactions": [
+        {
+          "label": "reaction1",
+          "reactants": [
+            "CH3",
+            "CHCH3(T)"
+          ],
+          "products": [
+            "ipropyl"
+          ],
+          "hpl": {
+            "A": 1735256.5715718453,
+            "n": 0.37773196088241556,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 405410.207636057
+        },
+        {
+          "label": "reaction2",
+          "reactants": [
+            "H",
+            "C[C]C"
+          ],
+          "products": [
+            "ipropyl"
+          ],
+          "hpl": {
+            "A": 10000000.0,
+            "n": 0.0,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 465005.9333861695
+        },
+        {
+          "label": "reaction3",
+          "reactants": [
+            "H",
+            "C3H6"
+          ],
+          "products": [
+            "ipropyl"
+          ],
+          "hpl": {
+            "A": 1840.0000000000002,
+            "n": 1.553,
+            "Ea": 6568.88,
+            "T0": 1.0
+          },
+          "ts_E0": 149329.9304787
+        },
+        {
+          "label": "reaction4",
+          "reactants": [
+            "H",
+            "C3H6(T)"
+          ],
+          "products": [
+            "ipropyl"
+          ],
+          "hpl": {
+            "A": 17663700.0,
+            "n": 0.153073,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": 421649.8797116481
+        },
+        {
+          "label": "reaction5",
+          "reactants": [
+            "ipropyl"
+          ],
+          "products": [
+            "npropyl"
+          ],
+          "hpl": {
+            "A": 4860000000.0,
+            "n": 1.32,
+            "Ea": 168615.0,
+            "T0": 1.0
+          },
+          "ts_E0": 168615.0
+        }
+      ],
+      "net_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "ipropyl"
+          ],
+          "products": [
+            "CH3",
+            "CHCH3(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "ipropyl"
+          ],
+          "products": [
+            "H",
+            "C[C]C"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "ipropyl"
+          ],
+          "products": [
+            "H",
+            "C3H6"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "ipropyl"
+          ],
+          "products": [
+            "H",
+            "C3H6(T)"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        },
+        {
+          "label": "",
+          "reactants": [
+            "ipropyl"
+          ],
+          "products": [
+            "npropyl"
+          ],
+          "n_reactants": 1,
+          "kinetics": {
+            "type": "Chebyshev",
+            "Tmin": 300.0,
+            "Tmax": 1500.0,
+            "Pmin": 10000.0,
+            "Pmax": 10000000.000000004,
+            "degreeT": 6,
+            "degreeP": 4,
+            "kunits": "s^-1",
+            "coeffs": [
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ],
+              [
+                NaN,
+                NaN,
+                NaN,
+                NaN
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "label": "PDepNetwork #13",
+      "index": 13,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O",
+            "O2"
+          ],
+          "E0": 234383.0020468693
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[O]O[O]"
+          ],
+          "E0": 192543.9854795346
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O",
+            "O2"
+          ],
+          "products": [
+            "[O]O[O]"
+          ],
+          "hpl": {
+            "A": 4171.101268533869,
+            "n": 1.0907744103150985,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #14",
+      "index": 14,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "HO2"
+          ],
+          "E0": -5945.295427578298
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[O]OOO"
+          ],
+          "E0": 76516.3021147456
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "HO2"
+          ],
+          "products": [
+            "[O]OOO"
+          ],
+          "hpl": {
+            "A": 212954.0,
+            "n": 0.348287,
+            "Ea": 82461.5975423239,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #15",
+      "index": 15,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CO2"
+          ],
+          "E0": -411753.0120987864
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[O]OO[C]=O"
+          ],
+          "E0": 7098.144046936184
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "CO2"
+          ],
+          "products": [
+            "[O]OO[C]=O"
+          ],
+          "hpl": {
+            "A": 347.7367102753824,
+            "n": 1.8997001492586996,
+            "Ea": 418851.1561457226,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #16",
+      "index": 16,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CO2"
+          ],
+          "E0": -411753.0120987864
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[O]OC([O])=O"
+          ],
+          "E0": -110834.6782056815
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "CO2"
+          ],
+          "products": [
+            "[O]OC([O])=O"
+          ],
+          "hpl": {
+            "A": 0.00016740574805008393,
+            "n": 2.9883333333333333,
+            "Ea": 300918.3338931049,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #17",
+      "index": 17,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CH2O"
+          ],
+          "E0": -128564.87110897119
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[CH2]OO[O]"
+          ],
+          "E0": 234610.88265194
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "CH2O"
+          ],
+          "products": [
+            "[CH2]OO[O]"
+          ],
+          "hpl": {
+            "A": 0.10177660526053693,
+            "n": 3.1364634460807146,
+            "Ea": 363175.7537609112,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #18",
+      "index": 18,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CH2O"
+          ],
+          "E0": -128564.87110897119
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[O]CO[O]"
+          ],
+          "E0": 47726.81206718087
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "CH2O"
+          ],
+          "products": [
+            "[O]CO[O]"
+          ],
+          "hpl": {
+            "A": 0.14857321427498293,
+            "n": 1.743,
+            "Ea": 176291.68317615206,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #19",
+      "index": 19,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CH3"
+          ],
+          "E0": 127903.29108300796
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "CH3OO"
+          ],
+          "E0": 1918.9306002567173
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH3OO"
+          ],
+          "products": [
+            "O2",
+            "CH3"
+          ],
+          "hpl": {
+            "A": 109000000000000.0,
+            "n": 0.25,
+            "Ea": 139327.19999999998,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #20",
+      "index": 20,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "C2H2"
+          ],
+          "E0": 209232.57316139547
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[CH]=CO[O]"
+          ],
+          "E0": 345008.56487496477
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "C2H2"
+          ],
+          "products": [
+            "[CH]=CO[O]"
+          ],
+          "hpl": {
+            "A": 2243568.5859808275,
+            "n": 0.0,
+            "Ea": 135775.9917135693,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #21",
+      "index": 21,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CH2CO"
+          ],
+          "E0": -69607.54461916702
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "C=[C]OO[O]"
+          ],
+          "E0": 385577.39224196237
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "CH2CO"
+          ],
+          "products": [
+            "C=[C]OO[O]"
+          ],
+          "hpl": {
+            "A": 0.00016740574805008393,
+            "n": 2.9883333333333333,
+            "Ea": 455184.93686112936,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #22",
+      "index": 22,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CH2CO"
+          ],
+          "E0": -69607.54461916702
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[O]OC[C]=O"
+          ],
+          "E0": 55020.661583931185
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "CH2CO"
+          ],
+          "products": [
+            "[O]OC[C]=O"
+          ],
+          "hpl": {
+            "A": 22.442931479331616,
+            "n": 1.8110667824571665,
+            "Ea": 124628.2062030982,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #23",
+      "index": 23,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "CH2CO"
+          ],
+          "E0": -69607.54461916702
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[CH2]C(=O)O[O]"
+          ],
+          "E0": 38519.797387966915
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "CH2CO"
+          ],
+          "products": [
+            "[CH2]C(=O)O[O]"
+          ],
+          "hpl": {
+            "A": 25.76611456927087,
+            "n": 1.8014931419599687,
+            "Ea": 108127.34200713394,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #24",
+      "index": 24,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "C2H4"
+          ],
+          "E0": 32200.32527661111
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "[CH2]CO[O]"
+          ],
+          "E0": 188389.4976732093
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "O2",
+            "C2H4"
+          ],
+          "products": [
+            "[CH2]CO[O]"
+          ],
+          "hpl": {
+            "A": 0.00044400000000000006,
+            "n": 2.9,
+            "Ea": 156189.17239659818,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #25",
+      "index": 25,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "O2",
+            "C2H5"
+          ],
+          "E0": 100304.46231204513
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "CH3CH2OO"
+          ],
+          "E0": -35848.087115448434
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "CH3CH2OO"
+          ],
+          "products": [
+            "O2",
+            "C2H5"
+          ],
+          "hpl": {
+            "A": 9.49e+21,
+            "n": -2.41,
+            "Ea": 149787.19999999998,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #26",
+      "index": 26,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "OH",
+            "HO2"
+          ],
+          "E0": 31048.43685014994
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "OOO"
+          ],
+          "E0": -111465.40498634242
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "OH",
+            "HO2"
+          ],
+          "products": [
+            "OOO"
+          ],
+          "hpl": {
+            "A": 20000000.0,
+            "n": 1.78837e-07,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #27",
+      "index": 27,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "H2O",
+            "CO"
+          ],
+          "E0": -370940.3281327159
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "formic_acid"
+          ],
+          "E0": -389410.2357687261
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "H2O",
+            "CO"
+          ],
+          "products": [
+            "formic_acid"
+          ],
+          "hpl": {
+            "A": 2.54e-07,
+            "n": 3.7,
+            "Ea": 223258.0,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #28",
+      "index": 28,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "H2O",
+            "C2H4"
+          ],
+          "E0": -210899.3194999972
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "ethanol"
+          ],
+          "E0": -249626.69627560588
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "H2O",
+            "C2H4"
+          ],
+          "products": [
+            "ethanol"
+          ],
+          "hpl": {
+            "A": 0.0005880000000000001,
+            "n": 2.94,
+            "Ea": 222170.00000000006,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #29",
+      "index": 29,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "HO2",
+            "HO2"
+          ],
+          "E0": 5352.963343464769
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "OOOO"
+          ],
+          "E0": -75488.39311819524
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "HO2",
+            "HO2"
+          ],
+          "products": [
+            "OOOO"
+          ],
+          "hpl": {
+            "A": 53238.5,
+            "n": 0.348287,
+            "Ea": 0.0,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #30",
+      "index": 30,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "HO2",
+            "CO"
+          ],
+          "E0": -116542.42458506452
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "formylperoxy"
+          ],
+          "E0": -118562.07096864609
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "HO2",
+            "CO"
+          ],
+          "products": [
+            "formylperoxy"
+          ],
+          "hpl": {
+            "A": 0.059198481816646845,
+            "n": 2.3675,
+            "Ea": 305306.3333333333,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    },
+    {
+      "label": "PDepNetwork #31",
+      "index": 31,
+      "n_isom": 0,
+      "n_reac": 1,
+      "n_prod": 1,
+      "energy_correction": null,
+      "isomers": [],
+      "reactants": [
+        {
+          "labels": [
+            "H2O2",
+            "CO"
+          ],
+          "E0": -266450.35820118396
+        }
+      ],
+      "products": [
+        {
+          "labels": [
+            "OCHOOH"
+          ],
+          "E0": -304273.8071963852
+        }
+      ],
+      "bath_gas": {},
+      "path_reactions": [
+        {
+          "label": "",
+          "reactants": [
+            "H2O2",
+            "CO"
+          ],
+          "products": [
+            "OCHOOH"
+          ],
+          "hpl": {
+            "A": 2.54e-07,
+            "n": 3.7,
+            "Ea": 223258.0,
+            "T0": 1.0
+          },
+          "ts_E0": null
+        }
+      ],
+      "net_reactions": []
+    }
+  ]
+}

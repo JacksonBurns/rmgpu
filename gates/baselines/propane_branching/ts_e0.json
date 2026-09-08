@@ -1,0 +1,413 @@
+{
+  "n_path_reactions": 35,
+  "reactions": [
+    {
+      "network": "PDepNetwork #1",
+      "reactants": [
+        "H",
+        "[C]=O"
+      ],
+      "products": [
+        "HCO"
+      ],
+      "E0_TS": 617969.9460603591,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #2",
+      "reactants": [
+        "O",
+        "CH3"
+      ],
+      "products": [
+        "CH3O"
+      ],
+      "E0_TS": 407276.5229622063,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #2",
+      "reactants": [
+        "H",
+        "[CH2][O]"
+      ],
+      "products": [
+        "CH3O"
+      ],
+      "E0_TS": 431073.0669536672,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #2",
+      "reactants": [
+        "CH2OH"
+      ],
+      "products": [
+        "CH3O"
+      ],
+      "E0_TS": 138490.0,
+      "Ea": 138490.0
+    },
+    {
+      "network": "PDepNetwork #3",
+      "reactants": [
+        "ketene(T)"
+      ],
+      "products": [
+        "CH2CO"
+      ],
+      "E0_TS": 234519.3745274896,
+      "Ea": 22861.375999999993
+    },
+    {
+      "network": "PDepNetwork #3",
+      "reactants": [
+        "H",
+        "HCCO"
+      ],
+      "products": [
+        "CH2CO"
+      ],
+      "E0_TS": 440131.4579492997,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #3",
+      "reactants": [
+        "[CH]C=O"
+      ],
+      "products": [
+        "CH2CO"
+      ],
+      "E0_TS": 346546.2734709865,
+      "Ea": 12213.215565730687
+    },
+    {
+      "network": "PDepNetwork #4",
+      "reactants": [
+        "H",
+        "H2CC(T)"
+      ],
+      "products": [
+        "C2H3"
+      ],
+      "E0_TS": 525737.6005374613,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #4",
+      "reactants": [
+        "H",
+        "C2H2(T)"
+      ],
+      "products": [
+        "C2H3"
+      ],
+      "E0_TS": 516171.80949983274,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #5",
+      "reactants": [
+        "CHCH3(S)"
+      ],
+      "products": [
+        "C2H4"
+      ],
+      "E0_TS": 329755.9644684723,
+      "Ea": 14319.442874581213
+    },
+    {
+      "network": "PDepNetwork #6",
+      "reactants": [
+        "H2",
+        "CH2(S)"
+      ],
+      "products": [
+        "CH4"
+      ],
+      "E0_TS": 494930.18289070984,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #7",
+      "reactants": [
+        "CH2",
+        "CH3"
+      ],
+      "products": [
+        "C2H5"
+      ],
+      "E0_TS": 408968.86908613157,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #7",
+      "reactants": [
+        "H",
+        "CHCH3(T)"
+      ],
+      "products": [
+        "C2H5"
+      ],
+      "E0_TS": 446758.42549994227,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #7",
+      "reactants": [
+        "H",
+        "C2H4(T)"
+      ],
+      "products": [
+        "C2H5"
+      ],
+      "E0_TS": 421012.14119246125,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #8",
+      "reactants": [
+        "OH",
+        "CH2"
+      ],
+      "products": [
+        "CH2OH"
+      ],
+      "E0_TS": 437488.67112729396,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #8",
+      "reactants": [
+        "H",
+        "HCOH(T)"
+      ],
+      "products": [
+        "CH2OH"
+      ],
+      "E0_TS": 445445.0741691905,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #8",
+      "reactants": [
+        "H",
+        "[CH2][O]"
+      ],
+      "products": [
+        "CH2OH"
+      ],
+      "E0_TS": 431073.0669536672,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #8",
+      "reactants": [
+        "CH2OH"
+      ],
+      "products": [
+        "CH3O"
+      ],
+      "E0_TS": 138490.0,
+      "Ea": 138490.0
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "HCO",
+        "CH2"
+      ],
+      "products": [
+        "CH2CHO"
+      ],
+      "E0_TS": 434637.8816311991,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "H",
+        "ketene(T)"
+      ],
+      "products": [
+        "CH2CHO"
+      ],
+      "E0_TS": 383758.2182964516,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "CH2CHO"
+      ],
+      "products": [
+        "oxiranyl"
+      ],
+      "E0_TS": 226936.4402039577,
+      "Ea": 199109.62375934407
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "H",
+        "[CH2][C]=O"
+      ],
+      "products": [
+        "CH2CHO"
+      ],
+      "E0_TS": 394016.4620302822,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "CH2CHO"
+      ],
+      "products": [
+        "CH3CO"
+      ],
+      "E0_TS": 169314.7323890581,
+      "Ea": 141487.91594444448
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "O",
+        "C2H3"
+      ],
+      "products": [
+        "CH2CHO"
+      ],
+      "E0_TS": 550677.2093090682,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "CH2COH"
+      ],
+      "products": [
+        "CH2CHO"
+      ],
+      "E0_TS": 287342.3426995827,
+      "Ea": 162779.16185333335
+    },
+    {
+      "network": "PDepNetwork #9",
+      "reactants": [
+        "CHCHOH"
+      ],
+      "products": [
+        "CH2CHO"
+      ],
+      "E0_TS": 332058.181270404,
+      "Ea": 192128.83733333336
+    },
+    {
+      "network": "PDepNetwork #10",
+      "reactants": [
+        "[CH2]C[O]"
+      ],
+      "products": [
+        "CH3CHO"
+      ],
+      "E0_TS": 388355.1563316402,
+      "Ea": 22861.375999999993
+    },
+    {
+      "network": "PDepNetwork #10",
+      "reactants": [
+        "ethenol"
+      ],
+      "products": [
+        "CH3CHO"
+      ],
+      "E0_TS": 158573.6338258941,
+      "Ea": 119026.0
+    },
+    {
+      "network": "PDepNetwork #10",
+      "reactants": [
+        "H",
+        "CH2CHO"
+      ],
+      "products": [
+        "CH3CHO"
+      ],
+      "E0_TS": 396157.90827841556,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #11",
+      "reactants": [
+        "CH2(S)",
+        "CH4"
+      ],
+      "products": [
+        "C2H6"
+      ],
+      "E0_TS": 430866.41285839485,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #12",
+      "reactants": [
+        "CH3",
+        "CHCH3(T)"
+      ],
+      "products": [
+        "ipropyl"
+      ],
+      "E0_TS": 405410.207636057,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #12",
+      "reactants": [
+        "H",
+        "C[C]C"
+      ],
+      "products": [
+        "ipropyl"
+      ],
+      "E0_TS": 465005.9333861695,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #12",
+      "reactants": [
+        "H",
+        "C3H6"
+      ],
+      "products": [
+        "ipropyl"
+      ],
+      "E0_TS": 149329.9304787,
+      "Ea": 6568.88
+    },
+    {
+      "network": "PDepNetwork #12",
+      "reactants": [
+        "H",
+        "C3H6(T)"
+      ],
+      "products": [
+        "ipropyl"
+      ],
+      "E0_TS": 421649.8797116481,
+      "Ea": 0.0
+    },
+    {
+      "network": "PDepNetwork #12",
+      "reactants": [
+        "ipropyl"
+      ],
+      "products": [
+        "npropyl"
+      ],
+      "E0_TS": 168615.0,
+      "Ea": 168615.0
+    }
+  ]
+}

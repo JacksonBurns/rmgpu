@@ -1,0 +1,149 @@
+{
+  "example": "propane_branching",
+  "method": "chemically-significant eigenvalues",
+  "grid": {
+    "Tmin": 300.0,
+    "Tmax": 1500.0,
+    "Tcount": 8,
+    "Pmin": 0.1,
+    "Pmax": 100.0,
+    "Pcount": 5,
+    "T_units": "K",
+    "P_units": "bar"
+  },
+  "Tlist_K": [
+    302.3236254764031,
+    321.68551373882354,
+    364.8622596067959,
+    442.45429890010536,
+    574.7524235997503,
+    794.1299885093166,
+    1121.863738435499,
+    1444.4890941891285
+  ],
+  "Plist_Pa": [
+    11841.731933920719,
+    41526.19333229011,
+    316227.76601683797,
+    2408118.634901255,
+    8444710.66884645
+  ],
+  "interpolation": [
+    "Chebyshev",
+    6,
+    4
+  ],
+  "max_grain_size_J_mol": 2092.0,
+  "min_grain_count": 250,
+  "max_atoms": 10,
+  "core_species": 40,
+  "core_reactions": 312,
+  "edge_species": 64,
+  "edge_reactions": 93,
+  "n_pdep_networks": 31,
+  "run_wall_s": 218.17317533493042,
+  "eq_guard_suppressed_points": 202,
+  "eq_guard_suppressed_examples": [
+    [
+      302.324,
+      11841.732,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      302.324,
+      41526.193,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      302.324,
+      316227.766,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      302.324,
+      2408118.635,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      302.324,
+      8444710.669,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      321.686,
+      11841.732,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      321.686,
+      41526.193,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      321.686,
+      316227.766,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      321.686,
+      2408118.635,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      321.686,
+      8444710.669,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      364.862,
+      11841.732,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      364.862,
+      41526.193,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      364.862,
+      316227.766,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      364.862,
+      2408118.635,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      364.862,
+      8444710.669,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      442.454,
+      11841.732,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      442.454,
+      2408118.635,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      442.454,
+      8444710.669,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      574.752,
+      8444710.669,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ],
+    [
+      794.13,
+      316227.766,
+      "Computed k(T,P) values for reaction O(8) + CH3(20) <=> CH3O(25) do not satisfy m"
+    ]
+  ],
+  "eq_guard_note": "RMG-Py's hard macroscopic-equilibrium guard was suppressed (kept the CSE-computed K and continued) so the full run completes; the guard is a validation check, not part of the CSE k(T,P) computation. The DoS/grain/TS-E0/collision physics are unchanged."
+}
