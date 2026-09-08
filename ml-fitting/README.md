@@ -11,6 +11,3 @@ Notes for model development:
  - some quantities are definitionally positive, bounded, etc.
     - add an extra output activation on chemprop fnn, not via normal output_transform because it is not applied during train, but could subclass! 
    - also need to move the log part of it into the transform, not preprocessing?
-
-TODO:
- - how to handle different A units - even needed at all? everything (almost, only a few not) in rmgdb is in cm, mol, and s
