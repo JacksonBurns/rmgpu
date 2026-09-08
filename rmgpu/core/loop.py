@@ -1,9 +1,8 @@
 """The core/edge mechanism-growth loop (job-06, the "moment of truth").
 
 Wires the modules jobs 01-05 built into the real iteration loop that
-``rmgpu run`` drives (rmgpy/rmg/main.py ``execute`` ported; gas-phase,
-HPL/pressure-independent kinetics - the pdep stub; job 07 turns pdep on in
-both rmgpu and the RMG-Py reference):
+``rmgpu run`` drives (rmgpy/rmg/main.py ``execute`` ported; gas-phase;
+job 07 turns pdep on in both rmgpu and the RMG-Py reference):
 
   enlarge    families (job 05) -> generate_reactions over core-core pairs
              (and core-edge when ``react_edge``) -> each product molecule
@@ -11,14 +10,23 @@ both rmgpu and the RMG-Py reference):
              kinetics via the job-04 resolvers (library -> ML ->
              MLCoverageError, never a third branch) -> new reactions +
              species into the edge.
+  pdep       job-07/step-06 (was the HPL stub): when the input carries a
+             pressure_dependence block, run the pdep driver (rmgpu/pdep/
+             driver.py) for the registered networks and attach the fitted
+             Falloffs to the reactions' RateParams - RMG model.py
+             update_unimolecular_reaction_networks (after enlarge, before
+             simulate). The production network state builder (statmech ->
+             DoS -> fluxes) lands in job-07/step-07 (the gate).
   simulate   the current mechanism in the torchdae reactor (job 06/01)
-             over a timescale set by the characteristic rate.
+             over a timescale set by the characteristic rate. Rates use
+             k(T,P) at the reactor conditions (a Falloff when attached,
+             else the HPL A(T)).
   screen     species/reactions by rate-ratio vs the characteristic rate
              (RMG-Py base.pyx): above ``tolerance_move_to_core`` -> core;
              below ``tolerance_keep_in_edge`` -> dropped; else edge.
-  iterate    enlarge -> simulate -> screen -> prune until the core/edge
-             signature is unchanged (RMG's steady-state criterion) or
-             ``max_iterations``.
+  iterate    enlarge -> pdep -> simulate -> screen -> prune until the
+             core/edge signature is unchanged (RMG's steady-state criterion)
+             or ``max_iterations``.
 
 No fallbacks: anything neither the libraries nor the ML checkpoints cover
 is a recorded coverage gap (dropped, counted in ``EstimationCounts``), never
@@ -27,8 +35,11 @@ a silent rate-rule / group-additivity value (PLAN 14).
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 from rmgpu.core.model import CoreEdgeReactionModel, Reaction, Species
 from rmgpu.core import enumeration as enum
@@ -135,6 +146,20 @@ class RunContext:
     termination_conversion: Optional[Dict[str, float]] = None
     seed_mechanisms_species: List[Species] = field(default_factory=list)
     seed_mechanisms_reactions: List[Reaction] = field(default_factory=list)
+    # job-07/step-06 (pdep): the YAML pressure_dependence block (method, T/P
+    # grid, interpolation_model) - when present, pressure-dependent families
+    # get Falloff kinetics via the pdep driver instead of the HPL stub.
+    pressure_dependence: Optional[object] = None
+    # job-07/step-06 (pdep): the production network STATE source. A dict
+    # reaction_key -> (network, PDepReaction) is not enough - the Network's
+    # per-T state (DoS, fluxes, collision) comes from the statmech->DoS->
+    # fluxes builder. In step 06 the GATE (step 07) wires that builder; the
+    # seam here is a callable: T -> {reaction_key: per-T state dict}. When
+    # None, the pdep hook is a no-op (HPL rates stand in).
+    pdep_state_provider: Optional[object] = None
+    # job-07/step-06 (pdep): the per-reaction network registry built by the
+    # driver's network assembly: reaction_key -> (PDepNetwork, PDepReaction).
+    pdep_reactions: Optional[Dict[str, Tuple[object, object]]] = None
 
 
 @dataclass
@@ -173,6 +198,15 @@ class CoreEdgeLoop:
         self._ml_batch: List[dict] = []
         self._ml_batch_size: int = 64
         self._thermo_batch: List[Species] = []
+        # job-07/step-06 (pdep): the HPL-stub replacement (RMG model.py
+        # update_unimolecular_reaction_networks, called after enlarge -
+        # reactions estimated + thermo applied - and before simulate).
+        # Per-network solve bookkeeping: the last reaction-key signature each
+        # network was solved for (RMG marks a network invalid on change and
+        # re-solves; we re-solve when its reaction set changes).
+        self._pdep_solved_sig: Dict[int, frozenset] = {}
+        self._pdep_wall_s: float = 0.0
+        self._pdep_results: Dict[str, object] = {}   # network label -> PDepResult
 
     # -- species ----------------------------------------------------------
     def _register_species(self, mol: Molecule, label_hint: Optional[str],
@@ -575,7 +609,7 @@ class CoreEdgeLoop:
         1-D boolean indexing; every term here is a shape-(n_steps,) vector.
         """
         import numpy as np
-        from rmgpu.reactor.simulator import forward_A_T, reverse_factor
+        from rmgpu.reactor.simulator import forward_A_TP, reverse_factor
         tol_core = self.ctx.config.tolerance_move_to_core
         tol_keep = self.ctx.config.tolerance_keep_in_edge
         n_sp = len(sim["keys"])
@@ -608,7 +642,7 @@ class CoreEdgeLoop:
         # Per-rxn reaction/product orders (2-D-safe via np.where).
         n_react = np.where(nmat < 0, -nmat, 0.0).sum(axis=1)
         n_prod = np.where(nmat > 0, nmat, 0.0).sum(axis=1)
-        A_T = np.array([forward_A_T(rp, T) for rp in sim["rps"]], dtype=float)
+        A_T = np.array([forward_A_TP(rp, T, P) for rp in sim["rps"]], dtype=float)
         rev_t = np.array(
             [reverse_factor(rp, T, float(n_prod[j] - n_react[j]))
              for j, rp in enumerate(sim["rps"])], dtype=float)
@@ -645,6 +679,67 @@ class CoreEdgeLoop:
         self._last_sp_ratio = sp_ratio
         log.info("_screen: done, promote %d, demote %d", len(promote), len(demote))
         return promote, demote
+
+    # -- pdep (job-07/step-06): the HPL-stub replacement -------------------- #
+    def _pdep_update(self, iteration: int) -> None:
+        """Run the pdep driver for the pressure-dependent networks and attach
+        the fitted Falloffs to the reactions' RateParams (job-07/step-06 loop
+        wiring - replaces job 06's HPL stub for pdep families).
+
+        RMG's call site (rmgpy/rmg/model.py:812-815): after the reactions are
+        estimated and thermo is applied (enlarge), BEFORE the simulate/screen
+        that consumes k(T,P) at the reactor conditions. Selection of WHICH
+        reactions get pdep is the family metadata in RMG; in rmgpu it is
+        embodied by ``ctx.pdep_reactions`` - the driver/network registry built
+        by the production network-state builder (job-07 gate, step 07):
+        reaction_key -> (PDepNetwork, PDepReaction). Reactions not in the
+        registry keep their HPL rates. A network is (re)solved only when its
+        reaction-key set changed since the last solve (RMG's
+        invalid-network marking, collapsed to a signature check).
+
+        No-op (loud once, then quiet) when there is no pressure_dependence
+        block or no network registry yet - the production state builder lands
+        in step 07 (the gate); this step ships the wiring the gate plugs into.
+        """
+        block = self.ctx.pressure_dependence
+        registry = self.ctx.pdep_reactions
+        if block is None or not registry:
+            return
+        from rmgpu.pdep import driver as pdep_driver
+        # Group the registry by network object (several reactions per network).
+        by_net: Dict[int, List[Tuple[str, object]]] = {}
+        for rxn_key, entry in registry.items():
+            pdn, prxn = entry
+            if rxn_key in self.reactions:
+                by_net.setdefault(id(pdn), []).append((rxn_key, prxn))
+        for net_id, entries in by_net.items():
+            sig = frozenset(k for k, _ in entries)
+            if self._pdep_solved_sig.get(net_id) == sig:
+                continue  # network unchanged since the last solve
+            pdn = self.ctx.pdep_reactions[entries[0][0]][0]
+            log.info("pdep: solving network %r (%d reactions) iteration %d",
+                     pdn.label, len(entries), iteration)
+            t0 = time.time()
+            result = pdep_driver.run_pdep(
+                pdn, block=block, output_dir=None, error_check=False)
+            self._pdep_wall_s += time.time() - t0
+            self._pdep_solved_sig[net_id] = sig
+            self._pdep_results[pdn.label] = result
+            n_attached = 0
+            for rxn_key, prxn in entries:
+                if prxn.kinetics is not None and rxn_key in self.reactions:
+                    rp = self.reactions[rxn_key]["rp"]
+                    rp.falloff = prxn.kinetics
+                    rp.source = "pdep"
+                    n_attached += 1
+            max_log_rms = max(
+                (r.fit_log_rms for r in result.reactions
+                 if np.isfinite(r.fit_log_rms)),
+                default=float("nan"))
+            log.info("pdep: network %r solved in %.2fs - %d Falloffs attached "
+                     "(%d reactions, grid %dx%d, max log_rms %.4f)",
+                     pdn.label, time.time() - t0, n_attached, len(entries),
+                     len(result.Tlist), len(result.Plist), max_log_rms)
 
     def _is_seed_key(self, key: str) -> bool:
         """True when the species behind this canonical key was introduced by a
@@ -729,6 +824,10 @@ class CoreEdgeLoop:
                    len(self.model.edge.reactions)))
             log.debug("Iteration %d: enlarge", iteration)
             self.enlarge(iteration)
+            # job-07/step-06 (pdep): after the reactions are estimated +
+            # thermo applied (enlarge) and before simulate/screen consumes
+            # k(T,P) - RMG model.py:812-815. No-op when no pdep block/registry.
+            self._pdep_update(iteration)
             log.debug("Iteration %d: simulate", iteration)
             profiles, promote_keys, demote_keys = self.simulate(iteration)
             log.info("Iteration %d: simulate done – promote %d, demote %d", iteration, len(promote_keys) if promote_keys else 0, len(demote_keys) if demote_keys else 0)

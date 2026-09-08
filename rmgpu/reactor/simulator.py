@@ -52,7 +52,7 @@ import torch
 import torchdae
 torch.set_default_dtype(torch.float32)
 
-from rmgpu.kinetics.models import R  # 8.314472 (RMG-Py parity)
+from rmgpu.kinetics.models import KineticsModel, R  # R = 8.314472 (RMG-Py parity)
 
 
 @dataclass
@@ -73,7 +73,13 @@ class RateParam:
     family: Optional[str] = None
     template: Optional[List[str]] = None
     degeneracy: float = 1.0
-    source: str = "ml"    # 'ml' | 'library'
+    source: str = "ml"    # 'ml' | 'library' | 'pdep'
+    # job-07/step-06 (pdep): the fitted Falloff model (Chebyshev or
+    # PDepArrhenius) attached by the pdep driver. When present,
+    # ``forward_A_TP`` evaluates the rate at the reactor (T, P) - the
+    # Arrhenius A/n/Ea fields become the high-pressure-limit anchor only
+    # (kept for bookkeeping / the reverse factor).
+    falloff: Optional["KineticsModel"] = None
 
 
 @dataclass
@@ -124,6 +130,20 @@ def forward_A_T(rp: RateParam, T: float) -> float:
     else:
         a = rp.A * (T / rp.T0) ** rp.n * math.exp(arg)
     return a
+
+
+def forward_A_TP(rp: RateParam, T: float, P: float) -> float:
+    """The forward pre-exponential factor at (T, P), SI.
+
+    job-07/step-06 (pdep): when the rate carries a fitted Falloff (the
+    pdep driver's Chebyshev / PDepArrhenius, evaluated at the reactor's
+    (T, P)), return it directly - the falloff model already IS k(T,P) in
+    SI units (its fit grid was the SI k(T,P) matrix from the master
+    equation). Otherwise (HPL Arrhenius) this is the plain A_j(T).
+    """
+    if rp.falloff is not None:
+        return float(rp.falloff.get_rate_coefficient(T, P))
+    return forward_A_T(rp, T)
 
 
 def _choose_device():
@@ -210,7 +230,10 @@ def simulate_mole_fractions(
     dnu_t = torch.tensor(dnu_list, dtype=torch.float64, device=device)
 
     c_tot = P / (R * T)
-    A_T = torch.tensor([forward_A_T(rp, T) for rp in rps],
+    # pdep: the forward factor is k(T,P) when a Falloff is attached (job-07/
+    # step-06), else the HPL A_j(T) - P is threaded here (it was already a
+    # parameter, used only for c_tot).
+    A_T = torch.tensor([forward_A_TP(rp, T, P) for rp in rps],
                        dtype=torch.float64, device=device)
     rev_t = torch.tensor([reverse_factor(rp, T, float(dnu_list[j]))
                           for j, rp in enumerate(rps)],
@@ -300,7 +323,7 @@ def characteristic_rate(nu: List[List[float]], rps: List[RateParam], T: float,
     c_tot = P / (R * T)
     maxr = 0.0
     for j, rp in enumerate(rps):
-        aT = forward_A_T(rp, T)
+        aT = forward_A_TP(rp, T, P)
         n_react = sum(-m for m in nu[j] if m < 0)
         prod = 1.0
         for i in range(n_sp):

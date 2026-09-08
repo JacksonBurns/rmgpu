@@ -298,6 +298,10 @@ def run(input_path: str, out_root: str | None = None,
         reaction_libraries=list(db_block.reaction_libraries or []) if db_block else None,
         termination_time=t_term,
         termination_conversion=conv,
+        # job-07/step-06 (pdep): the YAML pressure_dependence block drives the
+        # pdep driver (method, T/P grid, interpolation model). When absent,
+        # the loop's pdep hook is a no-op (HPL rates stand in).
+        pressure_dependence=getattr(model_input, "pressure_dependence", None),
     )
     # Attach seed mechanism data to context via extra attributes
     # (RunContext is a dataclass; we extend it dynamically for job-06 seed support)
